@@ -1,0 +1,23 @@
+# Ignore vscode stuff
+.vscode/
+
+# Ignore binary outfiles
+*.elf
+*.hex
+*.bin
+*.out
+
+# Ignore text files
+*.txt
+
+# Ignore doxygen output
+doxy/
+
+# Ignore gdb files
+*.gdb
+
+# ignore scratch files
+scratch/
+
+# ignore python virtual environment
+.venv/
