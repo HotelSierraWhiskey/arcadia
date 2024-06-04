@@ -137,14 +137,16 @@ UNIFIED = unified
 UNIFIED_BUILD_DIR = build
 
 $(UNIFIED_BUILD_DIR)/$(APP_BASENAME).bin: $(APP_BUILD_DIR)/$(APP_BASENAME).elf
-	$(OBJCOPY) -O binary $(APP_BUILD_DIR)/$(APP_BASENAME).elf $(UNIFIED_BUILD_DIR)/$(APP_BASENAME).bin
+	$(OBJCOPY) -O binary -j .text -j .data $(APP_BUILD_DIR)/$(APP_BASENAME).elf $(UNIFIED_BUILD_DIR)/$(APP_BASENAME).bin
 
-# Usage: objcopy [option(s)] in-file [out-file]
-# /opt/cxc/bin/arm-none-eabi-objcopy -I binary -O elf32-littlearm --set-start=0x1ff00000 --add-section .text=stm32h7.bin --change-section-address .text=0x1ff00000 -R .data stm32h7{.bin,.elf}
-$(UNIFIED).elf: $(BOOTLOADER_BUILD_DIR)/$(BOOTLOADER_BASENAME).elf $(UNIFIED_BUILD_DIR)/$(APP_BASENAME).bin
-	$(OBJCOPY) -I binary -O elf32-littlearm --set-start=0x0008000 --add-section .text=$(UNIFIED_BUILD_DIR)/$(APP_BASENAME).bin --change-section-address .text=0x0008000 \
-	$(BOOTLOADER_BUILD_DIR)/$(BOOTLOADER_BASENAME).elf
-	mv $(BOOTLOADER_BUILD_DIR)/$(BOOTLOADER_BASENAME).elf $(UNIFIED_BUILD_DIR)/$(UNIFIED).elf
+$(UNIFIED_BUILD_DIR)/$(BOOTLOADER_BASENAME).bin: $(BOOTLOADER_BUILD_DIR)/$(BOOTLOADER_BASENAME).elf
+	$(OBJCOPY) -O binary -j .text -j .data $(BOOTLOADER_BUILD_DIR)/$(BOOTLOADER_BASENAME).elf $(UNIFIED_BUILD_DIR)/$(BOOTLOADER_BASENAME).bin
+
+$(UNIFIED).elf: $(UNIFIED_BUILD_DIR)/$(BOOTLOADER_BASENAME).bin $(UNIFIED_BUILD_DIR)/$(APP_BASENAME).bin
+	$(OBJCOPY) -I binary -O elf32-littlearm --set-start=0x00000000 \
+	--add-section .boot_text=$(UNIFIED_BUILD_DIR)/$(BOOTLOADER_BASENAME).bin --change-section-address .boot_text=0x00000000 \
+	--add-section .app_text=$(UNIFIED_BUILD_DIR)/$(APP_BASENAME).bin --change-section-address .app_text=0x0008000 \
+	-R .data $(UNIFIED_BUILD_DIR)/$(BOOTLOADER_BASENAME).bin $(UNIFIED_BUILD_DIR)/$(UNIFIED).elf
 
 .PHONY:
 clean_unified:
