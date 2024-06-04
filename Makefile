@@ -6,7 +6,6 @@ CC = arm-none-eabi-gcc
 CCLD = arm-none-eabi-ld
 OBJCOPY = arm-none-eabi-objcopy
 
-BUILD_DIR = build
 COMMON_DIR = common
 
 COMMON_FLAGS = \
@@ -15,8 +14,6 @@ COMMON_FLAGS = \
 	-std=c17 \
 	-nostartfiles \
 	-Os
-
-OUTFILE = firmware.hex
 
 # **************************************************************************** #
 # A P P   S T U F F
@@ -136,9 +133,23 @@ clean_bootloader:
 # U N I F I E D   F I R M W A R E   S T U F F
 # **************************************************************************** #
 
-unified.elf: bootloader.o app.o
-	$(CCLD) -T linkerscripts/unified.ld -o build/unified.elf bootloader/build/bootloader.o app/build/app.o
+UNIFIED = unified
+UNIFIED_BUILD_DIR = build
+
+$(UNIFIED_BUILD_DIR)/$(APP_BASENAME).bin: $(APP_BUILD_DIR)/$(APP_BASENAME).elf
+	$(OBJCOPY) -O binary $(APP_BUILD_DIR)/$(APP_BASENAME).elf $(UNIFIED_BUILD_DIR)/$(APP_BASENAME).bin
+
+# Usage: objcopy [option(s)] in-file [out-file]
+# /opt/cxc/bin/arm-none-eabi-objcopy -I binary -O elf32-littlearm --set-start=0x1ff00000 --add-section .text=stm32h7.bin --change-section-address .text=0x1ff00000 -R .data stm32h7{.bin,.elf}
+$(UNIFIED).elf: $(BOOTLOADER_BUILD_DIR)/$(BOOTLOADER_BASENAME).elf $(UNIFIED_BUILD_DIR)/$(APP_BASENAME).bin
+	$(OBJCOPY) -I binary -O elf32-littlearm --set-start=0x0008000 --add-section .text=$(UNIFIED_BUILD_DIR)/$(APP_BASENAME).bin --change-section-address .text=0x0008000 \
+	$(BOOTLOADER_BUILD_DIR)/$(BOOTLOADER_BASENAME).elf
+	mv $(BOOTLOADER_BUILD_DIR)/$(BOOTLOADER_BASENAME).elf $(UNIFIED_BUILD_DIR)/$(UNIFIED).elf
 
 .PHONY:
-clean: clean_app clean_bootloader
+clean_unified:
+	rm -rf $(UNIFIED_BUILD_DIR)/*
+
+.PHONY:
+clean: clean_app clean_bootloader clean_unified
 

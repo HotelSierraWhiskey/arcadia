@@ -5,8 +5,16 @@
 
 #define DELAY 100000
 
+
 int main(void)
 {
+
+    // safeloop
+    for (uint32_t i = 0; i < 400000; i++)
+    {
+        __asm("nop");
+    }
+
     CLOCK_osc8m_init();
     CLOCK_gclock_init(CLOCK_GCLOCK_ID_0, CLOCK_SOURCE_OSC8M);
 

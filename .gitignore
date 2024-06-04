@@ -1,11 +1,12 @@
 # Ignore vscode stuff
 .vscode/
 
-# Ignore binary outfiles
+# Ignore outfiles
 *.elf
 *.hex
 *.bin
 *.out
+*.o
 
 # Ignore text files
 *.txt
