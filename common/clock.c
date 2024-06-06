@@ -8,7 +8,11 @@ void CLOCK_osc8m_init(void)
 
 void CLOCK_gclock_init(const CLOCK_gclock_id gclock_id, const CLOCK_source_t source)
 {
-	GCLK_REGS->GCLK_GENCTRL = GCLK_CLKCTRL_ID(GCLK_CLKCTRL_GEN_GCLK0) | GCLK_GENCTRL_SRC(GCLK_GENCTRL_SRC_OSC8M) | GCLK_GENCTRL_IDC(1) | GCLK_GENCTRL_OE(1) | GCLK_GENCTRL_GENEN(1) | GCLK_GENCTRL_OOV(1);
+	GCLK_REGS->GCLK_GENCTRL = 	GCLK_CLKCTRL_ID(gclock_id) |	// GCLK ID
+								GCLK_GENCTRL_SRC(source) |		// Clock source
+								GCLK_GENCTRL_IDC(1) |			// Improved duty cycle
+								GCLK_GENCTRL_GENEN(1) |			// Enable
+								GCLK_GENCTRL_OOV(1);			// Set GCLK_IO high when clock generator is turned off
 
 	// Wait for register synchronization
 	while (GCLK_REGS->GCLK_STATUS & GCLK_STATUS_SYNCBUSY(1))
