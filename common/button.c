@@ -31,11 +31,11 @@ static void BUTTON_read(const BUTTON_id_t button)
 	const IO_pin_designation_t pin = BUTTON_map[button].pin;
 	const IO_pin_config_t *pin_config = IO_get_pin_config(pin);
 	const uint8_t ku8_port = (const uint8_t)pin_config->port;
-	const uint8_t ku8_number = pin_config->ku8_number - 1;
+	const uint8_t ku8_index = pin_config->ku8_mcu_pin_number - 1;
 
 	BUTTON_map[button].u32_history <<= 1;
 
-	if (!(PORT_REGS->GROUP[ku8_port].PORT_IN & (1 << (ku8_number))))
+	if (!(PORT_REGS->GROUP[ku8_port].PORT_IN & (1 << (ku8_index))))
 	{
 		BUTTON_map[button].u32_history |= 1;
 	}

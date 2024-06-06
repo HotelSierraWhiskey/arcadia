@@ -1,12 +1,15 @@
 #include "io.h"
 
+#define IO_NOT_A_GPIO 0xFF
+
 IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 {
 	[IO_PIN_PA00] =
 	{
 		.kpc_name = "BOOT_BUTTON",
 		.port = IO_PORT_A,
-		.ku8_number = 1,
+		.ku8_mcu_pin_number = 1,
+		.ku8_gpio_pin_number = 0,
 		.direction = IO_DIRECTION_INPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -14,7 +17,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "DEBUG_BUTTON",
 		.port = IO_PORT_A,
-		.ku8_number = 2,
+		.ku8_mcu_pin_number = 2,
+		.ku8_gpio_pin_number = 1,
 		.direction = IO_DIRECTION_INPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -22,7 +26,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "DEBUG_LED_1",
 		.port = IO_PORT_A,
-		.ku8_number = 3,
+		.ku8_mcu_pin_number = 3,
+		.ku8_gpio_pin_number = 2,
 		.direction = IO_DIRECTION_OUTPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -30,7 +35,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "DEBUG_LED_2",
 		.port = IO_PORT_A,
-		.ku8_number = 4,
+		.ku8_mcu_pin_number = 4,
+		.ku8_gpio_pin_number = 3,
 		.direction = IO_DIRECTION_OUTPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -38,7 +44,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "DEBUG_LED_3",
 		.port = IO_PORT_A,
-		.ku8_number = 5,
+		.ku8_mcu_pin_number = 5,
+		.ku8_gpio_pin_number = 4,
 		.direction = IO_DIRECTION_OUTPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -46,7 +53,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "DEBUG_LED_4",
 		.port = IO_PORT_A,
-		.ku8_number = 6,
+		.ku8_mcu_pin_number = 6,
+		.ku8_gpio_pin_number = 5,
 		.direction = IO_DIRECTION_OUTPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -54,7 +62,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "UNUSED",
 		.port = IO_PORT_A,
-		.ku8_number = 7,
+		.ku8_mcu_pin_number = 7,
+		.ku8_gpio_pin_number = 6,
 		.direction = IO_DIRECTION_OUTPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -62,7 +71,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "UNUSED",
 		.port = IO_PORT_A,
-		.ku8_number = 8,
+		.ku8_mcu_pin_number = 8,
+		.ku8_gpio_pin_number = 7,
 		.direction = IO_DIRECTION_OUTPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -70,7 +80,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "UNUSED",
 		.port = IO_PORT_A,
-		.ku8_number = 11,
+		.ku8_mcu_pin_number = 11,
+		.ku8_gpio_pin_number = 8,
 		.direction = IO_DIRECTION_OUTPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -78,7 +89,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "UNUSED",
 		.port = IO_PORT_A,
-		.ku8_number = 12,
+		.ku8_mcu_pin_number = 12,
+		.ku8_gpio_pin_number = 9,
 		.direction = IO_DIRECTION_OUTPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -86,7 +98,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "APP_UART_TX",
 		.port = IO_PORT_A,
-		.ku8_number = 13,
+		.ku8_mcu_pin_number = 13,
+		.ku8_gpio_pin_number = 10,
 		.direction = IO_DIRECTION_OUTPUT,
 		.peripheral = IO_PERIPHERAL_SERCOM_UART
 	},
@@ -94,7 +107,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "APP_UART_RX",
 		.port = IO_PORT_A,
-		.ku8_number = 14,
+		.ku8_mcu_pin_number = 14,
+		.ku8_gpio_pin_number = 11,
 		.direction = IO_DIRECTION_INPUT,
 		.peripheral = IO_PERIPHERAL_SERCOM_UART
 	},
@@ -102,7 +116,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "EXT_FLASH_CS",
 		.port = IO_PORT_A,
-		.ku8_number = 15,
+		.ku8_mcu_pin_number = 15,
+		.ku8_gpio_pin_number = 14,
 		.direction = IO_DIRECTION_INPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -110,7 +125,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "EXT_FLASH_SCK",
 		.port = IO_PORT_A,
-		.ku8_number = 16,
+		.ku8_mcu_pin_number = 16,
+		.ku8_gpio_pin_number = 15,
 		.direction = IO_DIRECTION_INPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -118,7 +134,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "EXT_FLASH_DI",
 		.port = IO_PORT_A,
-		.ku8_number = 17,
+		.ku8_mcu_pin_number = 17,
+		.ku8_gpio_pin_number = 16,
 		.direction = IO_DIRECTION_INPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -126,7 +143,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "EXT_FLASH_DO",
 		.port = IO_PORT_A,
-		.ku8_number = 18,
+		.ku8_mcu_pin_number = 18,
+		.ku8_gpio_pin_number = 17,
 		.direction = IO_DIRECTION_INPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -134,7 +152,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "EXT_FLASH_WP",
 		.port = IO_PORT_A,
-		.ku8_number = 19,
+		.ku8_mcu_pin_number = 19,
+		.ku8_gpio_pin_number = 18,
 		.direction = IO_DIRECTION_INPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -142,7 +161,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "EXT_FLASH_HOLD",
 		.port = IO_PORT_A,
-		.ku8_number = 20,
+		.ku8_mcu_pin_number = 20,
+		.ku8_gpio_pin_number = 19,
 		.direction = IO_DIRECTION_INPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -150,7 +170,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "UNUSED",
 		.port = IO_PORT_A,
-		.ku8_number = 21,
+		.ku8_mcu_pin_number = 21,
+		.ku8_gpio_pin_number = 22,
 		.direction = IO_DIRECTION_OUTPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -158,7 +179,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "UNUSED",
 		.port = IO_PORT_A,
-		.ku8_number = 22,
+		.ku8_mcu_pin_number = 22,
+		.ku8_gpio_pin_number = 23,
 		.direction = IO_DIRECTION_OUTPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -166,7 +188,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "DEBUG_UART_TX",
 		.port = IO_PORT_A,
-		.ku8_number = 23,
+		.ku8_mcu_pin_number = 23,
+		.ku8_gpio_pin_number = 24,
 		.direction = IO_DIRECTION_OUTPUT,
 		.peripheral = IO_PERIPHERAL_SERCOM_UART
 	},
@@ -174,7 +197,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "DEBUG_UART_RX",
 		.port = IO_PORT_A,
-		.ku8_number = 24,
+		.ku8_mcu_pin_number = 24,
+		.ku8_gpio_pin_number = 25,
 		.direction = IO_DIRECTION_INPUT,
 		.peripheral = IO_PERIPHERAL_SERCOM_UART
 	},
@@ -182,7 +206,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "UNUSED",
 		.port = IO_PORT_A,
-		.ku8_number = 25,
+		.ku8_mcu_pin_number = 25,
+		.ku8_gpio_pin_number = 27,
 		.direction = IO_DIRECTION_OUTPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -190,7 +215,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "UNUSED",
 		.port = IO_PORT_A,
-		.ku8_number = 27,
+		.ku8_mcu_pin_number = 27,
+		.ku8_gpio_pin_number = 28,
 		.direction = IO_DIRECTION_OUTPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -198,7 +224,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "SWD_CLK",
 		.port = IO_PORT_A,
-		.ku8_number = 31,
+		.ku8_mcu_pin_number = 31,
+		.ku8_gpio_pin_number = 30,
 		.direction = IO_DIRECTION_OUTPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -206,7 +233,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "SWD_DATA",
 		.port = IO_PORT_A,
-		.ku8_number = 32,
+		.ku8_mcu_pin_number = 32,
+		.ku8_gpio_pin_number = 31,
 		.direction = IO_DIRECTION_OPEN_DRAIN,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -214,7 +242,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 	{
 		.kpc_name = "RESET_BUTTON",
 		.port = IO_PORT_A,
-		.ku8_number = 32,
+		.ku8_mcu_pin_number = 32,
+		.ku8_gpio_pin_number = IO_NOT_A_GPIO,
 		.direction = IO_DIRECTION_OPEN_DRAIN,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
@@ -227,39 +256,72 @@ void IO_init(void)
 
 void IO_pin_gpio_init(const IO_pin_designation_t pin)
 {
-	uint8_t u8_port = IO_pin_map[pin].port;
-	uint8_t u8_number = IO_pin_map[pin].ku8_number - 1;
+	const uint8_t ku8_port = IO_pin_map[pin].port;
+	const uint8_t ku8_shift = IO_pin_map[pin].ku8_mcu_pin_number - 1;
 
 	if (IO_pin_map[pin].direction == IO_DIRECTION_OUTPUT)
 	{
-		PORT_REGS->GROUP[u8_port].PORT_PINCFG[u8_number] &= ~PORT_PINCFG_INEN(1);
-        PORT_REGS->GROUP[u8_port].PORT_DIRSET |= (1 << u8_number);
+		PORT_REGS->GROUP[ku8_port].PORT_PINCFG[ku8_shift] &= ~PORT_PINCFG_INEN(1);
+        PORT_REGS->GROUP[ku8_port].PORT_DIRSET |= (1 << ku8_shift);
 	}
 	else
 	{
-        PORT_REGS->GROUP[u8_port].PORT_DIRCLR |= (1 << u8_number);
-		PORT_REGS->GROUP[u8_port].PORT_PINCFG[u8_number] |= PORT_PINCFG_INEN(1);
-		// PORT_REGS->GROUP[u8_port].PORT_CTRL |= (1 << u8_number); // sampling on demand
+        PORT_REGS->GROUP[ku8_port].PORT_DIRCLR |= (1 << ku8_shift);
+		PORT_REGS->GROUP[ku8_port].PORT_PINCFG[ku8_shift] |= PORT_PINCFG_INEN(1);
 	}
 }
 
 void IO_pin_assert(const IO_pin_designation_t pin)
 {
-	uint8_t u8_port = IO_pin_map[pin].port;
-	uint8_t u8_number = IO_pin_map[pin].ku8_number - 1;
+	const uint8_t ku8_port = IO_pin_map[pin].port;
+	const uint8_t ku8_shift = IO_pin_map[pin].ku8_mcu_pin_number - 1;
 
-	PORT_REGS->GROUP[u8_port].PORT_OUTSET |= (1 << u8_number);
+	PORT_REGS->GROUP[ku8_port].PORT_OUTSET |= (1 << ku8_shift);
 }
 
 void IO_pin_deassert(const IO_pin_designation_t pin)
 {
-	uint8_t u8_port = IO_pin_map[pin].port;
-	uint8_t u8_number = IO_pin_map[pin].ku8_number - 1;
+	const uint8_t ku8_port = IO_pin_map[pin].port;
+	const uint8_t ku8_shift = IO_pin_map[pin].ku8_mcu_pin_number - 1;
 	
-	PORT_REGS->GROUP[u8_port].PORT_OUTCLR |= (1 << u8_number);
+	PORT_REGS->GROUP[ku8_port].PORT_OUTCLR |= (1 << ku8_shift);
 }
 
 const IO_pin_config_t *IO_get_pin_config(const IO_pin_designation_t pin)
 {
 	return (const IO_pin_config_t *)&IO_pin_map[pin];
+}
+
+void IO_pin_pmux_enable(const IO_pin_designation_t pin, const IO_peripheral_function_t function)
+{
+	const IO_pin_config_t *config = IO_get_pin_config(pin);
+	const uint8_t ku8_gpio = config->ku8_gpio_pin_number;
+
+	PORT_REGS->GROUP[config->port].PORT_PINCFG[ku8_gpio] |= PORT_PINCFG_PMUXEN(1);
+
+	if (ku8_gpio % 2)
+	{
+		PORT_REGS->GROUP[0].PORT_PMUX[ku8_gpio / 2] |= PORT_PMUX_PMUXO(function);
+	}
+	else
+	{
+		PORT_REGS->GROUP[0].PORT_PMUX[ku8_gpio / 2] |= PORT_PMUX_PMUXE(function);
+	}
+}
+
+void IO_pin_pmux_disable(const IO_pin_designation_t pin, const IO_peripheral_function_t function)
+{
+	const IO_pin_config_t *config = IO_get_pin_config(pin);
+	const uint8_t ku8_gpio = config->ku8_gpio_pin_number;
+
+	PORT_REGS->GROUP[config->port].PORT_PINCFG[ku8_gpio] |= PORT_PINCFG_PMUXEN(0);
+
+	if (ku8_gpio % 2)
+	{
+		PORT_REGS->GROUP[0].PORT_PMUX[ku8_gpio / 2] &= ~PORT_PMUX_PMUXO(function);
+	}
+	else
+	{
+		PORT_REGS->GROUP[0].PORT_PMUX[ku8_gpio / 2] &= ~PORT_PMUX_PMUXE(function);
+	}
 }

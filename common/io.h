@@ -60,16 +60,31 @@ typedef enum
 	IO_PERIPHERAL_SERCOM_UART,
 	//
 	IO_NUM_PERIPHERALS
-} IO_peripheral_t;
+} IO_peripheral_id_t;
+
+typedef enum
+{
+	IO_PERIPHERAL_FUNCTION_A,
+	IO_PERIPHERAL_FUNCTION_B,
+	IO_PERIPHERAL_FUNCTION_C,
+	IO_PERIPHERAL_FUNCTION_D,
+	IO_PERIPHERAL_FUNCTION_E,
+	IO_PERIPHERAL_FUNCTION_F,
+	IO_PERIPHERAL_FUNCTION_G,
+	IO_PERIPHERAL_FUNCTION_H,
+	//
+	IO_NUM_PERIPHERAL_FUNCTIONS
+} IO_peripheral_function_t;
 
 /// Contains configuration information relevant to a single pin.
 typedef struct _IO_pin_config
 {
-	const char 		kpc_name[IO_PIN_NAME_MAX_LEN];
-	IO_port_t		port;
-	const uint8_t 	ku8_number;
-	IO_direction_t	direction;
-	IO_peripheral_t peripheral;
+	const char 			kpc_name[IO_PIN_NAME_MAX_LEN];
+	IO_port_t			port;
+	const uint8_t 		ku8_mcu_pin_number;
+	const uint8_t		ku8_gpio_pin_number;
+	IO_direction_t		direction;
+	IO_peripheral_id_t 	peripheral;
 } IO_pin_config_t;
 
 void 					IO_init				(void);
@@ -77,6 +92,8 @@ void 					IO_pin_gpio_init	(const IO_pin_designation_t pin);
 void 					IO_pin_assert		(const IO_pin_designation_t pin);
 void 					IO_pin_deassert		(const IO_pin_designation_t pin);
 const IO_pin_config_t *	IO_get_pin_config	(const IO_pin_designation_t pin);
+void 					IO_pin_pmux_enable	(const IO_pin_designation_t pin, const IO_peripheral_function_t function);
+void 					IO_pin_pmux_disable	(const IO_pin_designation_t pin, const IO_peripheral_function_t function);
 
 
 #endif // IO_MAP

@@ -37,6 +37,7 @@ int main(void)
             IO_pin_assert(IO_PIN_PA03);
             IO_pin_assert(IO_PIN_PA04);
             IO_pin_assert(IO_PIN_PA05);
+            CLOCK_main_clock_output_enable(IO_PIN_PA27);
         }
         else
         {
@@ -44,6 +45,7 @@ int main(void)
             IO_pin_deassert(IO_PIN_PA03);
             IO_pin_deassert(IO_PIN_PA04);
             IO_pin_deassert(IO_PIN_PA05);
+            CLOCK_main_clock_output_disable(IO_PIN_PA27);
         }
     }
 }
