@@ -287,6 +287,14 @@ void IO_pin_deassert(const IO_pin_designation_t pin)
 	PORT_REGS->GROUP[ku8_port].PORT_OUTCLR |= (1 << ku8_shift);
 }
 
+void IO_pin_toggle(const IO_pin_designation_t pin)
+{
+	const uint8_t ku8_port = IO_pin_map[pin].port;
+	const uint8_t ku8_shift = IO_pin_map[pin].ku8_mcu_pin_number - 1;
+
+	PORT_REGS->GROUP[ku8_port].PORT_OUTTGL |= (1 << ku8_shift);
+}
+
 const IO_pin_config_t *IO_get_pin_config(const IO_pin_designation_t pin)
 {
 	return (const IO_pin_config_t *)&IO_pin_map[pin];
