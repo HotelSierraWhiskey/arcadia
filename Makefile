@@ -38,6 +38,7 @@ APP_VPATH = $(APP_BASEDIR)/main.c \
 	$(COMMON_DIR)/button.c \
 	$(COMMON_DIR)/clock.c \
 	$(COMMON_DIR)/error.c \
+	$(COMMON_DIR)/systick.c 
 
 # matching .o files from APP_VPATH
 APP_OBJECTS = $(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(wildcard $(APP_VPATH))))
