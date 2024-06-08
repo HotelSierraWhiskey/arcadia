@@ -2,9 +2,9 @@
 #include "io.h"
 
 
-// Theoretically 4MHz main clock frequency divided by 1000 ticks (desired, per second) minus one
+// Theoretically 8MHz main clock frequency divided by 1000 ticks (desired, per second) minus one
 // Calibrated manually against actual main clock frequency
-#define SYSTICK_RELOAD (3757)
+#define SYSTICK_RELOAD (8029)
 
 static uint32_t u32_ticks = 0;
 

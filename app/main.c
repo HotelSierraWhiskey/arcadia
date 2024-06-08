@@ -53,6 +53,8 @@ int main(void)
     IO_pin_gpio_init(IO_PIN_PA06);
 
     SYSTICK_init();
+    CLOCK_main_clock_output_enable(IO_PIN_PA27);
+
 
     while (true)
     {

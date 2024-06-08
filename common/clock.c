@@ -3,7 +3,10 @@
 
 void CLOCK_osc8m_init(void)
 {
-	SYSCTRL_REGS->SYSCTRL_OSC8M = SYSCTRL_OSC8M_PRESC_0 | SYSCTRL_OSC8M_ENABLE(1);
+	SYSCTRL_REGS->SYSCTRL_OSC8M = 	SYSCTRL_OSC8M_PRESC(0) | 							// No Prescalar
+									SYSCTRL_OSC8M_FRANGE(SYSCTRL_OSC8M_FRANGE_2_Val) |	// Set Frequency Range
+									SYSCTRL_OSC8M_CALIB(0x1B) | 						// Manual Calibration
+									SYSCTRL_OSC8M_ENABLE(1);							// Enable
 }
 
 void CLOCK_gclock_init(const CLOCK_gclock_id gclock_id, const CLOCK_source_t source)
@@ -11,8 +14,8 @@ void CLOCK_gclock_init(const CLOCK_gclock_id gclock_id, const CLOCK_source_t sou
 	GCLK_REGS->GCLK_GENCTRL = 	GCLK_CLKCTRL_ID(gclock_id) |	// GCLK ID
 								GCLK_GENCTRL_SRC(source) |		// Clock source
 								GCLK_GENCTRL_IDC(1) |			// Improved duty cycle
-								GCLK_GENCTRL_GENEN(1) |			// Enable
-								GCLK_GENCTRL_OOV(1);			// Set GCLK_IO high when clock generator is turned off
+								GCLK_GENCTRL_OOV(1) |			// Set GCLK_IO high when clock generator is turned off
+								GCLK_GENCTRL_GENEN(1);			// Enable
 
 	// Wait for register synchronization
 	while (GCLK_REGS->GCLK_STATUS & GCLK_STATUS_SYNCBUSY(1))
