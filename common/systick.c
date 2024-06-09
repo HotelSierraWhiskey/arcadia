@@ -2,7 +2,7 @@
 #include "io.h"
 
 
-// Theoretically 8MHz main clock frequency divided by 1000 ticks (desired, per second) minus one
+// Theoretically, 8MHz main clock frequency divided by 1000 ticks (desired, per second) minus one
 // Calibrated manually against actual main clock frequency
 #define SYSTICK_RELOAD (8029)
 
@@ -16,7 +16,7 @@ void SYSTICK_init(void)
 
 void irqSysTick(void)
 {
-	// u32_ticks++;
+	u32_ticks++;
 	IO_pin_toggle(IO_PIN_PA06);
 }
 

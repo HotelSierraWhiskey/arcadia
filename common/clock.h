@@ -5,6 +5,9 @@
 #include "io.h"
 
 
+#define CLOCK_FREQ	8000000
+
+
 typedef enum
 {
 	CLOCK_GCLOCK_ID_0 = GCLK_CLKCTRL_GEN_GCLK0,

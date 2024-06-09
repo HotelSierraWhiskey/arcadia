@@ -31,7 +31,7 @@ static void BUTTON_read(const BUTTON_id_t button)
 	const IO_pin_designation_t pin = BUTTON_map[button].pin;
 	const IO_pin_config_t *pin_config = IO_get_pin_config(pin);
 	const uint8_t ku8_port = (const uint8_t)pin_config->port;
-	const uint8_t ku8_index = pin_config->ku8_mcu_pin_number - 1;
+	const uint8_t ku8_index = pin_config->ku8_gpio_pin_number;
 
 	BUTTON_map[button].u32_history <<= 1;
 

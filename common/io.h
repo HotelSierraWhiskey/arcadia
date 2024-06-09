@@ -81,7 +81,6 @@ typedef struct _IO_pin_config
 {
 	const char 			kpc_name[IO_PIN_NAME_MAX_LEN];
 	IO_port_t			port;
-	const uint8_t 		ku8_mcu_pin_number;
 	const uint8_t		ku8_gpio_pin_number;
 	IO_direction_t		direction;
 	IO_peripheral_id_t 	peripheral;
