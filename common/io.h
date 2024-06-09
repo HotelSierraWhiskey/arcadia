@@ -91,6 +91,7 @@ void 					IO_pin_gpio_init	(const IO_pin_designation_t pin);
 void 					IO_pin_assert		(const IO_pin_designation_t pin);
 void 					IO_pin_deassert		(const IO_pin_designation_t pin);
 void 					IO_pin_toggle		(const IO_pin_designation_t pin);
+bool					IO_pin_read			(const IO_pin_designation_t pin);
 const IO_pin_config_t *	IO_get_pin_config	(const IO_pin_designation_t pin);
 void 					IO_pin_pmux_enable	(const IO_pin_designation_t pin, const IO_peripheral_function_t function);
 void 					IO_pin_pmux_disable	(const IO_pin_designation_t pin, const IO_peripheral_function_t function);

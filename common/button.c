@@ -29,13 +29,10 @@ static BUTTON_map_entry_t BUTTON_map[BUTTON_ID_NUM_BUTTONS] =
 static void BUTTON_read(const BUTTON_id_t button)
 {
 	const IO_pin_designation_t pin = BUTTON_map[button].pin;
-	const IO_pin_config_t *pin_config = IO_get_pin_config(pin);
-	const uint8_t ku8_port = (const uint8_t)pin_config->port;
-	const uint8_t ku8_index = pin_config->ku8_gpio_pin_number;
 
 	BUTTON_map[button].u32_history <<= 1;
 
-	if (!(PORT_REGS->GROUP[ku8_port].PORT_IN & (1 << (ku8_index))))
+	if (!IO_pin_read(pin))
 	{
 		BUTTON_map[button].u32_history |= 1;
 	}

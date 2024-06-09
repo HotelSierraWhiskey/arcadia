@@ -249,7 +249,7 @@ void IO_pin_assert(const IO_pin_designation_t pin)
 	const uint8_t ku8_port = IO_pin_map[pin].port;	
 	const uint8_t ku8_shift = IO_pin_map[pin].ku8_gpio_pin_number;
 
-	PORT_REGS->GROUP[ku8_port].PORT_OUTSET |= (1 << ku8_shift);
+	PORT_REGS->GROUP[ku8_port].PORT_OUTSET = (1 << ku8_shift);
 }
 
 void IO_pin_deassert(const IO_pin_designation_t pin)
@@ -257,7 +257,7 @@ void IO_pin_deassert(const IO_pin_designation_t pin)
 	const uint8_t ku8_port = IO_pin_map[pin].port;	
 	const uint8_t ku8_shift = IO_pin_map[pin].ku8_gpio_pin_number;
 	
-	PORT_REGS->GROUP[ku8_port].PORT_OUTCLR |= (1 << ku8_shift);
+	PORT_REGS->GROUP[ku8_port].PORT_OUTCLR = (1 << ku8_shift);
 }
 
 void IO_pin_toggle(const IO_pin_designation_t pin)
@@ -265,12 +265,20 @@ void IO_pin_toggle(const IO_pin_designation_t pin)
 	const uint8_t ku8_port = IO_pin_map[pin].port;	
 	const uint8_t ku8_shift = IO_pin_map[pin].ku8_gpio_pin_number;
 
-	PORT_REGS->GROUP[ku8_port].PORT_OUTTGL |= (1 << ku8_shift);
+	PORT_REGS->GROUP[ku8_port].PORT_OUTTGL = (1 << ku8_shift);
 }
 
 const IO_pin_config_t *IO_get_pin_config(const IO_pin_designation_t pin)
 {
 	return (const IO_pin_config_t *)&IO_pin_map[pin];
+}
+
+bool IO_pin_read(const IO_pin_designation_t pin)
+{
+	const uint8_t ku8_port = IO_pin_map[pin].port;	
+	const uint8_t ku8_shift = IO_pin_map[pin].ku8_gpio_pin_number;
+
+	return PORT_REGS->GROUP[ku8_port].PORT_IN & (1 << ku8_shift);
 }
 
 void IO_pin_pmux_enable(const IO_pin_designation_t pin, const IO_peripheral_function_t function)
