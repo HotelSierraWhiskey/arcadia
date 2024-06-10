@@ -54,16 +54,11 @@ int main(void)
     IO_pin_gpio_init(IO_PIN_PA04);  // output: debug led 3
     IO_pin_gpio_init(IO_PIN_PA05);  // output: debug led 4
 
-    // CLOCK_main_clock_output_enable(IO_PIN_PA27);
-
-    // UART_init();
+    UART_init();
     IO_pin_assert(IO_PIN_PA02);
 
     while (true)
     {
-        // blink();
-        // UART_tx_char('U');
-
         BUTTON_update_buttons();
 
         if (BUTTON_is_pressed(BUTTON_ID_DEBUG))
@@ -72,6 +67,7 @@ int main(void)
             IO_pin_assert(IO_PIN_PA03);
             IO_pin_assert(IO_PIN_PA04);
             IO_pin_assert(IO_PIN_PA05);
+            // UART_tx_char('U');
         }
         else
         {
