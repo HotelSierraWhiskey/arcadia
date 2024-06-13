@@ -41,10 +41,14 @@ int main(void)
     }
 
     CLOCK_osc8m_init();
+
     CLOCK_gclock_init(CLOCK_GCLOCK_ID_0, CLOCK_SOURCE_OSC8M);
+
     SYSTICK_init();
 
     IO_init();
+
+    UART_init();
 
     IO_pin_gpio_init(IO_PIN_PA00);  // input: boot button
     IO_pin_gpio_init(IO_PIN_PA01);  // input: debug button
@@ -54,7 +58,6 @@ int main(void)
     IO_pin_gpio_init(IO_PIN_PA04);  // output: debug led 3
     IO_pin_gpio_init(IO_PIN_PA05);  // output: debug led 4
 
-    UART_init();
     IO_pin_assert(IO_PIN_PA02);
 
     while (true)
@@ -63,7 +66,7 @@ int main(void)
 
         if (BUTTON_is_pressed(BUTTON_ID_DEBUG))
         {
-            // IO_pin_assert(IO_PIN_PA02);
+            IO_pin_assert(IO_PIN_PA02);
             IO_pin_assert(IO_PIN_PA03);
             IO_pin_assert(IO_PIN_PA04);
             IO_pin_assert(IO_PIN_PA05);
@@ -71,7 +74,7 @@ int main(void)
         }
         else
         {
-            // IO_pin_deassert(IO_PIN_PA02);
+            IO_pin_deassert(IO_PIN_PA02);
             IO_pin_deassert(IO_PIN_PA03);
             IO_pin_deassert(IO_PIN_PA04);
             IO_pin_deassert(IO_PIN_PA05);

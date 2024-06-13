@@ -17,7 +17,7 @@ void SYSTICK_init(void)
 void irqSysTick(void)
 {
 	u32_ticks++;
-	IO_pin_toggle(IO_PIN_PA06);
+	// IO_pin_toggle(IO_PIN_PA06);
 }
 
 uint32_t SYSTICK_get_ticks(void)

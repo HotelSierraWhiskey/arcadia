@@ -65,7 +65,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 		.kpc_name = "UNUSED",
 		.port = IO_PORT_A,
 		.ku8_gpio_pin_number = 7,
-		.direction = IO_DIRECTION_OUTPUT,
+		// .direction = IO_DIRECTION_OUTPUT,
+		.direction = IO_DIRECTION_INPUT,
 		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
 	},
 	[IO_PIN_PA08] =
@@ -74,7 +75,7 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 		.port = IO_PORT_A,
 		.ku8_gpio_pin_number = 8,
 		.direction = IO_DIRECTION_OUTPUT,
-		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
+		.peripheral = IO_PERIPHERAL_SERCOM_UART
 	},
 	[IO_PIN_PA09] =
 	{
@@ -82,7 +83,7 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 		.port = IO_PORT_A,
 		.ku8_gpio_pin_number = 9,
 		.direction = IO_DIRECTION_OUTPUT,
-		.peripheral = IO_PERIPHERAL_NOT_A_PERIPHERAL
+		.peripheral = IO_PERIPHERAL_SERCOM_UART
 	},
 	[IO_PIN_PA10] =
 	{
@@ -97,7 +98,8 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 		.kpc_name = "APP_UART_RX",
 		.port = IO_PORT_A,
 		.ku8_gpio_pin_number = 11,
-		.direction = IO_DIRECTION_INPUT,
+		// .direction = IO_DIRECTION_INPUT,
+		.direction = IO_DIRECTION_OUTPUT,
 		.peripheral = IO_PERIPHERAL_SERCOM_UART
 	},
 	[IO_PIN_PA14] =
@@ -178,6 +180,7 @@ IO_pin_config_t IO_pin_map[IO_PIN_NUM_PINS] =
 		.port = IO_PORT_A,
 		.ku8_gpio_pin_number = 25,
 		.direction = IO_DIRECTION_INPUT,
+		// .direction = IO_DIRECTION_OUTPUT,
 		.peripheral = IO_PERIPHERAL_SERCOM_UART
 	},
 	[IO_PIN_PA27] =
@@ -288,13 +291,13 @@ void IO_pin_pmux_enable(const IO_pin_designation_t pin, const IO_peripheral_func
 
 	PORT_REGS->GROUP[config->port].PORT_PINCFG[ku8_gpio] |= PORT_PINCFG_PMUXEN(1);
 
-	if (ku8_gpio % 2)
+	if (ku8_gpio % 2 != 0)
 	{
-		PORT_REGS->GROUP[config->port].PORT_PMUX[ku8_gpio / 2] |= PORT_PMUX_PMUXO(function);
+		PORT_REGS->GROUP[config->port].PORT_PMUX[ku8_gpio >> 1] |= PORT_PMUX_PMUXO(function);
 	}
 	else
 	{
-		PORT_REGS->GROUP[config->port].PORT_PMUX[ku8_gpio / 2] |= PORT_PMUX_PMUXE(function);
+		PORT_REGS->GROUP[config->port].PORT_PMUX[ku8_gpio >> 1] |= PORT_PMUX_PMUXE(function);
 	}
 }
 
@@ -305,12 +308,12 @@ void IO_pin_pmux_disable(const IO_pin_designation_t pin, const IO_peripheral_fun
 
 	PORT_REGS->GROUP[config->port].PORT_PINCFG[ku8_gpio] |= PORT_PINCFG_PMUXEN(0);
 
-	if (ku8_gpio % 2)
+	if (ku8_gpio % 2 != 0)
 	{
-		PORT_REGS->GROUP[config->port].PORT_PMUX[ku8_gpio / 2] &= ~PORT_PMUX_PMUXO(function);
+		PORT_REGS->GROUP[config->port].PORT_PMUX[ku8_gpio >> 1] &= ~PORT_PMUX_PMUXO(function);
 	}
 	else
 	{
-		PORT_REGS->GROUP[config->port].PORT_PMUX[ku8_gpio / 2] &= ~PORT_PMUX_PMUXE(function);
+		PORT_REGS->GROUP[config->port].PORT_PMUX[ku8_gpio >> 1] &= ~PORT_PMUX_PMUXE(function);
 	}
 }
