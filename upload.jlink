@@ -1,0 +1,7 @@
+Device ATSAMC21E18A
+SelectInterface SWD
+Speed 4000
+LoadFile build/app.elf
+ResetX 10
+Go
+Exit

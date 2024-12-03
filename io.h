@@ -1,0 +1,55 @@
+#ifndef IO_H
+#define IO_H
+
+#include "common.h"
+
+typedef enum _IO_pin_id
+{
+	IO_PIN_ID_PA00 = 0,
+	IO_PIN_ID_PA01,
+	IO_PIN_ID_PA02,
+	IO_PIN_ID_PA03,
+	IO_PIN_ID_PA04,
+	IO_PIN_ID_PA05,
+	IO_PIN_ID_PA06,
+	IO_PIN_ID_PA07,
+	IO_PIN_ID_PA08,
+	IO_PIN_ID_PA09,
+	IO_PIN_ID_PA10,
+	IO_PIN_ID_PA11,
+	IO_PIN_ID_PA14,
+	IO_PIN_ID_PA15,
+	IO_PIN_ID_PA16,
+	IO_PIN_ID_PA17,
+	IO_PIN_ID_PA18,
+	IO_PIN_ID_PA19,
+	IO_PIN_ID_PA22,
+	IO_PIN_ID_PA23,
+	IO_PIN_ID_PA24,
+	IO_PIN_ID_PA25,
+	IO_PIN_ID_PA27,
+	IO_PIN_ID_PA28,
+	IO_PIN_ID_PA30,
+	IO_PIN_ID_PA31,
+	//////////
+	IO_PIN_ID_NUM_PINS
+} IO_pin_id_t;
+
+typedef enum _IO_peripheral_function
+{
+	IO_PERIPHERAL_FUNCTION_A = 0,
+	IO_PERIPHERAL_FUNCTION_B,
+	IO_PERIPHERAL_FUNCTION_C,
+	IO_PERIPHERAL_FUNCTION_D,
+	IO_PERIPHERAL_FUNCTION_E,
+	IO_PERIPHERAL_FUNCTION_F,
+	IO_PERIPHERAL_FUNCTION_G,
+	IO_PERIPHERAL_FUNCTION_H,
+	IO_PERIPHERAL_FUNCTION_I,
+	//////////
+	IO_PERIPHERAL_FUNCTION_NUM_FUNCTIONS,
+} IO_peripheral_function_t;
+
+void IO_enable_peripheral_function_for_pin(IO_pin_id_t pin_id, IO_peripheral_function_t peripheral_function);
+
+#endif // IO_H
