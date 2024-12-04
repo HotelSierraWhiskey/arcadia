@@ -1,5 +1,5 @@
 #include "sys.h"
-#include "nvmctrl.h"
+#include "io.h"
 
 int main(int argc, char ** argv) 
 {

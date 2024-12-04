@@ -1,5 +1,15 @@
 #include "io.h"
 
+/****************************************************************************************************
+ *	T Y P E D E F S
+ ****************************************************************************************************/
+
+/**
+ *	An enumerated type for PORT groups
+ *	
+ *	@note 
+ *	The SAMC21E18A implements PORT A only
+ */
 typedef enum _IO_group
 {
 	IO_GROUP_A = 0,
@@ -7,6 +17,9 @@ typedef enum _IO_group
 	IO_GROUP_NUM_GROUPS
 } IO_group_t;
 
+/**
+ *	A pin typedef where all information relevant to a given pin is tracked
+ */
 typedef struct _IO_pin
 {
 	const char *	kcp_name;
@@ -14,6 +27,13 @@ typedef struct _IO_pin
 	uint8_t			u8_number;
 } IO_pin_t;
 
+/****************************************************************************************************
+ *	P R I V A T E   V A R I A B L E S
+ ****************************************************************************************************/
+
+/**
+ *	The application pin map
+ */
 static const IO_pin_t pin_map[IO_PIN_ID_NUM_PINS] =
 {
 	[IO_PIN_ID_PA00] =
@@ -174,11 +194,31 @@ static const IO_pin_t pin_map[IO_PIN_ID_NUM_PINS] =
 	},
 };
 
+/****************************************************************************************************
+ *	F U N C T I O N S
+ ****************************************************************************************************/
+
+/****************************************************************************************************
+ *	Set the APB for the PORT peripheral
+ *
+ ****************************************************************************************************/
+void IO_init(void)
+{
+	MCLK_REGS->MCLK_APBBMASK |= MCLK_APBBMASK_PORT(1);
+}
+
+/****************************************************************************************************
+ *	Enables a peripheral function for the given pin
+ *  
+ *	@param[in] pin_id The ID of the desired pin
+ *	@param[in] peripheral_function The peripheral function to map to the pin
+ *
+ ****************************************************************************************************/
 void IO_enable_peripheral_function_for_pin(IO_pin_id_t pin_id, IO_peripheral_function_t peripheral_function)
 {
 	IO_pin_t pin = pin_map[pin_id];
 	bool b_odd = pin.u8_number & 1;
-	volatile uint8_t *u8_pmux_register = &PORT_REGS->GROUP[pin.group].PORT_PMUX[pin.u8_number / 2];
+	volatile uint8_t * u8_pmux_register = &PORT_REGS->GROUP[pin.group].PORT_PMUX[pin.u8_number / 2];
 
 	// Clear PMUXO/ PMUXE bits and set the new peripheral function
 	if (b_odd)
@@ -192,4 +232,80 @@ void IO_enable_peripheral_function_for_pin(IO_pin_id_t pin_id, IO_peripheral_fun
 
 	// Enable the peripheral multiplexer for the pin
 	PORT_REGS->GROUP[pin.group].PORT_PINCFG[pin.u8_number] |= PORT_PINCFG_PMUXEN(1);
+}
+
+/****************************************************************************************************
+ *	Disable a peripheral function for the given pin
+ *  
+ *	@param[in] pin_id The ID of the desired pin
+ *	@param[in] peripheral_function The peripheral function for which to disable the pin
+ *
+ ****************************************************************************************************/
+void IO_disable_peripheral_function_for_pin(IO_pin_id_t pin_id, IO_peripheral_function_t peripheral_function)
+{
+	IO_pin_t pin = pin_map[pin_id];
+	bool b_odd = pin.u8_number & 1;
+	volatile uint8_t * u8_pmux_register = &PORT_REGS->GROUP[pin.group].PORT_PMUX[pin.u8_number / 2];
+
+	// Clear the PMUXO/ PMUXE bits associated with the pin
+	if (b_odd)
+	{
+		*u8_pmux_register &= ~PORT_PMUX_PMUXO_Msk;
+	}
+	else
+	{
+		*u8_pmux_register &= ~PORT_PMUX_PMUXE_Msk;
+	}
+
+	// Disable the peripheral multiplexer for the pin
+	PORT_REGS->GROUP[pin.group].PORT_PINCFG[pin.u8_number] &= ~PORT_PINCFG_PMUXEN(1);
+}
+
+/****************************************************************************************************
+ *	Configure an IO pin for either input or output
+ *  
+ *	@param[in] pin_id The ID of the desired pin
+ *	@param[in] direction Input or output
+ *
+ ****************************************************************************************************/
+void IO_config_pin_direction(IO_pin_id_t pin_id, IO_pin_direction_t direction)
+{
+	// TODO: asserts
+	IO_pin_t pin = pin_map[pin_id];
+
+	PORT_REGS->GROUP[pin.group].PORT_DIR |= direction << pin.u8_number;
+}
+
+/****************************************************************************************************
+ *	Set an IO pin high or low
+ *  
+ *	@param[in] pin_id The ID of the desired pin
+ *	@param[in] state High or low
+ *
+ ****************************************************************************************************/
+void IO_set_pin(IO_pin_id_t pin_id, IO_pin_state_t state)
+{
+	IO_pin_t pin = pin_map[pin_id];
+
+	if (state == IO_PIN_STATE_HIGH)
+	{
+		PORT_REGS->GROUP[pin.group].PORT_OUTSET |= state << pin.u8_number;
+	}
+	else
+	{
+		PORT_REGS->GROUP[pin.group].PORT_OUTCLR |= state << pin.u8_number;
+	}
+}
+
+/****************************************************************************************************
+ *	Reads the signal level of a given pin
+ *  
+ *	@param[in] pin_id The ID of the desired pin
+ *
+ ****************************************************************************************************/
+IO_pin_state_t IO_read_pin(IO_pin_id_t pin_id)
+{
+	IO_pin_t pin = pin_map[pin_id];
+
+	return (IO_pin_state_t)PORT_REGS->GROUP[pin.group].PORT_IN & (1 << pin.u8_number);
 }

@@ -2,37 +2,65 @@
 #include "sys.h"
 #include "io.h"
 
-static void SYS_clock_init(void);
+/****************************************************************************************************
+ *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
+ ****************************************************************************************************/
 
+static void 	SYS_clock_init		(void);
+static void 	SYS_osc48m_init		(void);
+
+/****************************************************************************************************
+ *	F U N C T I O N S
+ ****************************************************************************************************/
+
+/****************************************************************************************************
+ *	Main system-level initialization
+ *
+ ****************************************************************************************************/
 void SYS_init(void)
 {
+	SYS_osc48m_init();
+
 	SYS_clock_init();
+
+	IO_init();
+
+	// Output the main clock signal on PA27
+	IO_enable_peripheral_function_for_pin(IO_PIN_ID_PA27, IO_PERIPHERAL_FUNCTION_H);
 }
 
-static void SYS_clock_init(void)
+/****************************************************************************************************
+ *	Initializes OSC48M (the internal 48MHz oscillator)
+ *
+ * 	FIXME: Why does OSCCTRL_OSC48MDIV_DIV_DIV1 cause an exception?
+ * 
+ ****************************************************************************************************/
+static void SYS_osc48m_init(void)
 {
-	NVMCTRL_REGS->NVMCTRL_CTRLB = NVMCTRL_CTRLB_RWS(1) | NVMCTRL_CTRLB_MANW(1);
-
-	while ((OSCCTRL_REGS->OSCCTRL_STATUS & OSCCTRL_STATUS_OSC48MRDY(1)) == 0)
-	{
-		continue;
-	}
-
+	// Enable in on-demand mode with a division factor of 2 (for 24MHz) with 21.33us startup delay
 	OSCCTRL_REGS->OSCCTRL_OSC48MCTRL = OSCCTRL_OSC48MCTRL_ENABLE(1) | OSCCTRL_OSC48MCTRL_ONDEMAND(1);
 	OSCCTRL_REGS->OSCCTRL_OSC48MDIV = OSCCTRL_OSC48MDIV_DIV_DIV2;
 	OSCCTRL_REGS->OSCCTRL_OSC48MSTUP = OSCCTRL_OSC48MSTUP_STARTUP_CYCLE1024;
 
+	// Wait for synchronization
 	while (OSCCTRL_REGS->OSCCTRL_OSC48MSYNCBUSY & OSCCTRL_OSC48MSYNCBUSY_OSC48MDIV(1))
 	{
 		continue;
 	}
 
-
+	// Stabilize
 	while ((OSCCTRL_REGS->OSCCTRL_STATUS & OSCCTRL_STATUS_OSC48MRDY(1)) == 0)
 	{
 		continue;
 	}
+}
 
+/****************************************************************************************************
+ *	Clock initialization
+ *
+ ****************************************************************************************************/
+static void SYS_clock_init(void)
+{
 	// Provide GCLK0 with OSC48M as a clock source
 	GCLK_REGS->GCLK_GENCTRL[0] = GCLK_GENCTRL_SRC(GCLK_GENCTRL_SRC_OSC48M) | 
                                  GCLK_GENCTRL_GENEN(1) |
@@ -40,10 +68,4 @@ static void SYS_clock_init(void)
 								 GCLK_GENCTRL_DIV(0) |
 								 GCLK_GENCTRL_IDC(1) |
                                  GCLK_GENCTRL_OE(1);
-
-	// Set the PORT's APB
-	MCLK_REGS->MCLK_APBBMASK |= MCLK_APBBMASK_PORT(1);
-
-	// Output the clock signal on PA27
-	IO_enable_peripheral_function_for_pin(IO_PIN_ID_PA27, IO_PERIPHERAL_FUNCTION_H);
 }

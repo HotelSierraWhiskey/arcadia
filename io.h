@@ -3,6 +3,15 @@
 
 #include "common.h"
 
+/****************************************************************************************************
+ *	T Y P E D E F S
+ ****************************************************************************************************/
+
+/**
+ *	Pin identifiers
+ *
+ * 	Used as indices in the application's pin map
+ */
 typedef enum _IO_pin_id
 {
 	IO_PIN_ID_PA00 = 0,
@@ -35,6 +44,9 @@ typedef enum _IO_pin_id
 	IO_PIN_ID_NUM_PINS
 } IO_pin_id_t;
 
+/**
+ *	Peripheral functions
+ */
 typedef enum _IO_peripheral_function
 {
 	IO_PERIPHERAL_FUNCTION_A = 0,
@@ -50,6 +62,41 @@ typedef enum _IO_peripheral_function
 	IO_PERIPHERAL_FUNCTION_NUM_FUNCTIONS,
 } IO_peripheral_function_t;
 
-void IO_enable_peripheral_function_for_pin(IO_pin_id_t pin_id, IO_peripheral_function_t peripheral_function);
+/**
+ *	Pin direction configurations
+ *	
+ *	(input/ output)
+ */
+typedef enum _IO_pin_direction
+{
+	IO_DIRECTION_INPUT = 0,
+	IO_DIRECTION_OUTPUT,
+	//////////
+	IO_DIRECTION_NUM_DIRECTIONS
+} IO_pin_direction_t;
+
+/**
+ *	Pin IO states
+ *	
+ *	(high/ low)
+ */
+typedef enum _IO_pin_state
+{
+	IO_PIN_STATE_LOW = 0,
+	IO_PIN_STATE_HIGH,
+	//////////
+	IO_PIN_STATE_NUM_STATES
+} IO_pin_state_t;
+
+/****************************************************************************************************
+ *	F U N C T I O N S
+ ****************************************************************************************************/
+
+void 			IO_init									(void);
+void			IO_enable_peripheral_function_for_pin	(IO_pin_id_t pin_id, IO_peripheral_function_t peripheral_function);
+void			IO_disable_peripheral_function_for_pin	(IO_pin_id_t pin_id, IO_peripheral_function_t peripheral_function);
+void			IO_config_pin_direction					(IO_pin_id_t pin_id, IO_pin_direction_t direction);
+void			IO_set_pin								(IO_pin_id_t pin_id, IO_pin_state_t state);
+IO_pin_state_t	IO_read_pin								(IO_pin_id_t pin_id);
 
 #endif // IO_H

@@ -2,17 +2,13 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-/*
- *	M A C R O S
- */
+/****************************************************************************************************
+ *	D E F I N E S
+ ****************************************************************************************************/
 
 /// This macro is used to alias undefined handlers as irqEMPTY_DEF until they're actually used
 #define NVIC_WEAK_IRQ(name) extern void __attribute__((weak, alias("irqEMPTY_DEF"))) name()
 #define NVIC_VECTOR_TABLE_SIZE (155)
-
-/*
- *	T Y P E D E F S
- */
 
 /// IRQ function pointer
 /// 
@@ -28,10 +24,9 @@ typedef struct _NVIC_table_t
     NVIC_irq_function_t	p_vector_table[NVIC_VECTOR_TABLE_SIZE];
 } NVIC_table_t;
 
-
-/*
+/****************************************************************************************************
  *	F U N C T I O N   P R O T O T Y P E S
- */
+ ****************************************************************************************************/
 
 /// Weakly linked *irqSysTick* handler
 NVIC_WEAK_IRQ(irqSysTick);
@@ -136,9 +131,9 @@ void irqHARD_FAULT();
 
 extern int main(void);
 
-/*
- *	P R I V A T E   V A R I A B L E S
- */
+/****************************************************************************************************
+ *	V A R I A B L E S
+ ****************************************************************************************************/
 
 /// *u32_stack_top* section variable (externed, provided by linkerscript)
 extern uint32_t u32_stack_top;
@@ -223,9 +218,9 @@ static const NVIC_table_t NVIC_table __attribute__((section(".nvic_table"), used
 };
 
 
-/*
- *	F U N C T I O N   D E F I N I T I O N S
- */
+/****************************************************************************************************
+ *	F U N C T I O N S
+ ****************************************************************************************************/
 
 /// Minimal memset implementation
 void* memset(void* s, int c, size_t n) {
@@ -278,7 +273,7 @@ void irqRESET()
 }
 
 /// Something has gone wrong. Get the process stack pointer or the main stack pointer, whichever's in use.
-/// Save the stack, trigger a breakpoint, spin in a deadloop. 
+/// Save the stack, trigger a breakpoint, spin in a deadloop.
 void irqHARD_FAULT(void)
 {
     __asm__(
