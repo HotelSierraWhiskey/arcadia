@@ -1,7 +1,7 @@
 #include "io.h"
 
 /****************************************************************************************************
- *	T Y P E D E F S
+ *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
 /**
@@ -199,11 +199,12 @@ static const IO_pin_t pin_map[IO_PIN_ID_NUM_PINS] =
  ****************************************************************************************************/
 
 /****************************************************************************************************
- *	Set the APB for the PORT peripheral
+ *	Initializes the IO Module
  *
  ****************************************************************************************************/
 void IO_init(void)
 {
+	// Set the APB for the PORT peripheral
 	MCLK_REGS->MCLK_APBBMASK |= MCLK_APBBMASK_PORT(1);
 }
 
@@ -302,6 +303,7 @@ void IO_set_pin(IO_pin_id_t pin_id, IO_pin_state_t state)
  *  
  *	@param[in] pin_id The ID of the desired pin
  *
+ *	@return The logical level of the pin
  ****************************************************************************************************/
 IO_pin_state_t IO_read_pin(IO_pin_id_t pin_id)
 {
