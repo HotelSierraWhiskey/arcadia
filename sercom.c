@@ -5,12 +5,12 @@
  *	V A R I A B L E S
  ****************************************************************************************************/
 
-static const uint8_t pu8_sercom_PCHCTRL_register_indices[SERCOM_CHANNEL_NUM_CHANNELS] =
+static const uint8_t pu8_sercom_PCHCTRL_register_indices[SERCOM_CHANNEL_ID_NUM_CHANNELS] =
 {
-	[SERCOM_CHANNEL_0] = 19,
-	[SERCOM_CHANNEL_1] = 20,
-	[SERCOM_CHANNEL_2] = 21,
-	[SERCOM_CHANNEL_3] = 22
+	[SERCOM_CHANNEL_ID_0] = 19,
+	[SERCOM_CHANNEL_ID_1] = 20,
+	[SERCOM_CHANNEL_ID_2] = 21,
+	[SERCOM_CHANNEL_ID_3] = 22
 };
 
 /****************************************************************************************************
@@ -26,7 +26,7 @@ static const uint8_t pu8_sercom_PCHCTRL_register_indices[SERCOM_CHANNEL_NUM_CHAN
  * 
  *	@return The control register index required by GCLK
  ****************************************************************************************************/
-uint8_t SERCOM_get_PCHCTRL_register_index(SERCOM_channel_t channel)
+uint8_t SERCOM_get_PCHCTRL_register_index(SERCOM_channel_id_t channel)
 {
 	return pu8_sercom_PCHCTRL_register_indices[channel];
 }

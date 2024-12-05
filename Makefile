@@ -25,7 +25,7 @@ APP_LDFLAGS = -T linkerscript.ld
 
 APP_INC = -Ilib/CMSIS_5/CMSIS/Core/Include -Ilib/samc21/include
 
-APP_VPATH = main.c nvic.c sys.c io.c
+APP_VPATH = main.c nvic.c sys.c io.c sercom.c uart.c
 
 # matching .o files from APP_VPATH
 APP_OBJECTS = $(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(wildcard $(APP_VPATH))))

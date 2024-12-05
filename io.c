@@ -311,3 +311,17 @@ IO_pin_state_t IO_read_pin(IO_pin_id_t pin_id)
 
 	return (IO_pin_state_t)PORT_REGS->GROUP[pin.group].PORT_IN & (1 << pin.u8_number);
 }
+
+void IO_enable_pullup(IO_pin_id_t pin_id)
+{
+	IO_pin_t pin = pin_map[pin_id];
+
+	PORT_REGS->GROUP[pin.group].PORT_PINCFG[pin.u8_number] |= PORT_PINCFG_PULLEN(1);
+}
+
+void IO_disable_pullup(IO_pin_id_t pin_id)
+{
+	IO_pin_t pin = pin_map[pin_id];
+
+	PORT_REGS->GROUP[pin.group].PORT_PINCFG[pin.u8_number] &= ~PORT_PINCFG_PULLEN(1);
+}

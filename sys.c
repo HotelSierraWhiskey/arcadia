@@ -37,6 +37,9 @@ void SYS_init(void)
  ****************************************************************************************************/
 static void SYS_osc48m_init(void)
 {
+	// Apparently this is required for 48MHz, but doesn't help with the issue
+	NVMCTRL_REGS->NVMCTRL_CTRLB = NVMCTRL_CTRLB_RWS_HALF;
+
 	// Enable in on-demand mode with a division factor of 2 (for 24MHz) with 21.33us startup delay
 	OSCCTRL_REGS->OSCCTRL_OSC48MCTRL = OSCCTRL_OSC48MCTRL_ENABLE(1) | OSCCTRL_OSC48MCTRL_ONDEMAND(1);
 	OSCCTRL_REGS->OSCCTRL_OSC48MDIV = OSCCTRL_OSC48MDIV_DIV_DIV2;

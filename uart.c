@@ -10,9 +10,10 @@ typedef struct _UART_channel
 {
 	IO_pin_id_t					rx_pin;
 	IO_pin_id_t					tx_pin;
-	uint8_t						rx_pad;
-	uint8_t						tx_pad;
-	SERCOM_channel_t			sercom;
+	uint32_t					u32_rx_pad;
+	uint32_t					u32_tx_pad;
+	SERCOM_channel_id_t			sercom_channel_id;
+	sercom_registers_t *		p_sercom_registers;
 	IO_peripheral_function_t	peripheral_function;
 } UART_channel_t;
 
@@ -26,9 +27,10 @@ static const UART_channel_t uart_channels[UART_CHANNEL_NUM_CHANNELS] =
 	{
 		.rx_pin 				= IO_PIN_ID_PA07,
 		.tx_pin 				= IO_PIN_ID_PA06,
-		.rx_pad 				= 3,
-		.tx_pad 				= 2,
-		.sercom 				= SERCOM_CHANNEL_0,
+		.u32_rx_pad 			= SERCOM_USART_INT_CTRLA_RXPO_PAD3,
+		.u32_tx_pad 			= SERCOM_USART_INT_CTRLA_TXPO_PAD2,
+		.sercom_channel_id 		= SERCOM_CHANNEL_ID_0,
+		.p_sercom_registers		= SERCOM0_REGS,
 		.peripheral_function 	= IO_PERIPHERAL_FUNCTION_D
 	}
 };
@@ -44,47 +46,80 @@ static const UART_channel_t uart_channels[UART_CHANNEL_NUM_CHANNELS] =
 void UART_init(UART_channel_id_t channel_id)
 {
 	UART_channel_t 			channel = uart_channels[channel_id];
-	uint8_t 				u8_PCHCTRL_register_index = SERCOM_get_PCHCTRL_register_index(channel.sercom);
-	sercom_registers_t * 	p_sercom_registers;
+	uint8_t 				u8_PCHCTRL_register_index = SERCOM_get_PCHCTRL_register_index(channel.sercom_channel_id);
 
 	GCLK_REGS->GCLK_PCHCTRL[u8_PCHCTRL_register_index] = GCLK_PCHCTRL_CHEN(1);
 
-	switch (channel.sercom)
+	switch (channel.sercom_channel_id)
 	{
-		case SERCOM_CHANNEL_0:
+		case SERCOM_CHANNEL_ID_0:
 			MCLK_REGS->MCLK_APBCMASK |= MCLK_APBCMASK_SERCOM0(1);
-			p_sercom_registers = SERCOM0_REGS;
 			break;
-		case SERCOM_CHANNEL_1:
+		case SERCOM_CHANNEL_ID_1:
 			MCLK_REGS->MCLK_APBCMASK |= MCLK_APBCMASK_SERCOM1(1);
-			p_sercom_registers = SERCOM1_REGS;
 			break;
-		case SERCOM_CHANNEL_2:
+		case SERCOM_CHANNEL_ID_2:
 			MCLK_REGS->MCLK_APBCMASK |= MCLK_APBCMASK_SERCOM2(1);
-			p_sercom_registers = SERCOM2_REGS;
 			break;
-		case SERCOM_CHANNEL_3:
+		case SERCOM_CHANNEL_ID_3:
 			MCLK_REGS->MCLK_APBCMASK |= MCLK_APBCMASK_SERCOM3(1);
-			p_sercom_registers = SERCOM3_REGS;
 			break;
+	}
+
+	while (channel.p_sercom_registers->USART_INT.SERCOM_SYNCBUSY & SERCOM_USART_INT_SYNCBUSY_ENABLE(1))
+	{
+		continue;
 	}
 
 	IO_enable_peripheral_function_for_pin(channel.rx_pin, channel.peripheral_function);
 	IO_enable_peripheral_function_for_pin(channel.tx_pin, channel.peripheral_function);
 
-	p_sercom_registers->USART_INT.SERCOM_BAUD |= 36000;
+	channel.p_sercom_registers->USART_INT.SERCOM_BAUD |= 36000;
 
-	p_sercom_registers->USART_INT.SERCOM_CTRLA = SERCOM_USART_INT_CTRLA_MODE_USART_INT_CLK |
-												 SERCOM_USART_INT_CTRLA_FORM_USART_FRAME_NO_PARITY |
-												 SERCOM_USART_INT_CTRLA_CMODE_ASYNC |
-												 SERCOM_USART_INT_CTRLA_DORD_LSB;
+	channel.p_sercom_registers->USART_INT.SERCOM_CTRLA =	SERCOM_USART_INT_CTRLA_MODE_USART_INT_CLK |
+															SERCOM_USART_INT_CTRLA_FORM_USART_FRAME_NO_PARITY |
+															SERCOM_USART_INT_CTRLA_CMODE_ASYNC |
+															SERCOM_USART_INT_CTRLA_DORD_LSB |
+															channel.u32_rx_pad |
+															channel.u32_tx_pad;
 
-	p_sercom_registers->USART_INT.SERCOM_CTRLB = SERCOM_USART_INT_CTRLB_TXEN(1) |
-												 SERCOM_USART_INT_CTRLB_RXEN(1) |
-												 SERCOM_USART_INT_CTRLB_CHSIZE_8_BIT |
-												 SERCOM_USART_INT_CTRLB_SBMODE_1_BIT;
+	channel.p_sercom_registers->USART_INT.SERCOM_CTRLB =	SERCOM_USART_INT_CTRLB_TXEN(1) |
+												 			SERCOM_USART_INT_CTRLB_RXEN(1) |
+												 			SERCOM_USART_INT_CTRLB_CHSIZE_8_BIT |
+												 			SERCOM_USART_INT_CTRLB_SBMODE_1_BIT;
 
-	p_sercom_registers->USART_INT.SERCOM_CTRLA |= SERCOM_USART_INT_CTRLA_ENABLE(1);
+	channel.p_sercom_registers->USART_INT.SERCOM_CTRLA |= SERCOM_USART_INT_CTRLA_ENABLE(1);
 
-	p_sercom_registers->USART_INT.SERCOM_INTENSET = SERCOM_SPIM_INTENSET_DRE(1) | SERCOM_SPIM_INTENSET_TXC(1);
+	// Wait to syncronize after enabling
+	while (channel.p_sercom_registers->USART_INT.SERCOM_SYNCBUSY & SERCOM_USART_INT_SYNCBUSY_ENABLE(1))
+	{
+		continue;
+	}
+
+	channel.p_sercom_registers->USART_INT.SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_DRE(1) |
+															SERCOM_USART_INT_INTENSET_TXC(1);
+}
+
+void UART_tx_char(UART_channel_id_t channel_id, char c)
+{
+	sercom_registers_t * p_sercom_registers = uart_channels[channel_id].p_sercom_registers;
+
+	p_sercom_registers->USART_INT.SERCOM_DATA = c;
+
+	while (p_sercom_registers->USART_INT.SERCOM_INTFLAG & SERCOM_SPIM_INTFLAG_TXC(1) != 1)
+	{
+		continue;
+	}
+}
+
+char UART_rx_char(UART_channel_id_t channel_id)
+{
+	sercom_registers_t * p_sercom_registers = uart_channels[channel_id].p_sercom_registers;
+
+	if (p_sercom_registers->USART_INT.SERCOM_INTFLAG & SERCOM_SPIM_INTFLAG_RXC(1))
+	{
+		return p_sercom_registers->USART_INT.SERCOM_DATA;
+	}
+
+	return 0;
 }

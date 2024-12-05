@@ -19,7 +19,7 @@ typedef enum _UART_channel_id
  ****************************************************************************************************/
 
 void	UART_init		(UART_channel_id_t channel_id);
-void	UART_tx_char	(char c);
-char	UART_rx_char	(void);
+void	UART_tx_char	(UART_channel_id_t channel_id, char c);
+char	UART_rx_char	(UART_channel_id_t channel_id);
 
 #endif // UART_H
