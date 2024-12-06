@@ -37,12 +37,19 @@ void SYS_init(void)
  ****************************************************************************************************/
 static void SYS_osc48m_init(void)
 {
-	// Apparently this is required for 48MHz, but doesn't help with the issue
-	NVMCTRL_REGS->NVMCTRL_CTRLB = NVMCTRL_CTRLB_RWS_HALF;
+	// Apparently this is required for 48MHz...
+	NVMCTRL_REGS->NVMCTRL_CTRLB |= NVMCTRL_CTRLB_RWS(1);
+
+	// Stabilize
+	while ((OSCCTRL_REGS->OSCCTRL_STATUS & OSCCTRL_STATUS_OSC48MRDY(1)) == 0)
+	{
+		continue;
+	}
 
 	// Enable in on-demand mode with a division factor of 2 (for 24MHz) with 21.33us startup delay
-	OSCCTRL_REGS->OSCCTRL_OSC48MCTRL = OSCCTRL_OSC48MCTRL_ENABLE(1) | OSCCTRL_OSC48MCTRL_ONDEMAND(1);
 	OSCCTRL_REGS->OSCCTRL_OSC48MDIV = OSCCTRL_OSC48MDIV_DIV_DIV2;
+	OSCCTRL_REGS->OSCCTRL_OSC48MCTRL = 	OSCCTRL_OSC48MCTRL_ENABLE(1) | 
+										OSCCTRL_OSC48MCTRL_ONDEMAND(1);
 	OSCCTRL_REGS->OSCCTRL_OSC48MSTUP = OSCCTRL_OSC48MSTUP_STARTUP_CYCLE1024;
 
 	// Wait for synchronization
@@ -65,10 +72,10 @@ static void SYS_osc48m_init(void)
 static void SYS_clock_init(void)
 {
 	// Provide GCLK0 with OSC48M as a clock source
-	GCLK_REGS->GCLK_GENCTRL[0] = GCLK_GENCTRL_SRC(GCLK_GENCTRL_SRC_OSC48M) | 
-                                 GCLK_GENCTRL_GENEN(1) |
-								 GCLK_GENCTRL_DIVSEL(0) |
-								 GCLK_GENCTRL_DIV(0) |
-								 GCLK_GENCTRL_IDC(1) |
-                                 GCLK_GENCTRL_OE(1);
+	GCLK_REGS->GCLK_GENCTRL[0] = 	GCLK_GENCTRL_SRC(GCLK_GENCTRL_SRC_OSC48M) | 
+                                	GCLK_GENCTRL_GENEN(1) |
+									GCLK_GENCTRL_DIVSEL(0) |
+									GCLK_GENCTRL_DIV(0) |
+									GCLK_GENCTRL_IDC(1) |
+                                	GCLK_GENCTRL_OE(1);
 }
