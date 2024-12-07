@@ -5,7 +5,9 @@
 int main(int argc, char ** argv) 
 {
 	SYS_init();
-	// UART_init(UART_CHANNEL_DEBUG);
+	UART_init(UART_CHANNEL_DEBUG);
+	// UART_init_dbg();
+
 	
 	// IO_config_pin_direction(IO_PIN_ID_PA06, IO_DIRECTION_OUTPUT);
 	// IO_enable_pullup(IO_PIN_ID_PA06);

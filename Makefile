@@ -66,3 +66,7 @@ clean_app:
 .PHONY:
 upload_app:
 	make compile_app && $(JLINK) -CommanderScript upload.jlink
+
+.PHONY:
+gdb_server:
+	JLinkGDBServer -device ATSAMC21E18 -if SWD -speed 4000

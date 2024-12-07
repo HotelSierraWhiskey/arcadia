@@ -100,5 +100,7 @@ void			IO_set_pin								(IO_pin_id_t pin_id, IO_pin_state_t state);
 IO_pin_state_t	IO_read_pin								(IO_pin_id_t pin_id);
 void			IO_enable_pullup						(IO_pin_id_t pin_id);
 void			IO_disable_pullup						(IO_pin_id_t pin_id);
+void			IO_enable_strong_drive_strength			(IO_pin_id_t pin_id);
+void			IO_disable_strong_drive_strength		(IO_pin_id_t pin_id);
 
 #endif // IO_H

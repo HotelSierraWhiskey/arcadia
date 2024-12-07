@@ -325,3 +325,17 @@ void IO_disable_pullup(IO_pin_id_t pin_id)
 
 	PORT_REGS->GROUP[pin.group].PORT_PINCFG[pin.u8_number] &= ~PORT_PINCFG_PULLEN(1);
 }
+
+void IO_enable_strong_drive_strength(IO_pin_id_t pin_id)
+{
+	IO_pin_t pin = pin_map[pin_id];
+
+	PORT_REGS->GROUP[pin.group].PORT_PINCFG[pin.u8_number] |= PORT_PINCFG_DRVSTR(1);
+}
+
+void IO_disable_strong_drive_strength(IO_pin_id_t pin_id)
+{
+	IO_pin_t pin = pin_map[pin_id];
+
+	PORT_REGS->GROUP[pin.group].PORT_PINCFG[pin.u8_number] &= ~PORT_PINCFG_DRVSTR(1);
+}
