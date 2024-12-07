@@ -66,7 +66,7 @@ void UART_init(UART_channel_id_t channel_id)
 			break;
 	}
 
-	while (channel.p_sercom_registers->USART_INT.SERCOM_SYNCBUSY & SERCOM_USART_INT_SYNCBUSY_ENABLE(1))
+	while (MCLK_REGS->MCLK_INTFLAG & MCLK_INTFLAG_CKRDY(1) == 0)
 	{
 		continue;
 	}
@@ -74,14 +74,15 @@ void UART_init(UART_channel_id_t channel_id)
 	IO_enable_peripheral_function_for_pin(channel.rx_pin, channel.peripheral_function);
 	IO_enable_peripheral_function_for_pin(channel.tx_pin, channel.peripheral_function);
 
+	channel.p_sercom_registers->USART_INT.SERCOM_CTRLA = 	channel.u32_rx_pad | 
+															channel.u32_tx_pad;
+
 	channel.p_sercom_registers->USART_INT.SERCOM_BAUD |= 36000;
 
-	channel.p_sercom_registers->USART_INT.SERCOM_CTRLA =	SERCOM_USART_INT_CTRLA_MODE_USART_INT_CLK |
+	channel.p_sercom_registers->USART_INT.SERCOM_CTRLA |=	SERCOM_USART_INT_CTRLA_MODE_USART_INT_CLK |
 															SERCOM_USART_INT_CTRLA_FORM_USART_FRAME_NO_PARITY |
 															SERCOM_USART_INT_CTRLA_CMODE_ASYNC |
-															SERCOM_USART_INT_CTRLA_DORD_LSB |
-															channel.u32_rx_pad |
-															channel.u32_tx_pad;
+															SERCOM_USART_INT_CTRLA_DORD_LSB;
 
 	channel.p_sercom_registers->USART_INT.SERCOM_CTRLB =	SERCOM_USART_INT_CTRLB_TXEN(1) |
 												 			SERCOM_USART_INT_CTRLB_RXEN(1) |
@@ -96,8 +97,49 @@ void UART_init(UART_channel_id_t channel_id)
 		continue;
 	}
 
+	// interrupts have to be globally enabled.... p.506
 	channel.p_sercom_registers->USART_INT.SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_DRE(1) |
 															SERCOM_USART_INT_INTENSET_TXC(1);
+}
+
+void UART_init_dbg(void)
+{
+	GCLK_REGS->GCLK_PCHCTRL[19] = GCLK_PCHCTRL_CHEN(1) | GCLK_PCHCTRL_GEN(0);
+	MCLK_REGS->MCLK_APBCMASK |= MCLK_APBCMASK_SERCOM0(1);
+
+	while (MCLK_REGS->MCLK_INTFLAG & MCLK_INTFLAG_CKRDY(1) == 0)
+	{
+		continue;
+	}
+
+	IO_config_pin_direction(IO_PIN_ID_PA06, IO_DIRECTION_OUTPUT);	// tx
+	IO_config_pin_direction(IO_PIN_ID_PA07, IO_DIRECTION_INPUT);	// rx
+
+	IO_enable_peripheral_function_for_pin(IO_PIN_ID_PA07, IO_PERIPHERAL_FUNCTION_D);
+	IO_enable_peripheral_function_for_pin(IO_PIN_ID_PA06, IO_PERIPHERAL_FUNCTION_D);
+
+	SERCOM0_REGS->USART_INT.SERCOM_CTRLA = SERCOM_USART_INT_CTRLA_MODE_USART_INT_CLK;
+	SERCOM0_REGS->USART_INT.SERCOM_CTRLA |= SERCOM_USART_INT_CTRLA_CMODE_ASYNC;
+	SERCOM0_REGS->USART_INT.SERCOM_CTRLA |= SERCOM_USART_INT_CTRLA_RXPO_PAD3;
+	SERCOM0_REGS->USART_INT.SERCOM_CTRLA |= SERCOM_USART_INT_CTRLA_TXPO_PAD2;
+
+	SERCOM0_REGS->USART_INT.SERCOM_CTRLB = SERCOM_USART_INT_CTRLB_CHSIZE_8_BIT;
+
+	SERCOM0_REGS->USART_INT.SERCOM_CTRLA |= SERCOM_USART_INT_CTRLA_DORD_LSB;
+
+	SERCOM0_REGS->USART_INT.SERCOM_CTRLB |= SERCOM_USART_INT_CTRLB_SBMODE_1_BIT;
+
+	SERCOM0_REGS->USART_INT.SERCOM_BAUD = 1000;
+
+	SERCOM0_REGS->USART_INT.SERCOM_CTRLB |= SERCOM_USART_INT_CTRLB_TXEN(1);
+	SERCOM0_REGS->USART_INT.SERCOM_CTRLB |= SERCOM_USART_INT_CTRLB_RXEN(1);
+
+	SERCOM0_REGS->USART_INT.SERCOM_CTRLA |= SERCOM_USART_INT_CTRLA_ENABLE(1);
+
+	while (SERCOM0_REGS->USART_INT.SERCOM_SYNCBUSY & SERCOM_USART_INT_SYNCBUSY_ENABLE(1))
+	{
+		continue;
+	}
 }
 
 void UART_tx_char(UART_channel_id_t channel_id, char c)
