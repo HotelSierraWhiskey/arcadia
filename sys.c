@@ -77,7 +77,7 @@ static void SYS_clock_init(void)
 	MCLK_REGS->MCLK_CPUDIV = MCLK_CPUDIV_CPUDIV_DIV1;
 
 	// Wait for the clock to be ready
-	while (MCLK_REGS->MCLK_INTFLAG & MCLK_INTFLAG_CKRDY(1) == 0)
+	while ((MCLK_REGS->MCLK_INTFLAG & MCLK_INTFLAG_CKRDY(1)) == 0)
 	{
 		continue;
 	}
