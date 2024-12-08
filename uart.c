@@ -7,6 +7,9 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
+/**
+ *	Logical UART channel typedef
+ */
 typedef struct _UART_channel
 {
 	IO_pin_id_t							rx_pin;
@@ -23,6 +26,10 @@ typedef struct _UART_channel
  *	V A R I A B L E S
  ****************************************************************************************************/
 
+/**
+ *	Canned values to write in the SERCOM's BAUD register
+ *
+ */
 static const uint32_t kpu32_pre_calculated_baud_register_values[UART_BAUD_RATE_ID_NUM_BAUD_RATES] =
 {
 	[UART_BAUD_RATE_ID_9600] 	= 65326UL,
@@ -31,6 +38,11 @@ static const uint32_t kpu32_pre_calculated_baud_register_values[UART_BAUD_RATE_I
 	[UART_BAUD_RATE_ID_115200] 	= 63019UL
 };
 
+/**
+ *	UART channels
+ *
+ * 	A list of all configured logical UART channels 
+ */
 static const UART_channel_t p_uart_channels[UART_CHANNEL_NUM_CHANNELS] =
 {
 	[UART_CHANNEL_DEBUG] =
@@ -109,12 +121,18 @@ void UART_init(UART_channel_id_t channel_id)
 		continue;
 	}
 
-	// interrupts have to be globally enabled.... p.506
 	channel.p_sercom_registers->USART_INT.SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_DRE(1) |
 															SERCOM_USART_INT_INTENSET_TXC(1) |
 															SERCOM_USART_INT_INTENSET_RXC(1);
 }
 
+/****************************************************************************************************
+ *	Sends a character over the selected UART interface
+ *
+ * 	@param[in] channel_id The logical channel to initialize
+ * 	@param[in] c The char to send
+ *
+ ****************************************************************************************************/
 void UART_tx_char(UART_channel_id_t channel_id, char c)
 {
 	volatile sercom_registers_t * p_sercom_registers = p_uart_channels[channel_id].p_sercom_registers;
@@ -127,11 +145,19 @@ void UART_tx_char(UART_channel_id_t channel_id, char c)
 	}
 }
 
+/****************************************************************************************************
+ *	Receives a character over the selected UART interface
+ *
+ * 	@param[in] channel_id The logical channel to initialize
+ * 
+ * 	@return the received character if one was retrieved from the DATA register, else 0
+ *
+ ****************************************************************************************************/
 char UART_rx_char(UART_channel_id_t channel_id)
 {
 	volatile sercom_registers_t * p_sercom_registers = p_uart_channels[channel_id].p_sercom_registers;
 
-	if ((p_sercom_registers->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_RXC(1)) == 0)
+	if ((p_sercom_registers->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_RXC(1)) != 0)
 	{
 		return p_sercom_registers->USART_INT.SERCOM_DATA;
 	}
