@@ -20,12 +20,17 @@ int main(int argc, char ** argv)
 
 	while (1)
 	{
+		char c = SHELL_read();
 
-		SHELL_printf("clingclong\n\r");
-
-		for (i = 0; i < 4000000; i++)
+		if (c)
 		{
-			continue;
+			SHELL_printf("%c\n\r", c);
 		}
+
+
+		// for (i = 0; i < 4000000; i++)
+		// {
+		// 	continue;
+		// }
 	}
 }

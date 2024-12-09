@@ -30,6 +30,7 @@ typedef struct _UART_channel
 	UART_buffer_t						rx_buffer;
 	UART_buffer_t						tx_buffer;
 	SERCOM_channel_id_t					sercom_channel_id;
+	IRQn_Type							irq_index;
 	volatile sercom_registers_t *		p_sercom_registers;
 	IO_peripheral_function_t			peripheral_function;
 } UART_channel_t;
@@ -53,7 +54,7 @@ static const uint32_t kpu32_pre_calculated_baud_register_values[UART_BAUD_RATE_I
 /**
  *	UART channels
  *
- * 	A list of all configured logical UART channels 
+ * 	A registry of the application's logical UART channels
  */
 static UART_channel_t p_uart_channels[UART_CHANNEL_NUM_CHANNELS] =
 {
@@ -65,6 +66,7 @@ static UART_channel_t p_uart_channels[UART_CHANNEL_NUM_CHANNELS] =
 		.u32_tx_pad 			= SERCOM_USART_INT_CTRLA_TXPO_PAD1,
 		.baud_rate				= UART_BAUD_RATE_ID_115200,
 		.sercom_channel_id 		= SERCOM_CHANNEL_ID_0,
+		.irq_index				= SERCOM0_IRQn,
 		.p_sercom_registers		= SERCOM0_REGS,
 		.peripheral_function 	= IO_PERIPHERAL_FUNCTION_D
 	}
@@ -73,6 +75,8 @@ static UART_channel_t p_uart_channels[UART_CHANNEL_NUM_CHANNELS] =
 /****************************************************************************************************
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
+
+static void		UART_buffers_init			(UART_channel_id_t channel_id);
 
 static void 	UART_rx_buffer_push			(UART_channel_id_t channel_id, uint8_t u8_byte);
 static uint8_t 	UART_rx_buffer_pop			(UART_channel_id_t channel_id);
@@ -101,12 +105,7 @@ void UART_init(UART_channel_id_t channel_id)
 	UART_channel_t 			channel = p_uart_channels[channel_id];
 	uint8_t 				u8_PCHCTRL_register_index = SERCOM_get_PCHCTRL_register_index(channel.sercom_channel_id);
 
-	channel.tx_buffer.u16_head = 0;
-	channel.tx_buffer.u16_tail = 0;
-	channel.rx_buffer.u16_head = 0;
-	channel.rx_buffer.u16_tail = 0;
-	memset(channel.rx_buffer.pu8_data, 0, UART_BUFFER_SIZE);
-	memset(channel.tx_buffer.pu8_data, 0, UART_BUFFER_SIZE);
+	UART_buffers_init(channel_id);
 
 	GCLK_REGS->GCLK_PCHCTRL[u8_PCHCTRL_register_index] = 	GCLK_PCHCTRL_CHEN(1) | 
 															GCLK_PCHCTRL_GEN_GCLK0;
@@ -160,85 +159,7 @@ void UART_init(UART_channel_id_t channel_id)
 
 	channel.p_sercom_registers->USART_INT.SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_RXC(1);
 	// temp
-	NVIC_EnableIRQ(SERCOM0_IRQn);
-}
-
-static void UART_rx_buffer_push(UART_channel_id_t channel_id, uint8_t u8_byte)
-{
-	UART_buffer_t * buffer = &p_uart_channels[channel_id].rx_buffer;
-
-	if (!UART_rx_buffer_is_full(channel_id))
-	{
-		buffer->pu8_data[buffer->u16_head] = u8_byte;
-		buffer->u16_head = (buffer->u16_head + 1) % UART_BUFFER_SIZE;
-	}
-}
-
-static uint8_t UART_rx_buffer_pop(UART_channel_id_t channel_id)
-{
-	UART_buffer_t * buffer = &p_uart_channels[channel_id].rx_buffer;
-	uint8_t u8_byte = 0;
-
-	if (!UART_rx_buffer_is_empty(channel_id))
-	{
-		u8_byte = buffer->pu8_data[buffer->u16_tail];
-		buffer->u16_tail = (buffer->u16_tail + 1) % UART_BUFFER_SIZE;
-	}
-
-	return u8_byte;
-}
-
-static bool UART_rx_buffer_is_empty(UART_channel_id_t channel_id)
-{
-	UART_buffer_t * buffer = &p_uart_channels[channel_id].rx_buffer;
-
-	return buffer->u16_head == buffer->u16_tail;
-}
-
-static bool UART_rx_buffer_is_full(UART_channel_id_t channel_id)
-{
-	UART_buffer_t * buffer = &p_uart_channels[channel_id].rx_buffer;
-
-	return (buffer->u16_head + 1) % UART_BUFFER_SIZE == buffer->u16_tail;
-}
-
-static void UART_tx_buffer_push(UART_channel_id_t channel_id, uint8_t u8_byte)
-{
-	UART_buffer_t * buffer = &p_uart_channels[channel_id].tx_buffer;
-
-	if (!UART_tx_buffer_is_full(channel_id))
-	{
-		buffer->pu8_data[buffer->u16_head] = u8_byte;
-		buffer->u16_head = (buffer->u16_head + 1) % UART_BUFFER_SIZE;
-	}
-}
-
-static uint8_t UART_tx_buffer_pop(UART_channel_id_t channel_id)
-{
-	UART_buffer_t * buffer = &p_uart_channels[channel_id].tx_buffer;
-	uint8_t u8_byte = 0;
-
-	if (!UART_tx_buffer_is_empty(channel_id))
-	{
-		u8_byte = buffer->pu8_data[buffer->u16_tail];
-		buffer->u16_tail = (buffer->u16_tail + 1) % UART_BUFFER_SIZE;
-	}
-
-	return u8_byte;
-}
-
-static bool UART_tx_buffer_is_empty(UART_channel_id_t channel_id)
-{
-	UART_buffer_t * buffer = &p_uart_channels[channel_id].tx_buffer;
-
-	return buffer->u16_head == buffer->u16_tail;
-}
-
-static bool UART_tx_buffer_is_full(UART_channel_id_t channel_id)
-{
-	UART_buffer_t * buffer = &p_uart_channels[channel_id].tx_buffer;
-
-	return (buffer->u16_head + 1) % UART_BUFFER_SIZE == buffer->u16_tail;
+	NVIC_EnableIRQ(channel.irq_index);
 }
 
 /****************************************************************************************************
@@ -272,6 +193,189 @@ char UART_rx_char(UART_channel_id_t channel_id)
 	return c;
 }
 
+/****************************************************************************************************
+ *	Zeroes a channel's UART buffers
+ *
+ * 	@param[in] channel_id The logical channel whose buffers are to be initialized
+ *
+ ****************************************************************************************************/
+static void UART_buffers_init(UART_channel_id_t channel_id)
+{
+	UART_channel_t * p_channel = &p_uart_channels[channel_id];
+
+	p_channel->tx_buffer.u16_head = 0;
+	p_channel->tx_buffer.u16_tail = 0;
+	p_channel->rx_buffer.u16_head = 0;
+	p_channel->rx_buffer.u16_tail = 0;
+	memset(p_channel->rx_buffer.pu8_data, 0, UART_BUFFER_SIZE);
+	memset(p_channel->tx_buffer.pu8_data, 0, UART_BUFFER_SIZE);
+}
+
+/****************************************************************************************************
+ *	Pushes a byte onto the RX buffer
+ *
+ * 	@param[in] channel_id The desired UART channel
+ *	@param[in] u8_byte A byte of UART data
+ *
+ *	@note
+ *	Called in ISR context
+ *
+ ****************************************************************************************************/
+static void UART_rx_buffer_push(UART_channel_id_t channel_id, uint8_t u8_byte)
+{
+	UART_buffer_t * buffer = &p_uart_channels[channel_id].rx_buffer;
+
+	if (!UART_rx_buffer_is_full(channel_id))
+	{
+		buffer->pu8_data[buffer->u16_head] = u8_byte;
+		buffer->u16_head = (buffer->u16_head + 1) % UART_BUFFER_SIZE;
+	}
+}
+
+/****************************************************************************************************
+ *	Pops a byte off of a given UART's RX buffer, and adjusts the tail index
+ *
+ * 	@param[in] channel_id The desired UART channel
+ *
+ *	@note
+ *	Called in ISR context
+ *
+ * 	@return A byte off of the UART's RX buffer
+ * 
+ ****************************************************************************************************/
+static uint8_t UART_rx_buffer_pop(UART_channel_id_t channel_id)
+{
+	UART_buffer_t * buffer = &p_uart_channels[channel_id].rx_buffer;
+	uint8_t u8_byte = 0;
+
+	if (!UART_rx_buffer_is_empty(channel_id))
+	{
+		u8_byte = buffer->pu8_data[buffer->u16_tail];
+		buffer->u16_tail = (buffer->u16_tail + 1) % UART_BUFFER_SIZE;
+	}
+
+	return u8_byte;
+}
+
+/****************************************************************************************************
+ *	Checks whether a given UART's RX buffer is empty
+ *
+ * 	@param[in] channel_id The desired UART channel
+ *
+ *	@note
+ *	Called in ISR context
+ *
+ *	@return `true` if the buffer is empty, else `false`
+ ****************************************************************************************************/
+static bool UART_rx_buffer_is_empty(UART_channel_id_t channel_id)
+{
+	UART_buffer_t * buffer = &p_uart_channels[channel_id].rx_buffer;
+
+	return buffer->u16_head == buffer->u16_tail;
+}
+
+/****************************************************************************************************
+ *	Checks whether a given UART's RX buffer is full
+ *
+ * 	@param[in] channel_id The desired UART channel
+ *
+ *	@note
+ *	Called in ISR context
+ *
+ *	@return `true` if the buffer is full, else `false`
+ ****************************************************************************************************/
+static bool UART_rx_buffer_is_full(UART_channel_id_t channel_id)
+{
+	UART_buffer_t * buffer = &p_uart_channels[channel_id].rx_buffer;
+
+	return (buffer->u16_head + 1) % UART_BUFFER_SIZE == buffer->u16_tail;
+}
+
+/****************************************************************************************************
+ *	Pushes a byte onto the TX buffer
+ *
+ * 	@param[in] channel_id The desired UART channel
+ *	@param[in] u8_byte A byte of UART data
+ *
+ *	@note
+ *	Called in ISR context
+ *
+ ****************************************************************************************************/
+static void UART_tx_buffer_push(UART_channel_id_t channel_id, uint8_t u8_byte)
+{
+	UART_buffer_t * buffer = &p_uart_channels[channel_id].tx_buffer;
+
+	if (!UART_tx_buffer_is_full(channel_id))
+	{
+		buffer->pu8_data[buffer->u16_head] = u8_byte;
+		buffer->u16_head = (buffer->u16_head + 1) % UART_BUFFER_SIZE;
+	}
+}
+
+/****************************************************************************************************
+ *	Pops a byte off of a given UART's TX buffer, and adjusts the tail index
+ *
+ * 	@param[in] channel_id The desired UART channel
+ *
+ *	@note
+ *	Called in ISR context
+ *
+ * 	@return A byte off of the UART's TX buffer
+ * 
+ ****************************************************************************************************/
+static uint8_t UART_tx_buffer_pop(UART_channel_id_t channel_id)
+{
+	UART_buffer_t * buffer = &p_uart_channels[channel_id].tx_buffer;
+	uint8_t u8_byte = 0;
+
+	if (!UART_tx_buffer_is_empty(channel_id))
+	{
+		u8_byte = buffer->pu8_data[buffer->u16_tail];
+		buffer->u16_tail = (buffer->u16_tail + 1) % UART_BUFFER_SIZE;
+	}
+
+	return u8_byte;
+}
+
+/****************************************************************************************************
+ *	Checks whether a given UART's TX buffer is empty
+ *
+ * 	@param[in] channel_id The desired UART channel
+ *
+ *	@note
+ *	Called in ISR context
+ *
+ *	@return `true` if the buffer is empty, else `false`
+ ****************************************************************************************************/
+static bool UART_tx_buffer_is_empty(UART_channel_id_t channel_id)
+{
+	UART_buffer_t * buffer = &p_uart_channels[channel_id].tx_buffer;
+
+	return buffer->u16_head == buffer->u16_tail;
+}
+
+/****************************************************************************************************
+ *	Checks whether a given UART's TX buffer is full
+ *
+ * 	@param[in] channel_id The desired UART channel
+ *
+ *	@note
+ *	Called in ISR context
+ *
+ *	@return `true` if the buffer is full, else `false`
+ ****************************************************************************************************/
+static bool UART_tx_buffer_is_full(UART_channel_id_t channel_id)
+{
+	UART_buffer_t * buffer = &p_uart_channels[channel_id].tx_buffer;
+
+	return (buffer->u16_head + 1) % UART_BUFFER_SIZE == buffer->u16_tail;
+}
+
+/****************************************************************************************************
+ *	The SERCOM0 Interrupt Service Routine
+ *
+ * 	@todo Document me thoroughly
+ ****************************************************************************************************/
 void irqSERCOM0()
 {
 	volatile uint8_t u8_byte;
@@ -282,7 +386,6 @@ void irqSERCOM0()
 	if ((SERCOM0_REGS->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_RXC(1)) != 0)
 	{
 		u8_byte = SERCOM0_REGS->USART_INT.SERCOM_DATA;
-		// SERCOM0_REGS->USART_INT.SERCOM_INTFLAG = SERCOM_USART_INT_INTFLAG_RXC(1);
 		UART_rx_buffer_push(UART_CHANNEL_SHELL, u8_byte);
 	}
 
@@ -291,7 +394,7 @@ void irqSERCOM0()
 		// No more data to send. Disable interrupts on DRE
 		if (UART_tx_buffer_is_empty(UART_CHANNEL_SHELL))
 		{
-			// don't OR this or you'll.....somehow clear RXC?
+			// Don't OR this. INTENCLR is write only.
 			SERCOM0_REGS->USART_INT.SERCOM_INTENCLR = SERCOM_USART_INT_INTENCLR_DRE(1);
 		}
 		// Pop a byte off the TX buffer and send it
