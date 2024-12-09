@@ -15,17 +15,17 @@ int main(int argc, char ** argv)
 
 	IO_config_pin_direction(IO_PIN_ID_PA27, IO_DIRECTION_OUTPUT);
 
-	// volatile uint32_t i;
+	volatile uint32_t i;
 
 
 	while (1)
 	{
 
-		// SHELL_printf("testing\n\r");
+		SHELL_printf("testing\n\r");
 
-		// for (i = 0; i < 2000000; i++)
-		// {
-		// 	continue;
-		// }
+		for (i = 0; i < 2000000; i++)
+		{
+			continue;
+		}
 	}
 }

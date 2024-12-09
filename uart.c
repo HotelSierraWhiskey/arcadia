@@ -158,9 +158,8 @@ void UART_init(UART_channel_id_t channel_id)
 		continue;
 	}
 
-	channel.p_sercom_registers->USART_INT.SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_TXC(1) |
-															SERCOM_USART_INT_INTENSET_RXC(1);
-															// SERCOM_USART_INT_INTENSET_DRE(1);
+	// channel.p_sercom_registers->USART_INT.SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_DRE(1);
+															// SERCOM_USART_INT_INTENSET_RXC(1);
 	// temp
 	NVIC_EnableIRQ(SERCOM0_IRQn);
 }
@@ -252,12 +251,14 @@ void UART_tx_char(UART_channel_id_t channel_id, char c)
 {
 	volatile sercom_registers_t * p_sercom_registers = p_uart_channels[channel_id].p_sercom_registers;
 
+	UART_tx_buffer_push(channel_id, (uint8_t)c);
+
 	// if (UART_tx_buffer_is_empty(channel_id))
 	// {
-	// 	p_sercom_registers->USART_INT.SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_DRE(1);
+	p_sercom_registers->USART_INT.SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_DRE(1);
 	// }
-
-	UART_tx_buffer_push(channel_id, (uint8_t)c);
+	
+	// Push a byte onto the TX buffer
 }
 
 /****************************************************************************************************
@@ -279,28 +280,30 @@ void irqSERCOM0()
 {
 	volatile uint8_t u8_byte;
 	
+	IO_set_pin(IO_PIN_ID_PA27, IO_PIN_STATE_HIGH);
+
 	// This flag is cleared by reading the SERCOM_DATA register
 	if ((SERCOM0_REGS->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_RXC(1)) != 0)
 	{
-		IO_set_pin(IO_PIN_ID_PA27, IO_PIN_STATE_HIGH);
 		u8_byte = SERCOM0_REGS->USART_INT.SERCOM_DATA;
 		// SERCOM0_REGS->USART_INT.SERCOM_INTFLAG = SERCOM_USART_INT_INTFLAG_RXC(1);
-		// UART_rx_buffer_push(UART_CHANNEL_SHELL, u8_byte);
-		IO_set_pin(IO_PIN_ID_PA27, IO_PIN_STATE_LOW);
+		UART_rx_buffer_push(UART_CHANNEL_SHELL, u8_byte);
 	}
 
-	// if ((SERCOM0_REGS->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_DRE(1)) != 0)
-	// {
-	// 	if (!UART_tx_buffer_is_empty(UART_CHANNEL_SHELL))
-	// 	{
-	// 		u8_byte = UART_tx_buffer_pop(UART_CHANNEL_SHELL);
-	// 		SERCOM0_REGS->USART_INT.SERCOM_DATA = u8_byte;
-	// 	}
-	// 	else
-	// 	{
-	// 		SERCOM0_REGS->USART_INT.SERCOM_INTENCLR |= SERCOM_USART_INT_INTENCLR_DRE(1);
-	// 	}
-	// }
+	if ((SERCOM0_REGS->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_DRE(1)) != 0)
+	{
+		// No more data to send. Disable interrupts on DRE
+		if (UART_tx_buffer_is_empty(UART_CHANNEL_SHELL))
+		{
+			SERCOM0_REGS->USART_INT.SERCOM_INTENCLR |= SERCOM_USART_INT_INTENCLR_DRE(1);
+		}
+		else
+		{
+			u8_byte = UART_tx_buffer_pop(UART_CHANNEL_SHELL);
+			SERCOM0_REGS->USART_INT.SERCOM_DATA = u8_byte;
+		}
+	}
 
+	IO_set_pin(IO_PIN_ID_PA27, IO_PIN_STATE_LOW);
 	NVIC_ClearPendingIRQ(SERCOM0_IRQn);
 }
