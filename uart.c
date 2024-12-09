@@ -45,7 +45,7 @@ static const uint32_t kpu32_pre_calculated_baud_register_values[UART_BAUD_RATE_I
  */
 static const UART_channel_t p_uart_channels[UART_CHANNEL_NUM_CHANNELS] =
 {
-	[UART_CHANNEL_DEBUG] =
+	[UART_CHANNEL_SHELL] =
 	{
 		.rx_pin 				= IO_PIN_ID_PA07,
 		.tx_pin 				= IO_PIN_ID_PA06,

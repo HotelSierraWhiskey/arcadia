@@ -19,7 +19,7 @@ typedef enum _UART_baud_rate
 
 typedef enum _UART_channel_id
 {
-	UART_CHANNEL_DEBUG = 0,
+	UART_CHANNEL_SHELL = 0,
 	//////////
 	UART_CHANNEL_NUM_CHANNELS
 } UART_channel_id_t;

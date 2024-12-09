@@ -11,7 +11,7 @@ COMMON_FLAGS = \
 	-g
 
 # **************************************************************************** #
-# A P P   S T U F F
+#	A P P   S T U F F
 # **************************************************************************** #
 
 APP_BASENAME = app
@@ -19,16 +19,22 @@ APP_BUILD_DIR = build
 
 APP_CFLAGS = 	$(COMMON_FLAGS) \
 				-ffunction-sections \
-				-fdata-sections
+				-fdata-sections \
+				-nostartfiles \
+				--specs=nosys.specs \
+				-T linkerscript.ld \
+				-Wno-switch \
 
-APP_LDFLAGS = -T linkerscript.ld
+APP_LDFLAGS = -T linkerscript.ld -lgcc --verbose 
 
-APP_INC = -Ilib/CMSIS_5/CMSIS/Core/Include -Ilib/samc21/include
+APP_INC = 	-Ilib/CMSIS_5/CMSIS/Core/Include \
+			-Ilib/samc21/include \
+			-I/usr/local/arm-gnu-toolchain-13.2.Rel1-x86_64-arm-none-eabi/include \
 
-APP_VPATH = main.c nvic.c sys.c io.c sercom.c uart.c
+APP_VPATH = main.c nvic.c sys.c io.c sercom.c uart.c shell.c
 
 # matching .o files from APP_VPATH
-APP_OBJECTS = $(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(wildcard $(APP_VPATH))))
+APP_OBJECTS = 	$(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(wildcard $(APP_VPATH))))
 
 # app/build
 $(APP_BUILD_DIR):
@@ -44,11 +50,11 @@ $(APP_BUILD_DIR)/%.o: $(COMMON_DIR)/%.c | $(APP_BUILD_DIR)
 
 # app.o
 $(APP_BASENAME).o: $(APP_OBJECTS)
-	$(CCLD) $(APP_LDFLAGS) -o $(APP_BUILD_DIR)/$(APP_BASENAME).o $(APP_OBJECTS)
+	$(CC) $(APP_CFLAGS) -o $(APP_BUILD_DIR)/$(APP_BASENAME).o $(APP_OBJECTS)
 
 # app/build/app.elf
 $(APP_BUILD_DIR)/$(APP_BASENAME).elf: $(APP_OBJECTS)
-	$(CCLD) $(APP_LDFLAGS) -o $@ $(APP_OBJECTS)
+	$(CC) $(APP_CFLAGS) -o $@ $(APP_OBJECTS)
 
 # alias for above
 $(APP_BASENAME).elf: $(APP_BUILD_DIR)/$(APP_BASENAME).elf
