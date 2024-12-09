@@ -158,8 +158,7 @@ void UART_init(UART_channel_id_t channel_id)
 		continue;
 	}
 
-	// channel.p_sercom_registers->USART_INT.SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_DRE(1);
-															// SERCOM_USART_INT_INTENSET_RXC(1);
+	channel.p_sercom_registers->USART_INT.SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_RXC(1);
 	// temp
 	NVIC_EnableIRQ(SERCOM0_IRQn);
 }
@@ -185,6 +184,7 @@ static uint8_t UART_rx_buffer_pop(UART_channel_id_t channel_id)
 		u8_byte = buffer->pu8_data[buffer->u16_tail];
 		buffer->u16_tail = (buffer->u16_tail + 1) % UART_BUFFER_SIZE;
 	}
+
 	return u8_byte;
 }
 
@@ -223,6 +223,7 @@ static uint8_t UART_tx_buffer_pop(UART_channel_id_t channel_id)
 		u8_byte = buffer->pu8_data[buffer->u16_tail];
 		buffer->u16_tail = (buffer->u16_tail + 1) % UART_BUFFER_SIZE;
 	}
+
 	return u8_byte;
 }
 
@@ -253,12 +254,7 @@ void UART_tx_char(UART_channel_id_t channel_id, char c)
 
 	UART_tx_buffer_push(channel_id, (uint8_t)c);
 
-	// if (UART_tx_buffer_is_empty(channel_id))
-	// {
 	p_sercom_registers->USART_INT.SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_DRE(1);
-	// }
-	
-	// Push a byte onto the TX buffer
 }
 
 /****************************************************************************************************
@@ -295,8 +291,10 @@ void irqSERCOM0()
 		// No more data to send. Disable interrupts on DRE
 		if (UART_tx_buffer_is_empty(UART_CHANNEL_SHELL))
 		{
-			SERCOM0_REGS->USART_INT.SERCOM_INTENCLR |= SERCOM_USART_INT_INTENCLR_DRE(1);
+			// don't OR this or you'll.....somehow clear RXC?
+			SERCOM0_REGS->USART_INT.SERCOM_INTENCLR = SERCOM_USART_INT_INTENCLR_DRE(1);
 		}
+		// Pop a byte off the TX buffer and send it
 		else
 		{
 			u8_byte = UART_tx_buffer_pop(UART_CHANNEL_SHELL);

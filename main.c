@@ -21,9 +21,9 @@ int main(int argc, char ** argv)
 	while (1)
 	{
 
-		SHELL_printf("testing\n\r");
+		SHELL_printf("clingclong\n\r");
 
-		for (i = 0; i < 2000000; i++)
+		for (i = 0; i < 4000000; i++)
 		{
 			continue;
 		}
