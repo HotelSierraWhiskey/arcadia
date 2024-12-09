@@ -3,38 +3,9 @@
 #include "uart.h"
 #include "shell.h"
 
-#include <math.h>
-#include <string.h>
-#include <stdio.h>
-
-
-// int _write(int file, char *ptr, int len) {
-//     for (int i = 0; i < len; i++) {
-//             UART_tx_char(UART_CHANNEL_SHELL, ptr[i]);
-//         }
-//     return len;
-// }
-
-int puts(const char *str)
-{
-    if (!str) {
-        return -1;
-    }
-
-    while (*str) {
-        UART_tx_char(UART_CHANNEL_SHELL, *str++);
-    }
-
-    UART_tx_char(UART_CHANNEL_SHELL, '\n');
-
-    return 0;
-}
-
-int putchar(int c)
-{
-    UART_tx_char(UART_CHANNEL_SHELL, c);
-    return c;
-}
+/****************************************************************************************************
+ *	M A I N
+ ****************************************************************************************************/
 
 int main(int argc, char ** argv) 
 {
@@ -47,11 +18,16 @@ int main(int argc, char ** argv)
 	while (1)
 	{
 
-		printf("Anniversary\n");
-
-		for (i = 0; i < 4000000; i++)
+		if (UART_rx_char(UART_CHANNEL_SHELL))
 		{
-			continue;
+			SHELL_printf("\n\r> ");
 		}
+
+		// SHELL_printf("Banniversary\n");
+
+		// for (i = 0; i < 4000000; i++)
+		// {
+		// 	continue;
+		// }
 	}
 }
