@@ -13,19 +13,17 @@ int main(int argc, char ** argv)
 
 	SHELL_init();
 
-	volatile uint32_t i;
+	IO_config_pin_direction(IO_PIN_ID_PA27, IO_DIRECTION_OUTPUT);
+
+	// volatile uint32_t i;
+
 
 	while (1)
 	{
 
-		if (UART_rx_char(UART_CHANNEL_SHELL))
-		{
-			SHELL_printf("\n\r> ");
-		}
+		// SHELL_printf("testing\n\r");
 
-		// SHELL_printf("Banniversary\n");
-
-		// for (i = 0; i < 4000000; i++)
+		// for (i = 0; i < 2000000; i++)
 		// {
 		// 	continue;
 		// }

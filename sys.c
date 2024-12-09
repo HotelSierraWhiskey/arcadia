@@ -26,7 +26,7 @@ void SYS_init(void)
 	IO_init();
 
 	// Output the main clock signal on PA27
-	IO_enable_peripheral_function_for_pin(IO_PIN_ID_PA27, IO_PERIPHERAL_FUNCTION_H);
+	// IO_enable_peripheral_function_for_pin(IO_PIN_ID_PA27, IO_PERIPHERAL_FUNCTION_H);
 }
 
 /****************************************************************************************************

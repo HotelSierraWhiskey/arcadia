@@ -22,6 +22,11 @@ void SHELL_init(void)
 	UART_init(UART_CHANNEL_SHELL);
 }
 
+char SHELL_read(void)
+{
+	return UART_rx_char(UART_CHANNEL_SHELL);
+}
+
 void SHELL_printf(const char *format, ...)
 {
     char		buffer[SHELL_PRINTF_BUFFER_SIZE];

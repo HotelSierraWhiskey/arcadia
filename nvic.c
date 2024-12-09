@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include "interrupts.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
