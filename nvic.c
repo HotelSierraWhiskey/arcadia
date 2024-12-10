@@ -1,6 +1,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include "interrupts.h"
 
 /****************************************************************************************************
@@ -226,3 +229,15 @@ void irqHARD_FAULT(void)
         "b       _DEADLOOP         "
     );
 }
+
+/****************************************************************************************************
+ *	Newlib syscall stubs to make the compiler happy
+ ****************************************************************************************************/
+int 		__attribute__((weak)) _close	(int file) { return -1; }
+int 		__attribute__((weak)) _fstat	(int file, struct stat *st) { return 0; }
+pid_t 		__attribute__((weak)) _getpid	(void) { return 1; }
+int 		__attribute__((weak)) _isatty	(int file) { return 1; }
+int 		__attribute__((weak)) _kill		(pid_t pid, int sig) { return -1; }
+off_t 		__attribute__((weak)) _lseek	(int file, off_t offset, int whence) { return -1; }
+ssize_t 	__attribute__((weak)) _read		(int file, void *ptr, size_t len) { return 0; }
+ssize_t 	__attribute__((weak)) _write	(int file, const void *ptr, size_t len) { return len; }
