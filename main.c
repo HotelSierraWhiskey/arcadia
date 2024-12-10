@@ -15,22 +15,8 @@ int main(int argc, char ** argv)
 
 	IO_config_pin_direction(IO_PIN_ID_PA27, IO_DIRECTION_OUTPUT);
 
-	volatile uint32_t i;
-
-
 	while (1)
 	{
-		char c = SHELL_read();
-
-		if (c)
-		{
-			SHELL_printf("%c\n\r", c);
-		}
-
-
-		// for (i = 0; i < 4000000; i++)
-		// {
-		// 	continue;
-		// }
+		SHELL_run();
 	}
 }
