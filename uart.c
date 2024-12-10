@@ -172,8 +172,11 @@ void UART_init(UART_channel_id_t channel_id)
 void UART_tx_char(UART_channel_id_t channel_id, char c)
 {
 	volatile sercom_registers_t * p_sercom_registers = p_uart_channels[channel_id].p_sercom_registers;
+	UART_channel_t channel = p_uart_channels[channel_id];
 
+	NVIC_DisableIRQ(channel.irq_index);
 	UART_tx_buffer_push(channel_id, (uint8_t)c);
+	NVIC_EnableIRQ(channel.irq_index);
 
 	p_sercom_registers->USART_INT.SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_DRE(1);
 }
@@ -188,7 +191,11 @@ void UART_tx_char(UART_channel_id_t channel_id, char c)
  ****************************************************************************************************/
 char UART_rx_char(UART_channel_id_t channel_id)
 {
+	UART_channel_t channel = p_uart_channels[channel_id];
+
+	NVIC_DisableIRQ(channel.irq_index);
 	char c = UART_rx_buffer_pop(channel_id);
+	NVIC_EnableIRQ(channel.irq_index);
 
 	return c;
 }

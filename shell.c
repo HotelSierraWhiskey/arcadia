@@ -7,6 +7,7 @@
 
 #define SHELL_COMMAND_BUFFER_SIZE	(512)
 #define SHELL_PROMPT				"> "
+#define SHELL_CRLF					"\r\n"
 
 typedef struct _SHELL_command
 {
@@ -32,9 +33,9 @@ static SHELL_info_t SHELL_info;
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
-static char 	SHELL_read			(void);
-static void 	SHELL_flush_buffer	(void);
-
+static char 	SHELL_read				(void);
+static void 	SHELL_flush_buffer		(void);
+static void 	SHELL_handle_command	(void);
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -44,44 +45,73 @@ void SHELL_init(void)
 {
 	UART_init(UART_CHANNEL_SHELL);
 	SHELL_flush_buffer();
+	SHELL_printf("%s", SHELL_PROMPT);
 }
 
 void SHELL_run(void)
 {
 	char c = UART_rx_char(UART_CHANNEL_SHELL);
 
-	// if (c == '\r')
-	// {
-	// 	SHELL_printf("Entered command: %s\n", SHELL_info.buffer);
-	// 	SHELL_flush_buffer();
-	// }
-	// else
-	// {
-	// 	SHELL_info.buffer[SHELL_info.u16_index++] = c;
-	// }
-	SHELL_printf("%c", c);
+	// Returned zero, nothing to do
+	if (!c)
+	{
+		return;
+	}
+
+	// Handle return
+	if (c == '\r')
+	{
+		if (strncmp(SHELL_info.buffer, strlen(SHELL_CRLF), 2) != 0)
+		{
+			SHELL_handle_command();
+		}
+
+		SHELL_printf("\r\n%s", SHELL_PROMPT);
+		SHELL_flush_buffer();
+	}
+
+	// Handle delete
+	else if (c == '\b' || c == 0x7F)
+	{
+		if (SHELL_info.u16_index > 0)
+		{
+			// Move the cursor back, overwrite the character with a space, then move back again
+			SHELL_printf("\b \b");
+			
+			// Null the last character
+			SHELL_info.buffer[--SHELL_info.u16_index] = '\0';
+		}
+		return;
+	}
+
+	// Push the char onto the buffer and echo
+	else
+	{
+		SHELL_info.buffer[SHELL_info.u16_index++] = c;
+		SHELL_printf("%c", c);
+	}
 }
 
 void SHELL_printf(const char *format, ...)
 {
-    char		buffer[SHELL_COMMAND_BUFFER_SIZE];
-    va_list 	args;
+	char		buffer[SHELL_COMMAND_BUFFER_SIZE];
+	va_list 	args;
 
-    va_start(args, format);
+	va_start(args, format);
 
-    int len = vsnprintf(buffer, sizeof(buffer), format, args);
+	int len = vsnprintf(buffer, sizeof(buffer), format, args);
 
-    if (len < 0 || len >= (int)sizeof(buffer))
+	if (len < 0 || len >= (int)sizeof(buffer))
 	{
-        buffer[sizeof(buffer) - 1] = '\0';
-    }
+		buffer[sizeof(buffer) - 1] = '\0';
+	}
 
-    va_end(args);
+	va_end(args);
 
-    for (char *p = buffer; *p != '\0'; ++p)
+	for (char *p = buffer; *p != '\0'; ++p)
 	{
-        UART_tx_char(UART_CHANNEL_SHELL, *p);
-    }
+		UART_tx_char(UART_CHANNEL_SHELL, *p);
+	}
 }
 
 static char SHELL_read(void)
@@ -93,4 +123,9 @@ static void SHELL_flush_buffer(void)
 {
 	memset(SHELL_info.buffer, 0, SHELL_COMMAND_BUFFER_SIZE);
 	SHELL_info.u16_index = 0;
+}
+
+static void SHELL_handle_command(void)
+{
+	SHELL_printf("\r\nCommand not found: %s", SHELL_info.buffer);
 }
