@@ -339,3 +339,8 @@ void IO_disable_strong_drive_strength(IO_pin_id_t pin_id)
 
 	PORT_REGS->GROUP[pin.group].PORT_PINCFG[pin.u8_number] &= ~PORT_PINCFG_DRVSTR(1);
 }
+
+const char * IO_get_pin_name(IO_pin_id_t pin_id)
+{
+	return pin_map[pin_id].kcp_name;
+}

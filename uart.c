@@ -22,6 +22,7 @@ typedef struct _UART_buffer
  */
 typedef struct _UART_channel
 {
+	const char *						kpc_name;
 	IO_pin_id_t							rx_pin;
 	IO_pin_id_t							tx_pin;
 	uint32_t							u32_rx_pad;
@@ -38,6 +39,14 @@ typedef struct _UART_channel
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
+
+static const uint32_t kpu8_baud_descriptors[UART_BAUD_RATE_ID_NUM_BAUD_RATES] =
+{
+	[UART_BAUD_RATE_ID_9600] 	= 9600,
+	[UART_BAUD_RATE_ID_19200] 	= 19200,
+	[UART_BAUD_RATE_ID_38400] 	= 38400,
+	[UART_BAUD_RATE_ID_115200] 	= 115200
+};
 
 /**
  *	Canned values to write in the SERCOM's BAUD register
@@ -60,6 +69,7 @@ static UART_channel_t p_uart_channels[UART_CHANNEL_NUM_CHANNELS] =
 {
 	[UART_CHANNEL_SHELL] =
 	{
+		.kpc_name				= "Debug Shell UART",
 		.rx_pin 				= IO_PIN_ID_PA07,
 		.tx_pin 				= IO_PIN_ID_PA06,
 		.u32_rx_pad 			= SERCOM_USART_INT_CTRLA_RXPO_PAD3,
@@ -418,9 +428,23 @@ void irqSERCOM0()
 
 uint8_t UART_shell_info(uint8_t argc, char ** argv)
 {
+	UART_channel_t * p_uart;
+
 	if (argc == 0)
 	{
-		SHELL_printf("Here's some good news\r\n");
+		SHELL_SEPARATOR();
+
+		for (uint8_t i = 0; i < UART_CHANNEL_NUM_CHANNELS; i++)
+		{
+			p_uart = &p_uart_channels[i];
+
+			SHELL_printf("%-30s: %s\r\n", "Channel Name", p_uart->kpc_name);
+			SHELL_printf("%-30s: %u\r\n", "Baud Rate",  kpu8_baud_descriptors[p_uart->baud_rate]);
+			SHELL_printf("%-30s: %s\r\n", "TX Pin", IO_get_pin_name(p_uart->tx_pin));
+			SHELL_printf("%-30s: %s\r\n", "RX Pin", IO_get_pin_name(p_uart->rx_pin));
+		}
+
+		SHELL_SEPARATOR();
 	}
 	else
 	{

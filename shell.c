@@ -12,7 +12,6 @@
 #define SHELL_MAX_TOKENS			(20)
 #define SHELL_MAX_ARGS				(5)
 #define SHELL_COMMAND_TABLE_END		{NULL, NULL, NULL}
-#define SHELL_DOCSTRING(str)		str"\r\n"
 
 typedef uint8_t (* SHELL_function_t)(uint8_t argc, char ** argv);
 
@@ -31,6 +30,18 @@ typedef struct _SHELL_info
 } SHELL_info_t;
 
 /****************************************************************************************************
+ *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
+ ****************************************************************************************************/
+
+static char 	SHELL_read				(void);
+static void 	SHELL_flush_buffer		(void);
+static void 	SHELL_handle_command	(void);
+static void		SHELL_display_banner	(void);
+static void 	SHELL_help				(SHELL_command_t * p_table);
+
+uint8_t 		SHELL_shell_help		(uint8_t argc, char ** argv);
+
+/****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
 
@@ -40,9 +51,9 @@ static const SHELL_command_t kp_sys_command_table[] =
 		.kpc_name 			= "info",
 		.function 			= SYS_shell_info,
 		.p_command_table 	= NULL,
-		.kpc_docstring		= SHELL_DOCSTRING
-								(
-									"\t\tGeneral system information\r\n"
+		.kpc_docstring		= 	(
+									"\tGeneral system information\r\n"
+									"\tUsage: sys info\r\n"
 								)
 	},
 	//////////
@@ -55,10 +66,9 @@ static const SHELL_command_t kp_uart_command_table[] =
 		.kpc_name 			= "info",
 		.function 			= UART_shell_info,
 		.p_command_table 	= NULL,
-		.kpc_docstring		= SHELL_DOCSTRING
-								(
-									"\t\tDisplays UART configuration\r\n"
-									"\t\tUsage: uart info\r\n"
+		.kpc_docstring		= 	(
+									"\tDisplays UART configuration\r\n"
+									"\tUsage: uart info\r\n"
 								)
 	},
 	//////////
@@ -67,6 +77,14 @@ static const SHELL_command_t kp_uart_command_table[] =
 
 static const SHELL_command_t kp_command_table[] =
 {
+	{
+		.kpc_name 			= "help",
+		.function 			= SHELL_shell_help,
+		.p_command_table 	= NULL,
+		.kpc_docstring		=	(
+									"\tDisplays this message\r\n"
+								)
+	},
 	{
 		.kpc_name 			= "sys",
 		.function 			= NULL,
@@ -86,14 +104,6 @@ static const SHELL_command_t kp_command_table[] =
 static SHELL_info_t SHELL_info;
 
 /****************************************************************************************************
- *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
- ****************************************************************************************************/
-
-static char 	SHELL_read				(void);
-static void 	SHELL_flush_buffer		(void);
-static void 	SHELL_handle_command	(void);
-
-/****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
 
@@ -102,12 +112,7 @@ void SHELL_init(void)
 	UART_init(UART_CHANNEL_SHELL);
 	SHELL_flush_buffer();
 
-	SHELL_printf("\r\n");
-	SHELL_printf("   _                  _ _      \n\r");
-	SHELL_printf("  /_\\  _ _ __ __ _ __| (_)__ _ \n\r");
-	SHELL_printf(" / _ \\| '_/ _/ _` / _` | / _` |\n\r");
-	SHELL_printf("/_/ \\_\\_| \\__\\__,_\\__,_|_\\__,_|\n\r");        
-	SHELL_printf("\r\n");
+	SHELL_display_banner();
 
 	SHELL_printf("%s", SHELL_PROMPT);
 }
@@ -143,7 +148,7 @@ void SHELL_run(void)
 	{
 		if (SHELL_info.u16_index > 0)
 		{
-			// Move the cursor back, overwrite the character with a space, then move back again
+			// Move the cursor back, overwrite that character with a space, then move back again
 			SHELL_printf("\b \b");
 			
 			// Null the last character
@@ -249,7 +254,6 @@ static void SHELL_handle_command(void)
 			}
 		}
 
-		// Get the next token
 		token = strtok(NULL, " ");
 	}
 
@@ -264,22 +268,59 @@ static void SHELL_handle_command(void)
 		}
 	}
 	// We found a command table but stopped short of invoking one of its functions
-	// Issue help
+	// Issue help on that table
 	else
 	{
-		SHELL_printf("\r\n\nCommands:\r\n");
-
-		while (p_table->kpc_name)
-		{
-			SHELL_printf("\t%s\r\n", p_table->kpc_name);
-
-			// Check if a docstring exists for this command
-			if (p_table->kpc_docstring)
-			{
-				SHELL_printf("%s", p_table->kpc_docstring);
-			}
-			p_table++;
-		}
+		SHELL_help(p_table);
 	}
+
 	SHELL_flush_buffer();
+}
+
+static void SHELL_help(SHELL_command_t * p_table)
+{
+	SHELL_printf("\r\n\nCommands:\r\n");
+
+	SHELL_SEPARATOR();
+
+	while (p_table->kpc_name)
+	{
+		SHELL_printf("%s\r\n", p_table->kpc_name);
+
+		// Check if a docstring exists for this command
+		if (p_table->kpc_docstring)
+		{
+			SHELL_printf("%s", p_table->kpc_docstring);
+		}
+		else
+		{
+			SHELL_printf("\t%s commands\r\n", p_table->kpc_name);
+		}
+		p_table++;
+	}
+
+	SHELL_SEPARATOR();
+}
+
+static void SHELL_display_banner(void)
+{
+	SHELL_printf("\r\n");
+	SHELL_printf(SHELL_COLOR_VAPORWAVE_PINK);
+	SHELL_printf("   _                  _ _      \n\r");
+	SHELL_printf(SHELL_COLOR_VAPORWAVE_PURPLE);
+	SHELL_printf("  /_\\  _ _ __ __ _ __| (_)__ _ \n\r");
+	SHELL_printf(SHELL_COLOR_VAPORWAVE_AQUA);
+	SHELL_printf(" / _ \\| '_/ _/ _` / _` | / _` |\n\r");
+	SHELL_printf(SHELL_COLOR_VAPORWAVE_MINT);
+	SHELL_printf("/_/ \\_\\_| \\__\\__,_\\__,_|_\\__,_|\n\r");
+	SHELL_printf(SHELL_COLOR_RESET);
+	SHELL_printf("\r\n");
+}
+
+uint8_t SHELL_shell_help(uint8_t argc, char ** argv)
+{
+	// Just issue help on the top-level command table
+	SHELL_help(kp_command_table);
+
+	return SHELL_COMMAND_SUCCESS;
 }

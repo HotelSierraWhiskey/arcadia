@@ -163,11 +163,19 @@ static void SYS_clock_init(void)
 
 uint8_t SYS_shell_info(uint8_t argc, char ** argv)
 {
-	SHELL_SEPARATOR();
-	SHELL_printf("%-30s: %s\r\n", "MCU Model Number", kpc_part_descriptors[SYS_info.k_part]);
-	SHELL_printf("%-30s: %s\r\n", "Clock Source Freq", kpc_sys_clock_freq_descriptors[SYS_info.clock_source_freq]);
-	SHELL_printf("%-30s: %u\r\n", "Clock Division Factor", SYS_info.u8_clock_source_division_factor);
-	SHELL_SEPARATOR();
+	if (argc == 0)
+	{
+		SHELL_SEPARATOR();
+		SHELL_printf("%-30s: %s %s\r\n", "Compilation Timestamp", __DATE__, __TIME__);
+		SHELL_printf("%-30s: %s\r\n", "MCU Model Number", kpc_part_descriptors[SYS_info.k_part]);
+		SHELL_printf("%-30s: %s\r\n", "Clock Source Freq", kpc_sys_clock_freq_descriptors[SYS_info.clock_source_freq]);
+		SHELL_printf("%-30s: %u\r\n", "Clock Division Factor", SYS_info.u8_clock_source_division_factor);
+		SHELL_SEPARATOR();
+	}
+	else
+	{
+		SHELL_printf("Usage: sys info\r\n");
+	}
 
 	return SHELL_COMMAND_SUCCESS;
 }
