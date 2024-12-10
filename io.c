@@ -1,4 +1,5 @@
 #include "io.h"
+#include "utils.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -217,6 +218,9 @@ void IO_init(void)
  ****************************************************************************************************/
 void IO_enable_peripheral_function_for_pin(IO_pin_id_t pin_id, IO_peripheral_function_t peripheral_function)
 {
+	ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
+	ASSERT(peripheral_function < IO_PERIPHERAL_FUNCTION_NUM_FUNCTIONS);
+
 	IO_pin_t pin = pin_map[pin_id];
 	bool b_odd = pin.u8_number & 1;
 	volatile uint8_t * u8_pmux_register = &PORT_REGS->GROUP[pin.group].PORT_PMUX[pin.u8_number / 2];
@@ -244,6 +248,9 @@ void IO_enable_peripheral_function_for_pin(IO_pin_id_t pin_id, IO_peripheral_fun
  ****************************************************************************************************/
 void IO_disable_peripheral_function_for_pin(IO_pin_id_t pin_id, IO_peripheral_function_t peripheral_function)
 {
+	ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
+	ASSERT(peripheral_function < IO_PERIPHERAL_FUNCTION_NUM_FUNCTIONS);
+
 	IO_pin_t pin = pin_map[pin_id];
 	bool b_odd = pin.u8_number & 1;
 	volatile uint8_t * u8_pmux_register = &PORT_REGS->GROUP[pin.group].PORT_PMUX[pin.u8_number / 2];
@@ -271,7 +278,9 @@ void IO_disable_peripheral_function_for_pin(IO_pin_id_t pin_id, IO_peripheral_fu
  ****************************************************************************************************/
 void IO_config_pin_direction(IO_pin_id_t pin_id, IO_pin_direction_t direction)
 {
-	// TODO: asserts
+	ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
+	ASSERT(direction < IO_DIRECTION_NUM_DIRECTIONS);
+
 	IO_pin_t pin = pin_map[pin_id];
 
 	PORT_REGS->GROUP[pin.group].PORT_DIR |= direction << pin.u8_number;
@@ -282,6 +291,8 @@ void IO_config_pin_direction(IO_pin_id_t pin_id, IO_pin_direction_t direction)
  *  
  *	@param[in] pin_id The ID of the desired pin
  *	@param[in] state High or low
+ *
+ *	@note Performance-critical. Not asserting on params
  *
  ****************************************************************************************************/
 void IO_set_pin(IO_pin_id_t pin_id, IO_pin_state_t state)
@@ -303,6 +314,8 @@ void IO_set_pin(IO_pin_id_t pin_id, IO_pin_state_t state)
  *  
  *	@param[in] pin_id The ID of the desired pin
  *
+ *	@note Performance-critical. Not asserting on params
+ *
  *	@return The logical level of the pin
  ****************************************************************************************************/
 IO_pin_state_t IO_read_pin(IO_pin_id_t pin_id)
@@ -312,35 +325,77 @@ IO_pin_state_t IO_read_pin(IO_pin_id_t pin_id)
 	return (IO_pin_state_t)PORT_REGS->GROUP[pin.group].PORT_IN & (1 << pin.u8_number);
 }
 
+/****************************************************************************************************
+ *	Enables internal pullup for the given pin
+ *  
+ *	@param[in] pin_id The ID of the desired pin
+ *
+ ****************************************************************************************************/
 void IO_enable_pullup(IO_pin_id_t pin_id)
 {
+	ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
+
 	IO_pin_t pin = pin_map[pin_id];
 
 	PORT_REGS->GROUP[pin.group].PORT_PINCFG[pin.u8_number] |= PORT_PINCFG_PULLEN(1);
 }
 
+/****************************************************************************************************
+ *	Disables internal pullup for the given pin
+ *  
+ *	@param[in] pin_id The ID of the desired pin
+ *
+ ****************************************************************************************************/
 void IO_disable_pullup(IO_pin_id_t pin_id)
 {
+	ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
+
 	IO_pin_t pin = pin_map[pin_id];
 
 	PORT_REGS->GROUP[pin.group].PORT_PINCFG[pin.u8_number] &= ~PORT_PINCFG_PULLEN(1);
 }
 
+/****************************************************************************************************
+ *	Enables stronger drive strength for the given pin
+ *  
+ *	@param[in] pin_id The ID of the desired pin
+ *
+ ****************************************************************************************************/
 void IO_enable_strong_drive_strength(IO_pin_id_t pin_id)
 {
+	ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
+
 	IO_pin_t pin = pin_map[pin_id];
 
 	PORT_REGS->GROUP[pin.group].PORT_PINCFG[pin.u8_number] |= PORT_PINCFG_DRVSTR(1);
 }
 
+/****************************************************************************************************
+ *	Disables stronger drive strength for the given pin
+ *  
+ *	@param[in] pin_id The ID of the desired pin
+ *
+ ****************************************************************************************************/
 void IO_disable_strong_drive_strength(IO_pin_id_t pin_id)
 {
+	ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
+
 	IO_pin_t pin = pin_map[pin_id];
 
 	PORT_REGS->GROUP[pin.group].PORT_PINCFG[pin.u8_number] &= ~PORT_PINCFG_DRVSTR(1);
 }
 
+/****************************************************************************************************
+ *	Retrieves the string descriptor of the given pin according to its entry in the pin map
+ *  
+ *	@param[in] pin_id The ID of the desired pin
+ *
+ * 	@return The name of the pin
+ * 
+ ****************************************************************************************************/
 const char * IO_get_pin_name(IO_pin_id_t pin_id)
 {
+	ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
+
 	return pin_map[pin_id].kcp_name;
 }

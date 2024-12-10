@@ -239,3 +239,16 @@ uint8_t	SYS_shell_reset(uint8_t argc, char ** argv)
 	return SHELL_COMMAND_SUCCESS;
 }
 
+uint8_t SYS_shell_crash(uint8_t argc, char ** argv)
+{
+	if (argc == 0)
+	{
+		ASSERT(0);
+	}
+	else
+	{
+		SHELL_printf("Usage: sys crash\r\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}

@@ -9,6 +9,7 @@
 
 #define SHELL_COMMAND_SUCCESS			(0)
 #define	SHELL_SEPARATOR() 				SHELL_printf("----------------------------------------\r\n")
+#define SHELL_PROMPT					"> "
 
 #define SHELL_COLOR_RESET       		"\033[0m"
 #define SHELL_COLOR_BLACK       		"\033[30m"
@@ -41,7 +42,17 @@
 #define SHELL_COLOR_VAPORWAVE_LAVENDER 	"\033[38;5;141m"
 
 #define SHELL_PRINT_COLOR(color, format, ...) \
-    SHELL_printf(color format SHELL_COLOR_RESET "\r\n", ##__VA_ARGS__)
+	do { \
+		SHELL_printf(color format SHELL_COLOR_RESET, ##__VA_ARGS__); \
+		if (format[strlen(format) - 1] != '\n') \
+		{ \
+			SHELL_printf("\r\n"); \
+		} \
+		SHELL_printf("%s", SHELL_PROMPT); \
+	} while(0)
+
+#define SHELL_PRINT_ERROR(error, ...) \
+    SHELL_PRINT_COLOR(SHELL_COLOR_RED, error, ##__VA_ARGS__)
 
 /****************************************************************************************************
  *	F U N C T I O N S

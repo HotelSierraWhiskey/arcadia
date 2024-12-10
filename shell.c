@@ -7,7 +7,6 @@
  ****************************************************************************************************/
 
 #define SHELL_COMMAND_BUFFER_SIZE	(512)
-#define SHELL_PROMPT				"> "
 #define SHELL_CRLF					"\r\n"
 #define SHELL_MAX_TOKENS			(20)
 #define SHELL_MAX_ARGS				(5)
@@ -49,6 +48,15 @@ uint8_t 		SHELL_shell_help		(uint8_t argc, char ** argv);
  */
 static const SHELL_command_t kp_sys_command_table[] =
 {
+	{
+		.kpc_name 			= "crash",
+		.function 			= SYS_shell_crash,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tTriggers a usage fault\r\n"
+									"\tUsage: sys crash\r\n"
+								)
+	},
 	{
 		.kpc_name 			= "info",
 		.function 			= SYS_shell_info,
