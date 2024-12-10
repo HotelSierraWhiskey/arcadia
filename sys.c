@@ -2,6 +2,7 @@
 #include "sys.h"
 #include "io.h"
 #include "shell.h"
+#include "sys_time.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -40,7 +41,6 @@ typedef struct _SYS_info
 {
 	SYS_part_t				k_part;
 	SYS_clock_src_freq_t	clock_source_freq;
-	uint8_t					u8_clock_source_division_factor;
 } SYS_info_t;
 
 /****************************************************************************************************
@@ -65,6 +65,26 @@ static const char * const kpc_sys_clock_freq_descriptors[SYS_CLOCK_SRC_FREQ_NUM_
 	[SYS_CLOCK_SRC_FREQ_3_43_MHZ] 	= "3.43 MHz",
 	[SYS_CLOCK_SRC_FREQ_3_2_MHZ] 	= "3.2 MHz",
 	[SYS_CLOCK_SRC_FREQ_3_MHZ] 		= "3 MHz",
+};
+
+static const uint32_t kpu32_sys_clock_frequencies[SYS_CLOCK_SRC_FREQ_NUM_FREQ] = 
+{
+	[SYS_CLOCK_SRC_FREQ_48_MHZ]   = 48000000,
+	[SYS_CLOCK_SRC_FREQ_24_MHZ]   = 24000000,
+	[SYS_CLOCK_SRC_FREQ_16_MHZ]   = 16000000,
+	[SYS_CLOCK_SRC_FREQ_12_MHZ]   = 12000000,
+	[SYS_CLOCK_SRC_FREQ_9_6_MHZ]  = 9600000,
+	[SYS_CLOCK_SRC_FREQ_8_MHZ]    = 8000000,
+	[SYS_CLOCK_SRC_FREQ_6_86_MHZ] = 6860000,
+	[SYS_CLOCK_SRC_FREQ_6_MHZ]    = 6000000,
+	[SYS_CLOCK_SRC_FREQ_5_33_MHZ] = 5330000,
+	[SYS_CLOCK_SRC_FREQ_4_8_MHZ]  = 4800000,
+	[SYS_CLOCK_SRC_FREQ_4_36_MHZ] = 4360000,
+	[SYS_CLOCK_SRC_FREQ_4_MHZ]    = 4000000,
+	[SYS_CLOCK_SRC_FREQ_3_69_MHZ] = 3690000,
+	[SYS_CLOCK_SRC_FREQ_3_43_MHZ] = 3430000,
+	[SYS_CLOCK_SRC_FREQ_3_2_MHZ]  = 3200000,
+	[SYS_CLOCK_SRC_FREQ_3_MHZ]    = 3000000,
 };
 
 static const char * const kpc_part_descriptors[SYS_PART_NUM_PARTS] = 
@@ -96,6 +116,8 @@ void SYS_init(void)
 	SYS_osc48m_init();
 
 	SYS_clock_init();
+
+	SYS_TIME_init();
 
 	IO_init();
 
@@ -131,7 +153,11 @@ static void SYS_osc48m_init(void)
 	}
 
 	SYS_info.clock_source_freq = SYS_CLOCK_SRC_FREQ_48_MHZ;
-	SYS_info.u8_clock_source_division_factor = 1;
+}
+
+void SYS_reset(void)
+{
+	NVIC_SystemReset();
 }
 
 /****************************************************************************************************
@@ -161,15 +187,28 @@ static void SYS_clock_init(void)
 	}
 }
 
+uint32_t SYS_get_source_clock_freq(void)
+{
+	return kpu32_sys_clock_frequencies[SYS_info.clock_source_freq];
+}
+
 uint8_t SYS_shell_info(uint8_t argc, char ** argv)
 {
 	if (argc == 0)
 	{
+		uint32_t u32_uptime_s 	= SYS_TIME_get_ticks() / 1000;
+		uint32_t u32_hours 		= u32_uptime_s / 3600;
+		uint32_t u32_minutes 	= (u32_uptime_s % 3600) / 60;
+		uint32_t u32_seconds 	= u32_uptime_s % 60;
+		char pc_buffer[12];
+
+		sprintf(pc_buffer, "%02lu:%02lu:%02lu", u32_hours, u32_minutes, u32_seconds);
+
 		SHELL_SEPARATOR();
 		SHELL_printf("%-30s: %s %s\r\n", "Compilation Timestamp", __DATE__, __TIME__);
+		SHELL_printf("%-30s: %s\r\n", "Uptime", pc_buffer);
 		SHELL_printf("%-30s: %s\r\n", "MCU Model Number", kpc_part_descriptors[SYS_info.k_part]);
 		SHELL_printf("%-30s: %s\r\n", "Clock Source Freq", kpc_sys_clock_freq_descriptors[SYS_info.clock_source_freq]);
-		SHELL_printf("%-30s: %u\r\n", "Clock Division Factor", SYS_info.u8_clock_source_division_factor);
 		SHELL_SEPARATOR();
 	}
 	else
@@ -179,3 +218,24 @@ uint8_t SYS_shell_info(uint8_t argc, char ** argv)
 
 	return SHELL_COMMAND_SUCCESS;
 }
+
+uint8_t	SYS_shell_reset(uint8_t argc, char ** argv)
+{
+	if (argc == 0)
+	{
+		SHELL_printf("System rebooting...\r\n");
+		
+		// Just one moment to empty the UART tx buffer
+		// Might want to schedule this in the future
+		for (volatile uint32_t i = 0; i < 1000; i++);
+
+		SYS_reset();
+	}
+	else
+	{
+		SHELL_printf("Usage: sys reset\r\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
+

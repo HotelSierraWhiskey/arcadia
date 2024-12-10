@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include "interrupts.h"
+#include "utils.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -233,11 +234,11 @@ void irqHARD_FAULT(void)
 /****************************************************************************************************
  *	Newlib syscall stubs to make the compiler happy
  ****************************************************************************************************/
-int 		__attribute__((weak)) _close	(int file) { return -1; }
-int 		__attribute__((weak)) _fstat	(int file, struct stat *st) { return 0; }
-pid_t 		__attribute__((weak)) _getpid	(void) { return 1; }
-int 		__attribute__((weak)) _isatty	(int file) { return 1; }
-int 		__attribute__((weak)) _kill		(pid_t pid, int sig) { return -1; }
-off_t 		__attribute__((weak)) _lseek	(int file, off_t offset, int whence) { return -1; }
-ssize_t 	__attribute__((weak)) _read		(int file, void *ptr, size_t len) { return 0; }
-ssize_t 	__attribute__((weak)) _write	(int file, const void *ptr, size_t len) { return len; }
+int 		WEAKREF 	_close		(int file) { return -1; }
+int 		WEAKREF 	_fstat		(int file, struct stat *st) { return 0; }
+pid_t 		WEAKREF 	_getpid		(void) { return 1; }
+int 		WEAKREF 	_isatty		(int file) { return 1; }
+int 		WEAKREF 	_kill		(pid_t pid, int sig) { return -1; }
+off_t 		WEAKREF 	_lseek		(int file, off_t offset, int whence) { return -1; }
+ssize_t 	WEAKREF 	_read		(int file, void *ptr, size_t len) { return 0; }
+ssize_t 	WEAKREF 	_write		(int file, const void *ptr, size_t len) { return len; }

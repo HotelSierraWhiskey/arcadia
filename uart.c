@@ -397,8 +397,6 @@ void irqSERCOM0()
 {
 	volatile uint8_t u8_byte;
 	
-	IO_set_pin(IO_PIN_ID_PA27, IO_PIN_STATE_HIGH);
-
 	// This flag is cleared by reading the SERCOM_DATA register
 	if ((SERCOM0_REGS->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_RXC(1)) != 0)
 	{
@@ -422,7 +420,6 @@ void irqSERCOM0()
 		}
 	}
 
-	IO_set_pin(IO_PIN_ID_PA27, IO_PIN_STATE_LOW);
 	NVIC_ClearPendingIRQ(SERCOM0_IRQn);
 }
 

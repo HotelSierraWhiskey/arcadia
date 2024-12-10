@@ -31,7 +31,7 @@ APP_INC = 	-Ilib/CMSIS_5/CMSIS/Core/Include \
 			-Ilib/samc21/include \
 			-I/usr/local/arm-gnu-toolchain-13.2.Rel1-x86_64-arm-none-eabi/include \
 
-APP_VPATH = main.c nvic.c sys.c io.c sercom.c uart.c shell.c
+APP_VPATH = main.c nvic.c sys.c io.c sercom.c uart.c shell.c sys_time.c
 
 # matching .o files from APP_VPATH
 APP_OBJECTS = 	$(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(wildcard $(APP_VPATH))))

@@ -44,6 +44,9 @@ uint8_t 		SHELL_shell_help		(uint8_t argc, char ** argv);
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
 
+/**
+ *	`sys` commands
+ */
 static const SHELL_command_t kp_sys_command_table[] =
 {
 	{
@@ -55,10 +58,22 @@ static const SHELL_command_t kp_sys_command_table[] =
 									"\tUsage: sys info\r\n"
 								)
 	},
+	{
+		.kpc_name 			= "reset",
+		.function 			= SYS_shell_reset,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tPerforms a software reset\r\n"
+									"\tUsage: sys reset\r\n"
+								)
+	},
 	//////////
 	SHELL_COMMAND_TABLE_END
 };
 
+/**
+ *	`uart` commands
+ */
 static const SHELL_command_t kp_uart_command_table[] =
 {
 	{
@@ -74,6 +89,9 @@ static const SHELL_command_t kp_uart_command_table[] =
 	SHELL_COMMAND_TABLE_END
 };
 
+/**
+ *	Top level commands
+ */
 static const SHELL_command_t kp_command_table[] =
 {
 	{
