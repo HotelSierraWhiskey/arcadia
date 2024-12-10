@@ -36,7 +36,7 @@ typedef struct _UART_channel
 } UART_channel_t;
 
 /****************************************************************************************************
- *	V A R I A B L E S
+ *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
 
 /**
@@ -414,4 +414,18 @@ void irqSERCOM0()
 
 	IO_set_pin(IO_PIN_ID_PA27, IO_PIN_STATE_LOW);
 	NVIC_ClearPendingIRQ(SERCOM0_IRQn);
+}
+
+uint8_t UART_shell_info(uint8_t argc, char ** argv)
+{
+	if (argc == 0)
+	{
+		SHELL_printf("Here's some good news\r\n");
+	}
+	else
+	{
+		SHELL_printf("Usage: uart info\r\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
 }

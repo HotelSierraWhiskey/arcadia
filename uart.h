@@ -28,8 +28,10 @@ typedef enum _UART_channel_id
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-void	UART_init		(UART_channel_id_t channel_id);
-void	UART_tx_char	(UART_channel_id_t channel_id, char c);
-char	UART_rx_char	(UART_channel_id_t channel_id);
+void		UART_init			(UART_channel_id_t channel_id);
+void		UART_tx_char		(UART_channel_id_t channel_id, char c);
+char		UART_rx_char		(UART_channel_id_t channel_id);
+
+uint8_t		UART_shell_info		(uint8_t argc, char ** argv);
 
 #endif // UART_H

@@ -1,6 +1,78 @@
 #include "common.h"
 #include "sys.h"
 #include "io.h"
+#include "shell.h"
+
+/****************************************************************************************************
+ *	D E F I N E S   &   T Y P E D E F S
+ ****************************************************************************************************/
+
+typedef enum _SYS_clock_src_freq
+{
+	SYS_CLOCK_SRC_FREQ_48_MHZ,
+	SYS_CLOCK_SRC_FREQ_24_MHZ,
+	SYS_CLOCK_SRC_FREQ_16_MHZ,
+	SYS_CLOCK_SRC_FREQ_12_MHZ,
+	SYS_CLOCK_SRC_FREQ_9_6_MHZ,
+	SYS_CLOCK_SRC_FREQ_8_MHZ,
+	SYS_CLOCK_SRC_FREQ_6_86_MHZ,
+	SYS_CLOCK_SRC_FREQ_6_MHZ,
+	SYS_CLOCK_SRC_FREQ_5_33_MHZ,
+	SYS_CLOCK_SRC_FREQ_4_8_MHZ,
+	SYS_CLOCK_SRC_FREQ_4_36_MHZ,
+	SYS_CLOCK_SRC_FREQ_4_MHZ,
+	SYS_CLOCK_SRC_FREQ_3_69_MHZ,
+	SYS_CLOCK_SRC_FREQ_3_43_MHZ,
+	SYS_CLOCK_SRC_FREQ_3_2_MHZ,
+	SYS_CLOCK_SRC_FREQ_3_MHZ,
+	//////////
+	SYS_CLOCK_SRC_FREQ_NUM_FREQ
+} SYS_clock_src_freq_t;
+
+typedef enum _SYS_part
+{
+	SYS_PART_ATSAMC21E18A,
+	//////////
+	SYS_PART_NUM_PARTS
+} SYS_part_t;
+
+typedef struct _SYS_info
+{
+	SYS_part_t				k_part;
+	SYS_clock_src_freq_t	clock_source_freq;
+	uint8_t					u8_clock_source_division_factor;
+} SYS_info_t;
+
+/****************************************************************************************************
+ *	P R I V A T E   V A R I A B L E S
+ ****************************************************************************************************/
+
+static const char * const kpc_sys_clock_freq_descriptors[SYS_CLOCK_SRC_FREQ_NUM_FREQ] = 
+{
+	[SYS_CLOCK_SRC_FREQ_48_MHZ] 	= "48 MHz",
+	[SYS_CLOCK_SRC_FREQ_24_MHZ] 	= "24 MHz",
+	[SYS_CLOCK_SRC_FREQ_16_MHZ] 	= "16 MHz",
+	[SYS_CLOCK_SRC_FREQ_12_MHZ] 	= "12 MHz",
+	[SYS_CLOCK_SRC_FREQ_9_6_MHZ] 	= "9.6 MHz",
+	[SYS_CLOCK_SRC_FREQ_8_MHZ] 		= "8 MHz",
+	[SYS_CLOCK_SRC_FREQ_6_86_MHZ] 	= "6.86 MHz",
+	[SYS_CLOCK_SRC_FREQ_6_MHZ] 		= "6 MHz",
+	[SYS_CLOCK_SRC_FREQ_5_33_MHZ] 	= "5.33 MHz",
+	[SYS_CLOCK_SRC_FREQ_4_8_MHZ] 	= "4.8 MHz",
+	[SYS_CLOCK_SRC_FREQ_4_36_MHZ] 	= "4.36 MHz",
+	[SYS_CLOCK_SRC_FREQ_4_MHZ] 		= "4 MHz",
+	[SYS_CLOCK_SRC_FREQ_3_69_MHZ] 	= "3.69 MHz",
+	[SYS_CLOCK_SRC_FREQ_3_43_MHZ] 	= "3.43 MHz",
+	[SYS_CLOCK_SRC_FREQ_3_2_MHZ] 	= "3.2 MHz",
+	[SYS_CLOCK_SRC_FREQ_3_MHZ] 		= "3 MHz",
+};
+
+static const char * const kpc_part_descriptors[SYS_PART_NUM_PARTS] = 
+{
+	[SYS_PART_ATSAMC21E18A] = "ATSAMC21E18A"
+};
+
+static SYS_info_t SYS_info;
 
 /****************************************************************************************************
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
@@ -19,6 +91,8 @@ static void 	SYS_osc48m_init			(void);
  ****************************************************************************************************/
 void SYS_init(void)
 {
+	SYS_info.k_part = SYS_PART_ATSAMC21E18A;
+
 	SYS_osc48m_init();
 
 	SYS_clock_init();
@@ -32,13 +106,14 @@ void SYS_init(void)
 /****************************************************************************************************
  *	Initializes OSC48M (the internal 48MHz oscillator)
  * 
+ * 	@todo tighten up the config interface/ SYS_info members here
  ****************************************************************************************************/
 static void SYS_osc48m_init(void)
 {
 	// Two wait states are required to run at 48MHz
 	NVMCTRL_REGS->NVMCTRL_CTRLB = NVMCTRL_CTRLB_RWS_DUAL;
 
-	// Enable in on-demand mode with a division factor of 2 (for 24MHz) with 21.33us startup delay
+	// Enable in on-demand mode with a division factor of 1 (for 48MHz) with 21.33us startup delay
 	OSCCTRL_REGS->OSCCTRL_OSC48MCTRL = OSCCTRL_OSC48MCTRL_ENABLE(1) | OSCCTRL_OSC48MCTRL_ONDEMAND(1);
 	OSCCTRL_REGS->OSCCTRL_OSC48MDIV = OSCCTRL_OSC48MDIV_DIV_DIV1;
 	OSCCTRL_REGS->OSCCTRL_OSC48MSTUP = OSCCTRL_OSC48MSTUP_STARTUP_CYCLE1024;
@@ -54,6 +129,9 @@ static void SYS_osc48m_init(void)
 	{
 		continue;
 	}
+
+	SYS_info.clock_source_freq = SYS_CLOCK_SRC_FREQ_48_MHZ;
+	SYS_info.u8_clock_source_division_factor = 1;
 }
 
 /****************************************************************************************************
@@ -81,4 +159,15 @@ static void SYS_clock_init(void)
 	{
 		continue;
 	}
+}
+
+uint8_t SYS_shell_info(uint8_t argc, char ** argv)
+{
+	SHELL_SEPARATOR();
+	SHELL_printf("%-30s: %s\r\n", "MCU Model Number", kpc_part_descriptors[SYS_info.k_part]);
+	SHELL_printf("%-30s: %s\r\n", "Clock Source Freq", kpc_sys_clock_freq_descriptors[SYS_info.clock_source_freq]);
+	SHELL_printf("%-30s: %u\r\n", "Clock Division Factor", SYS_info.u8_clock_source_division_factor);
+	SHELL_SEPARATOR();
+
+	return SHELL_COMMAND_SUCCESS;
 }
