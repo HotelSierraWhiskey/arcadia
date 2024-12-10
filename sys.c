@@ -3,6 +3,7 @@
 #include "io.h"
 #include "shell.h"
 #include "sys_time.h"
+#include "version.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -192,22 +193,77 @@ uint32_t SYS_get_source_clock_freq(void)
 	return kpu32_sys_clock_frequencies[SYS_info.clock_source_freq];
 }
 
+uint8_t SYS_shell_crash(uint8_t argc, char ** argv)
+{
+	if (argc == 0)
+	{
+		ASSERT(0);
+	}
+	else
+	{
+		SHELL_printf("Usage: sys crash\r\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
+
+uint8_t SYS_shell_delay(uint8_t argc, char ** argv)
+{
+	bool b_res = false;
+	uint32_t u32_delay;
+
+	if (argc == 1)
+	{
+		if (UTILS_string_to_u32(argv[0], &u32_delay))
+		{
+			SHELL_printf("Delaying %u ms\r\n", u32_delay);
+			SYS_TIME_delay_ms(u32_delay);
+			SHELL_printf("Done\r\n");
+
+			b_res = true;
+		}
+	}
+
+	if (!b_res)
+	{
+		SHELL_printf("Usage: sys delay <ms>\r\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
+
 uint8_t SYS_shell_info(uint8_t argc, char ** argv)
 {
 	if (argc == 0)
 	{
+		// Uptime stuff
 		uint32_t u32_uptime_s 	= SYS_TIME_get_ticks() / 1000;
 		uint32_t u32_hours 		= u32_uptime_s / 3600;
 		uint32_t u32_minutes 	= (u32_uptime_s % 3600) / 60;
 		uint32_t u32_seconds 	= u32_uptime_s % 60;
-		char pc_buffer[12];
+		char pc_time_buffer[12];
+		sprintf(pc_time_buffer, "%02lu:%02lu:%02lu", u32_hours, u32_minutes, u32_seconds);
 
-		sprintf(pc_buffer, "%02lu:%02lu:%02lu", u32_hours, u32_minutes, u32_seconds);
+		// Serial number stuff
+		uint32_t uid_buffer[4];
+    	uid_buffer[0] = *(uint32_t *)0x0080A00C;
+		uid_buffer[1] = *(uint32_t *)0x0080A040;
+		uid_buffer[2] = *(uint32_t *)0x0080A044;
+		uid_buffer[3] = *(uint32_t *)0x0080A048;
+
+		char pc_serial_number[35];
+		sprintf(pc_serial_number, "%08lX-%08lX-%08lX-%08lX", 
+			uid_buffer[0], 
+			uid_buffer[1], 
+			uid_buffer[2], 
+			uid_buffer[3]);
 
 		SHELL_SEPARATOR();
+		SHELL_printf("%-30s: %u.%u.%u\r\n", "Firmware Version", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
 		SHELL_printf("%-30s: %s %s\r\n", "Compilation Timestamp", __DATE__, __TIME__);
-		SHELL_printf("%-30s: %s\r\n", "Uptime", pc_buffer);
-		SHELL_printf("%-30s: %s\r\n", "MCU Model Number", kpc_part_descriptors[SYS_info.k_part]);
+		SHELL_printf("%-30s: %s\r\n", "Uptime", pc_time_buffer);
+		SHELL_printf("%-30s: %s (Cortex M0+)\r\n", "MCU Model Number", kpc_part_descriptors[SYS_info.k_part]);
+		SHELL_printf("%-30s: %s\r\n", "Serial Number", pc_serial_number);
 		SHELL_printf("%-30s: %s\r\n", "Clock Source Freq", kpc_sys_clock_freq_descriptors[SYS_info.clock_source_freq]);
 		SHELL_SEPARATOR();
 	}
@@ -225,29 +281,13 @@ uint8_t	SYS_shell_reset(uint8_t argc, char ** argv)
 	{
 		SHELL_printf("System rebooting...\r\n");
 		
-		// Just one moment to empty the UART tx buffer
-		// Might want to schedule this in the future
-		for (volatile uint32_t i = 0; i < 1000; i++);
-
+		// Delay 10ms to empty the UART tx buffer
+		SYS_TIME_delay_ms(10);
 		SYS_reset();
 	}
 	else
 	{
 		SHELL_printf("Usage: sys reset\r\n");
-	}
-
-	return SHELL_COMMAND_SUCCESS;
-}
-
-uint8_t SYS_shell_crash(uint8_t argc, char ** argv)
-{
-	if (argc == 0)
-	{
-		ASSERT(0);
-	}
-	else
-	{
-		SHELL_printf("Usage: sys crash\r\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;

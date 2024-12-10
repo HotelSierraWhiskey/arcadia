@@ -53,8 +53,17 @@ static const SHELL_command_t kp_sys_command_table[] =
 		.function 			= SYS_shell_crash,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tTriggers a usage fault\r\n"
+									"\tForces a Hard Fault exception\r\n"
 									"\tUsage: sys crash\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "delay",
+		.function 			= SYS_shell_delay,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tBlocking systick delay\r\n"
+									"\tUsage: sys delay <ms>\r\n"
 								)
 	},
 	{
@@ -264,12 +273,14 @@ static void SHELL_handle_command(void)
 				if (argc >= SHELL_MAX_ARGS)
 				{
 					SHELL_printf("\r\nToo many arguments\r\n");
+					SHELL_flush_buffer();
 					return;
 				}
 			}
 			else
 			{
 				SHELL_printf("\r\nCommand not found: %s\r\n", token);
+				SHELL_flush_buffer();
 				return;
 			}
 		}
