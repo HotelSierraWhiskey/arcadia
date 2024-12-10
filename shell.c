@@ -17,10 +17,10 @@ typedef uint8_t (* SHELL_function_t)(uint8_t argc, char ** argv);
 
 typedef struct _SHELL_command
 {
-	const char *				kpc_name;
-	SHELL_function_t			function;
-	struct _SHELL_command * 	p_command_table;
-	const char *				kpc_docstring;
+	const char *					kpc_name;
+	SHELL_function_t				function;
+	const struct _SHELL_command * 	kp_command_table;
+	const char *					kpc_docstring;
 } SHELL_command_t;
 
 typedef struct _SHELL_info
@@ -33,11 +33,10 @@ typedef struct _SHELL_info
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
-static char 	SHELL_read				(void);
 static void 	SHELL_flush_buffer		(void);
 static void 	SHELL_handle_command	(void);
 static void		SHELL_display_banner	(void);
-static void 	SHELL_help				(SHELL_command_t * p_table);
+static void 	SHELL_help				(const SHELL_command_t * p_table);
 
 uint8_t 		SHELL_shell_help		(uint8_t argc, char ** argv);
 
@@ -50,7 +49,7 @@ static const SHELL_command_t kp_sys_command_table[] =
 	{
 		.kpc_name 			= "info",
 		.function 			= SYS_shell_info,
-		.p_command_table 	= NULL,
+		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
 									"\tGeneral system information\r\n"
 									"\tUsage: sys info\r\n"
@@ -65,7 +64,7 @@ static const SHELL_command_t kp_uart_command_table[] =
 	{
 		.kpc_name 			= "info",
 		.function 			= UART_shell_info,
-		.p_command_table 	= NULL,
+		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
 									"\tDisplays UART configuration\r\n"
 									"\tUsage: uart info\r\n"
@@ -80,7 +79,7 @@ static const SHELL_command_t kp_command_table[] =
 	{
 		.kpc_name 			= "help",
 		.function 			= SHELL_shell_help,
-		.p_command_table 	= NULL,
+		.kp_command_table 	= NULL,
 		.kpc_docstring		=	(
 									"\tDisplays this message\r\n"
 								)
@@ -88,13 +87,13 @@ static const SHELL_command_t kp_command_table[] =
 	{
 		.kpc_name 			= "sys",
 		.function 			= NULL,
-		.p_command_table 	= kp_sys_command_table,
+		.kp_command_table 	= kp_sys_command_table,
 		.kpc_docstring		= NULL
 	},
 	{
 		.kpc_name 			= "uart",
 		.function 			= NULL,
-		.p_command_table 	= kp_uart_command_table,
+		.kp_command_table 	= kp_uart_command_table,
 		.kpc_docstring		= NULL
 	},
 	//////////
@@ -130,14 +129,14 @@ void SHELL_run(void)
 	// Handle return
 	if (c == '\r')
 	{
-		if (strncmp(SHELL_info.pc_buffer, strlen(SHELL_CRLF), 2) != 0)
+		if (strlen(SHELL_info.pc_buffer) == 0)
 		{
-			SHELL_handle_command();
-			SHELL_printf("%s", SHELL_PROMPT);
+			SHELL_printf("\r\n%s", SHELL_PROMPT);
 		}
 		else
 		{
-			SHELL_printf("\r\n%s", SHELL_PROMPT);
+			SHELL_handle_command();
+			SHELL_printf("%s", SHELL_PROMPT);
 		}
 
 		SHELL_flush_buffer();
@@ -187,11 +186,6 @@ void SHELL_printf(const char *format, ...)
 	}
 }
 
-static char SHELL_read(void)
-{
-	return UART_rx_char(UART_CHANNEL_SHELL);
-}
-
 static void SHELL_flush_buffer(void)
 {
 	memset(SHELL_info.pc_buffer, 0, SHELL_COMMAND_BUFFER_SIZE);
@@ -202,7 +196,7 @@ static void SHELL_handle_command(void)
 {
 	uint8_t 			argc = 0;
 	char *				argv[SHELL_MAX_ARGS];
-	SHELL_command_t *	p_table = kp_command_table;
+	SHELL_command_t *	p_table = (SHELL_command_t *)kp_command_table;
 	SHELL_function_t 	shell_function = NULL;
 	bool 				b_found = false;
 
@@ -217,9 +211,9 @@ static void SHELL_handle_command(void)
 			if (strcmp(p_table[i].kpc_name, token) == 0)
 			{
 				// If the command has a subcommand table, traverse into it
-				if (p_table[i].p_command_table != NULL)
+				if (p_table[i].kp_command_table != NULL)
 				{
-					p_table = p_table[i].p_command_table;
+					p_table = (SHELL_command_t *)p_table[i].kp_command_table;
 					b_found = true;
 					break;
 				}
@@ -277,7 +271,7 @@ static void SHELL_handle_command(void)
 	SHELL_flush_buffer();
 }
 
-static void SHELL_help(SHELL_command_t * p_table)
+static void SHELL_help(const SHELL_command_t * p_table)
 {
 	SHELL_printf("\r\n\nCommands:\r\n");
 
