@@ -1,4 +1,4 @@
-#include "sys_time.h"
+#include "chronos.h"
 #include "io.h"
 #include "sys.h"
 
@@ -18,29 +18,29 @@ static volatile uint32_t u32_ticks;
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-void SYS_TIME_init(void)
+void CHRONOS_init(void)
 {
 	uint32_t u32_source_clock_freq = SYS_get_source_clock_freq();
 	u32_ticks = 0;
 	SysTick_Config(SYS_TICK_FREQ_1MS(u32_source_clock_freq));
 }
 
-uint32_t SYS_TIME_get_ticks(void)
+uint32_t CHRONOS_get_ticks(void)
 {
 	return u32_ticks;
 }
 
-uint32_t SYS_TIME_ticks_since(uint32_t start_ticks)
+uint32_t CHRONOS_ticks_since(uint32_t start_ticks)
 {
-	uint32_t current_ticks = SYS_TIME_get_ticks();
+	uint32_t current_ticks = CHRONOS_get_ticks();
 	return current_ticks - start_ticks;
 }
 
-void SYS_TIME_delay_ms(uint32_t u32_ms)
+void CHRONOS_delay_ms(uint32_t u32_ms)
 {
-	uint32_t start_ticks = SYS_TIME_get_ticks();
+	uint32_t start_ticks = CHRONOS_get_ticks();
 	
-	while (SYS_TIME_ticks_since(start_ticks) < u32_ms)
+	while (CHRONOS_ticks_since(start_ticks) < u32_ms)
 	{
 		continue;
 	}

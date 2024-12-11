@@ -2,7 +2,7 @@
 #include "sys.h"
 #include "io.h"
 #include "shell.h"
-#include "sys_time.h"
+#include "chronos.h"
 #include "version.h"
 
 /****************************************************************************************************
@@ -118,7 +118,7 @@ void SYS_init(void)
 
 	SYS_clock_init();
 
-	SYS_TIME_init();
+	CHRONOS_init();
 
 	IO_init();
 
@@ -217,7 +217,7 @@ uint8_t SYS_shell_delay(uint8_t argc, char ** argv)
 		if (UTILS_string_to_u32(argv[0], &u32_delay))
 		{
 			SHELL_printf("Delaying %u ms\r\n", u32_delay);
-			SYS_TIME_delay_ms(u32_delay);
+			CHRONOS_delay_ms(u32_delay);
 			SHELL_printf("Done\r\n");
 
 			b_res = true;
@@ -237,7 +237,7 @@ uint8_t SYS_shell_info(uint8_t argc, char ** argv)
 	if (argc == 0)
 	{
 		// Uptime stuff
-		uint32_t u32_uptime_s 	= SYS_TIME_get_ticks() / 1000;
+		uint32_t u32_uptime_s 	= CHRONOS_get_ticks() / 1000;
 		uint32_t u32_hours 		= u32_uptime_s / 3600;
 		uint32_t u32_minutes 	= (u32_uptime_s % 3600) / 60;
 		uint32_t u32_seconds 	= u32_uptime_s % 60;
@@ -282,7 +282,7 @@ uint8_t	SYS_shell_reset(uint8_t argc, char ** argv)
 		SHELL_printf("System rebooting...\r\n");
 		
 		// Delay 10ms to empty the UART tx buffer
-		SYS_TIME_delay_ms(10);
+		CHRONOS_delay_ms(10);
 		SYS_reset();
 	}
 	else
