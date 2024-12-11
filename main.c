@@ -2,6 +2,7 @@
 #include "io.h"
 #include "uart.h"
 #include "shell.h"
+#include "nvmctrl.h"
 
 /****************************************************************************************************
  *	M A I N
@@ -10,6 +11,8 @@
 int main(int argc, char ** argv) 
 {
 	SYS_init();
+
+	NVMCTRL_init();
 
 	SHELL_init();
 

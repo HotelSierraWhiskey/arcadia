@@ -29,7 +29,7 @@ bool UTILS_string_to_u32(const char *kpc_str, uint32_t *u32_out)
         return false;
     }
 
-    uint32_t u32_result = strtoul(kpc_str, &endptr, 10);
+    uint32_t u32_result = strtoul(kpc_str, &endptr, 0);
 
     if (endptr == kpc_str || *endptr != '\0' || !isdigit((unsigned char)kpc_str[0]))
     {

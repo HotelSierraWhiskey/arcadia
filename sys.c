@@ -251,7 +251,7 @@ uint8_t SYS_shell_info(uint8_t argc, char ** argv)
 		uid_buffer[2] = *(uint32_t *)0x0080A044;
 		uid_buffer[3] = *(uint32_t *)0x0080A048;
 
-		char pc_serial_number[35];
+		char pc_serial_number[36];
 		sprintf(pc_serial_number, "%08lX-%08lX-%08lX-%08lX", 
 			uid_buffer[0], 
 			uid_buffer[1], 

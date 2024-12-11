@@ -1,6 +1,7 @@
 #include "shell.h"
 #include "uart.h"
 #include "sys.h"
+#include "nvmctrl.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -8,8 +9,8 @@
 
 #define SHELL_COMMAND_BUFFER_SIZE	(512)
 #define SHELL_CRLF					"\r\n"
-#define SHELL_MAX_TOKENS			(20)
-#define SHELL_MAX_ARGS				(5)
+#define SHELL_MAX_TOKENS			(256)
+#define SHELL_MAX_ARGS				(128)
 #define SHELL_COMMAND_TABLE_END		{NULL, NULL, NULL}
 
 typedef uint8_t (* SHELL_function_t)(uint8_t argc, char ** argv);
@@ -42,6 +43,42 @@ uint8_t 		SHELL_shell_help		(uint8_t argc, char ** argv);
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
+
+/**
+ *	`nvm` commands
+ */
+static const SHELL_command_t kp_nvm_command_table[] =
+{
+	{
+		.kpc_name 			= "erase",
+		.function 			= NVMCTRL_shell_erase,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tErases a row from NVM\r\n"
+									"\tUsage: uart info\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "read",
+		.function 			= NVMCTRL_shell_read,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tReads a page from NVM\r\n"
+									"\tUsage: uart info\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "write",
+		.function 			= NVMCTRL_shell_write,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tWrites a page to NVM\r\n"
+									"\tUsage: uart info\r\n"
+								)
+	},
+	//////////
+	SHELL_COMMAND_TABLE_END
+};
 
 /**
  *	`sys` commands
@@ -118,6 +155,12 @@ static const SHELL_command_t kp_command_table[] =
 		.kpc_docstring		=	(
 									"\tDisplays this message\r\n"
 								)
+	},
+	{
+		.kpc_name 			= "nvm",
+		.function 			= NULL,
+		.kp_command_table 	= kp_nvm_command_table,
+		.kpc_docstring		= NULL
 	},
 	{
 		.kpc_name 			= "sys",
