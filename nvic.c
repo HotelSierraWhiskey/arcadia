@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include "interrupts.h"
 #include "utils.h"
+#include "portasm.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -71,6 +72,9 @@ NVIC_WEAK_IRQ(irqDAC);
 NVIC_WEAK_IRQ(irqSDADC);
 NVIC_WEAK_IRQ(irqPTC);
 
+NVIC_WEAK_IRQ(SVC_Handler);
+NVIC_WEAK_IRQ(PendSV_Handler);
+
 void irqRESET();
 void irqNMI();
 void irqEMPTY_DEF();
@@ -115,11 +119,11 @@ static const NVIC_table_t NVIC_table __attribute__((section(".nvic_table"), used
 		NULL,               // Reserved
 		NULL,               // Reserved
 		NULL,               // Reserved
-		irqEMPTY_DEF,       // SV Call
+		SVC_Handler,       	// SV Call (Supervisor Call, i.e. svc instruction executed)
 		irqEMPTY_DEF,       // Debug Monitor
 		NULL,               // Reserved
-		irqEMPTY_DEF,       // Pending SV
-		irqSysTick,         // SysTick
+		PendSV_Handler,    	// Pending SV
+		irqSysTick,   	// SysTick
 
         /* Vendor-specific handlers */
 		irqSYSTEM,			// SYSTEM
