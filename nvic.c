@@ -39,7 +39,7 @@ typedef struct _NVIC_table_t
 /****************************************************************************************************
  *	F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
-NVIC_WEAK_IRQ(irqSysTick);
+NVIC_WEAK_IRQ(SysTick_Handler);
 NVIC_WEAK_IRQ(irqSYSTEM);
 NVIC_WEAK_IRQ(irqWDT);
 NVIC_WEAK_IRQ(irqRTC);
@@ -123,7 +123,7 @@ static const NVIC_table_t NVIC_table __attribute__((section(".nvic_table"), used
 		irqEMPTY_DEF,       // Debug Monitor
 		NULL,               // Reserved
 		PendSV_Handler,    	// Pending SV
-		irqSysTick,   	// SysTick
+		SysTick_Handler,   	// SysTick
 
         /* Vendor-specific handlers */
 		irqSYSTEM,			// SYSTEM

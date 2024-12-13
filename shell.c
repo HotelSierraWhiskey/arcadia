@@ -3,11 +3,14 @@
 #include "sys.h"
 #include "nvmctrl.h"
 
+#include <FreeRTOS.h>
+#include "semphr.h"
+
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define SHELL_COMMAND_BUFFER_SIZE	(512)
+#define SHELL_COMMAND_BUFFER_SIZE	(16)
 #define SHELL_CRLF					"\r\n"
 #define SHELL_MAX_TOKENS			(256)
 #define SHELL_MAX_ARGS				(128)
@@ -43,6 +46,8 @@ uint8_t 		SHELL_shell_help		(uint8_t argc, char ** argv);
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
+
+SemaphoreHandle_t xPrintfMutex;
 
 /**
  *	`nvm` commands
@@ -189,9 +194,11 @@ void SHELL_init(void)
 	UART_init(UART_CHANNEL_SHELL);
 	SHELL_flush_buffer();
 
-	SHELL_display_banner();
+	xPrintfMutex = xSemaphoreCreateMutex();
 
-	SHELL_printf("%s", SHELL_PROMPT);
+	// SHELL_display_banner();
+
+	// SHELL_printf("%s", SHELL_PROMPT);
 }
 
 void SHELL_run(void)
@@ -242,19 +249,18 @@ void SHELL_run(void)
 	}
 }
 
+char		buffer[SHELL_COMMAND_BUFFER_SIZE];
+char * ming = "ming";
+
 void SHELL_printf(const char *format, ...)
 {
-	char		buffer[SHELL_COMMAND_BUFFER_SIZE];
+	xSemaphoreTake(xPrintfMutex, portMAX_DELAY);
+
 	va_list 	args;
 
 	va_start(args, format);
 
-	int len = vsnprintf(buffer, sizeof(buffer), format, args);
-
-	if (len < 0 || len >= (int)sizeof(buffer))
-	{
-		buffer[sizeof(buffer) - 1] = '\0';
-	}
+	(void)vsnprintf(buffer, sizeof(buffer), format, args);
 
 	va_end(args);
 
@@ -262,6 +268,8 @@ void SHELL_printf(const char *format, ...)
 	{
 		UART_tx_char(UART_CHANNEL_SHELL, *p);
 	}
+
+	xSemaphoreGive(xPrintfMutex);
 }
 
 static void SHELL_flush_buffer(void)

@@ -3,6 +3,7 @@
 #include "uart.h"
 #include "shell.h"
 #include "nvmctrl.h"
+#include "chronos.h"
 
 /****************************************************************************************************
  *	M A I N
@@ -16,8 +17,8 @@
 #include <timers.h>
 #include <semphr.h>
 
-/* Standard includes. */
-#include <stdio.h>
+// /* Standard includes. */
+// #include <stdio.h>
 
 #define xPortSysTickHandler irqSysTick
 
@@ -28,23 +29,54 @@ void vApplicationMallocFailedHook( void ) {
 
 /*-----------------------------------------------------------*/
 
-static void exampleTask( void * parameters );
+static void task1( void * parameters );
 
 /*-----------------------------------------------------------*/
 
-static void exampleTask( void * parameters )
+static void task1( void * parameters )
 {
-    /* Unused parameters. */
     ( void ) parameters;
-
-	// SHELL_printf("sup\r\n");
 
     for( ; ; )
     {
-        /* Example Task Code */
-        // vTaskDelay( 1000 ); /* delay 100 ticks */
+        vTaskDelay( 1000 );
+		SHELL_printf("Ping\r\n");
     }
 }
+
+static void task2( void * parameters );
+
+/*-----------------------------------------------------------*/
+
+static void task2( void * parameters )
+{
+    ( void ) parameters;
+	
+    for( ; ; )
+    {
+        vTaskDelay( 1000 );
+		SHELL_printf("Pong\r\n");
+    }
+}
+
+/*-----------------------------------------------------------*/
+
+
+static void task3( void * parameters );
+
+/*-----------------------------------------------------------*/
+
+static void task3( void * parameters )
+{
+    ( void ) parameters;
+	
+    for( ; ; )
+    {
+        vTaskDelay( 1000 );
+		SHELL_printf("Pang\r\n");
+    }
+}
+
 /*-----------------------------------------------------------*/
 
 void main( void )
@@ -52,20 +84,38 @@ void main( void )
 	SYS_init();
 	SHELL_init();
 
-    static StaticTask_t exampleTaskTCB;
-    static StackType_t exampleTaskStack[ configMINIMAL_STACK_SIZE ];
+    static StaticTask_t task1TCB;
+    static StackType_t task1Stack[ configMINIMAL_STACK_SIZE ];
 
-    SHELL_printf( "Check 1\r\n" );
+	static StaticTask_t task2TCB;
+    static StackType_t task2Stack[ configMINIMAL_STACK_SIZE ];
 
-    ( void ) xTaskCreateStatic( exampleTask,
-                                "example",
+	static StaticTask_t task3TCB;
+    static StackType_t task3Stack[ configMINIMAL_STACK_SIZE ];
+
+    ( void ) xTaskCreateStatic( task1,
+                                "task1",
                                 configMINIMAL_STACK_SIZE,
                                 NULL,
                                 configMAX_PRIORITIES - 1U,
-                                &( exampleTaskStack[ 0 ] ),
-                                &( exampleTaskTCB ) );
+                                &( task1Stack[ 0 ] ),
+                                &( task1TCB ) );
 
-    SHELL_printf( "Check 2\r\n" );
+	( void ) xTaskCreateStatic( task2,
+							"task2",
+							configMINIMAL_STACK_SIZE,
+							NULL,
+							configMAX_PRIORITIES - 1U,
+							&( task2Stack[ 0 ] ),
+							&( task2TCB ) );
+
+	( void ) xTaskCreateStatic( task3,
+						"task3",
+						configMINIMAL_STACK_SIZE,
+						NULL,
+						configMAX_PRIORITIES - 1U,
+						&( task3Stack[ 0 ] ),
+						&( task3TCB ) );
 
     /* Start the scheduler. */
     vTaskStartScheduler();

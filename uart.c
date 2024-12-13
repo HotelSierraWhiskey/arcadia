@@ -4,6 +4,9 @@
 #include "sys.h"
 #include "shell.h"
 
+#include <FreeRTOS.h>
+#include "semphr.h"
+
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
@@ -167,9 +170,12 @@ void UART_init(UART_channel_id_t channel_id)
 		continue;
 	}
 
-	channel.p_sercom_registers->USART_INT.SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_RXC(1);
-	// temp
-	NVIC_EnableIRQ(channel.irq_index);
+	// channel.p_sercom_registers->USART_INT.SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_RXC(1);
+
+	channel.p_sercom_registers->USART_INT.SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_RXC(1) |
+															SERCOM_USART_INT_INTENSET_TXC(1);
+	
+	// NVIC_EnableIRQ(channel.irq_index);
 }
 
 /****************************************************************************************************
@@ -179,17 +185,31 @@ void UART_init(UART_channel_id_t channel_id)
  * 	@param[in] c The char to send
  *
  ****************************************************************************************************/
+// void UART_tx_char(UART_channel_id_t channel_id, char c)
+// {
+// 	volatile sercom_registers_t * p_sercom_registers = p_uart_channels[channel_id].p_sercom_registers;
+// 	// UART_channel_t channel = p_uart_channels[channel_id];
+
+// 	// NVIC_DisableIRQ(channel.irq_index);
+// 	UART_tx_buffer_push(channel_id, (uint8_t)c);
+// 	// NVIC_EnableIRQ(channel.irq_index);
+
+// 	p_sercom_registers->USART_INT.SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_DRE(1);
+// }
+
+
 void UART_tx_char(UART_channel_id_t channel_id, char c)
 {
 	volatile sercom_registers_t * p_sercom_registers = p_uart_channels[channel_id].p_sercom_registers;
-	UART_channel_t channel = p_uart_channels[channel_id];
+	
+	p_sercom_registers->USART_INT.SERCOM_DATA = c;
 
-	NVIC_DisableIRQ(channel.irq_index);
-	UART_tx_buffer_push(channel_id, (uint8_t)c);
-	NVIC_EnableIRQ(channel.irq_index);
-
-	p_sercom_registers->USART_INT.SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_DRE(1);
+	while (!(p_sercom_registers->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_TXC(1)))
+	{
+		continue;
+	}
 }
+
 
 /****************************************************************************************************
  *	Receives a character over the selected UART interface
@@ -199,16 +219,31 @@ void UART_tx_char(UART_channel_id_t channel_id, char c)
  * 	@return the received character if one was retrieved from the DATA register, else 0
  *
  ****************************************************************************************************/
+// char UART_rx_char(UART_channel_id_t channel_id)
+// {
+// 	// UART_channel_t channel = p_uart_channels[channel_id];
+
+// 	// NVIC_DisableIRQ(channel.irq_index);
+	
+// 	char c = UART_rx_buffer_pop(channel_id);
+// 	// NVIC_EnableIRQ(channel.irq_index);
+
+// 	return c;
+// }
+
 char UART_rx_char(UART_channel_id_t channel_id)
 {
 	UART_channel_t channel = p_uart_channels[channel_id];
+	char c = 0;
 
-	NVIC_DisableIRQ(channel.irq_index);
-	char c = UART_rx_buffer_pop(channel_id);
-	NVIC_EnableIRQ(channel.irq_index);
+	if ((channel.p_sercom_registers->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_RXC(1)) != 0)
+	{
+		c = (char)(channel.p_sercom_registers->USART_INT.SERCOM_DATA);
+	}
 
 	return c;
 }
+
 
 /****************************************************************************************************
  *	Zeroes a channel's UART buffers

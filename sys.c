@@ -118,7 +118,7 @@ void SYS_init(void)
 
 	SYS_clock_init();
 
-	CHRONOS_init();
+	// CHRONOS_init();
 
 	IO_init();
 

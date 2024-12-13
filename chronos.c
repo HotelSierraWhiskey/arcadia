@@ -1,6 +1,8 @@
 #include "chronos.h"
 #include "io.h"
 #include "sys.h"
+#include <FreeRTOS.h>
+
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -25,6 +27,11 @@ void CHRONOS_init(void)
 	SysTick_Config(SYS_TICK_FREQ_1MS(u32_source_clock_freq));
 }
 
+void vPortSetupTimerInterrupt(void)
+{
+	CHRONOS_init();
+}
+
 uint32_t CHRONOS_get_ticks(void)
 {
 	return u32_ticks;
@@ -44,11 +51,16 @@ void CHRONOS_delay_ms(uint32_t u32_ms)
 	{
 		continue;
 	}
+	
 }
 
-void irqSysTick()
-{
-	IO_set_pin(IO_PIN_ID_PA27, IO_PIN_STATE_HIGH);
-	u32_ticks++;
-	IO_set_pin(IO_PIN_ID_PA27, IO_PIN_STATE_LOW);
-}
+// void irqSysTick()
+// {
+// 	// IO_set_pin(IO_PIN_ID_PA27, IO_PIN_STATE_HIGH);
+// 	// u32_ticks++;
+// 	// IO_set_pin(IO_PIN_ID_PA27, IO_PIN_STATE_LOW);
+// 	if (xTaskIncrementTick())
+//     {
+//         portYIELD();
+//     }
+// }

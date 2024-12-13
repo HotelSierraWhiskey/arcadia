@@ -8,7 +8,8 @@ COMMON_FLAGS = \
 	-std=c17 \
 	-nostartfiles \
 	-O0 \
-	-g
+	-g \
+	-fstack-usage
 
 # **************************************************************************** #
 #	A P P   S T U F F
