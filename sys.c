@@ -118,7 +118,7 @@ void SYS_init(void)
 
 	SYS_clock_init();
 
-	// CHRONOS_init();
+	CHRONOS_init();
 
 	IO_init();
 
@@ -292,3 +292,13 @@ uint8_t	SYS_shell_reset(uint8_t argc, char ** argv)
 
 	return SHELL_COMMAND_SUCCESS;
 }
+
+#if ( configCHECK_FOR_STACK_OVERFLOW > 0 )
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char * pcTaskName )
+{
+	// Check pcTaskName for the name of the offending task,
+	// or pxCurrentTCB if pcTaskName has itself been corrupted.
+	( void ) xTask;
+	( void ) pcTaskName;
+}
+#endif

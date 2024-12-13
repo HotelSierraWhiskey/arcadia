@@ -59,7 +59,7 @@
  ****************************************************************************************************/
 
 void	SHELL_init		(void);
-void 	SHELL_run		(void);
+void 	SHELL_task		(void * p_params);
 void 	SHELL_printf	(const char *format, ...);
 
 #endif // SHELL_H

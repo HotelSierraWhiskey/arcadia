@@ -201,56 +201,64 @@ void SHELL_init(void)
 	// SHELL_printf("%s", SHELL_PROMPT);
 }
 
-void SHELL_run(void)
+void SHELL_task(void * p_params)
 {
-	char c = UART_rx_char(UART_CHANNEL_SHELL);
+	(void)p_params;
 
-	// Returned zero, nothing to do
-	if (!c)
-	{
-		return;
-	}
+	// SHELL_init();
 
-	// Handle return
-	if (c == '\r')
+	while (1)
 	{
-		if (strlen(SHELL_info.pc_buffer) == 0)
+		// SHELL_printf("poopoo\n\r");
+		// vTaskDelay(100);
+		char c = UART_rx_char(UART_CHANNEL_SHELL);
+
+		// Returned zero, nothing to do
+		if (!c)
 		{
-			SHELL_printf("\r\n%s", SHELL_PROMPT);
+			continue;
 		}
+
+		// Handle return key
+		if (c == '\r')
+		{
+			if (strlen(SHELL_info.pc_buffer) == 0)
+			{
+				SHELL_printf("\r\n%s", SHELL_PROMPT);
+			}
+			else
+			{
+				SHELL_handle_command();
+				SHELL_printf("%s", SHELL_PROMPT);
+			}
+
+			SHELL_flush_buffer();
+		}
+
+		// Handle delete
+		else if (c == '\b' || c == 0x7F)
+		{
+			if (SHELL_info.u16_index > 0)
+			{
+				// Move the cursor back, overwrite that character with a space, then move back again
+				SHELL_printf("\b \b");
+				
+				// Null the last character
+				SHELL_info.pc_buffer[--SHELL_info.u16_index] = '\0';
+			}
+			// return;
+		}
+
+		// Push the char onto the buffer and echo
 		else
 		{
-			SHELL_handle_command();
-			SHELL_printf("%s", SHELL_PROMPT);
+			SHELL_info.pc_buffer[SHELL_info.u16_index++] = c;
+			SHELL_printf("%c", c);
 		}
-
-		SHELL_flush_buffer();
-	}
-
-	// Handle delete
-	else if (c == '\b' || c == 0x7F)
-	{
-		if (SHELL_info.u16_index > 0)
-		{
-			// Move the cursor back, overwrite that character with a space, then move back again
-			SHELL_printf("\b \b");
-			
-			// Null the last character
-			SHELL_info.pc_buffer[--SHELL_info.u16_index] = '\0';
-		}
-		return;
-	}
-
-	// Push the char onto the buffer and echo
-	else
-	{
-		SHELL_info.pc_buffer[SHELL_info.u16_index++] = c;
-		SHELL_printf("%c", c);
 	}
 }
 
 char		buffer[SHELL_COMMAND_BUFFER_SIZE];
-char * ming = "ming";
 
 void SHELL_printf(const char *format, ...)
 {
