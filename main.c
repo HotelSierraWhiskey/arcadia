@@ -24,17 +24,15 @@ void main( void )
 	SYS_init();
 	SHELL_init();
 
-	// ARCADIA_start();
+	SHELL_display_banner();
+
+	ARCADIA_start();
+
+	// SHELL_task(NULL);
 
 	// Not reached
     while(1)
 	{
-		char c = UART_rx_char(UART_CHANNEL_SHELL);
-
-		if (c)
-		{
-			UART_tx_char(UART_CHANNEL_SHELL, c);
-		}
 		continue;
 	}
 }

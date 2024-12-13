@@ -84,8 +84,8 @@ static void ARCADIA_create_task(ARCADIA_task_id task_id)
 void ARCADIA_start(void)
 {
 	ARCADIA_create_task(ARCADIA_TASK_ID_SHELL);
-	ARCADIA_create_task(ARCADIA_TASK_ID_2);
-	ARCADIA_create_task(ARCADIA_TASK_ID_3);
+	// ARCADIA_create_task(ARCADIA_TASK_ID_2);
+	// ARCADIA_create_task(ARCADIA_TASK_ID_3);
 
     vTaskStartScheduler();
 }

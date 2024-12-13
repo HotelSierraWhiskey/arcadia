@@ -43,6 +43,9 @@ typedef struct _UART_channel
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
 
+SemaphoreHandle_t TXMutex;
+SemaphoreHandle_t RXMutex;
+
 static const uint32_t kpu8_baud_descriptors[UART_BAUD_RATE_ID_NUM_BAUD_RATES] =
 {
 	[UART_BAUD_RATE_ID_9600] 	= 9600,
@@ -115,6 +118,9 @@ static bool 	UART_tx_buffer_is_full		(UART_channel_id_t channel_id);
  ****************************************************************************************************/
 void UART_init(UART_channel_id_t channel_id)
 {
+	TXMutex = xSemaphoreCreateMutex();
+	RXMutex = xSemaphoreCreateMutex();
+
 	UART_channel_t 			channel = p_uart_channels[channel_id];
 	uint8_t 				u8_PCHCTRL_register_index = SERCOM_get_PCHCTRL_register_index(channel.sercom_channel_id);
 
@@ -170,12 +176,12 @@ void UART_init(UART_channel_id_t channel_id)
 		continue;
 	}
 
-	// channel.p_sercom_registers->USART_INT.SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_RXC(1);
+	channel.p_sercom_registers->USART_INT.SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_RXC(1);
 
-	channel.p_sercom_registers->USART_INT.SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_RXC(1) |
-															SERCOM_USART_INT_INTENSET_TXC(1);
+	// channel.p_sercom_registers->USART_INT.SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_RXC(1) |
+	// 														SERCOM_USART_INT_INTENSET_TXC(1);
 	
-	// NVIC_EnableIRQ(channel.irq_index);
+	NVIC_EnableIRQ(channel.irq_index);
 }
 
 /****************************************************************************************************
@@ -185,30 +191,32 @@ void UART_init(UART_channel_id_t channel_id)
  * 	@param[in] c The char to send
  *
  ****************************************************************************************************/
-// void UART_tx_char(UART_channel_id_t channel_id, char c)
-// {
-// 	volatile sercom_registers_t * p_sercom_registers = p_uart_channels[channel_id].p_sercom_registers;
-// 	// UART_channel_t channel = p_uart_channels[channel_id];
-
-// 	// NVIC_DisableIRQ(channel.irq_index);
-// 	UART_tx_buffer_push(channel_id, (uint8_t)c);
-// 	// NVIC_EnableIRQ(channel.irq_index);
-
-// 	p_sercom_registers->USART_INT.SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_DRE(1);
-// }
-
-
 void UART_tx_char(UART_channel_id_t channel_id, char c)
 {
 	volatile sercom_registers_t * p_sercom_registers = p_uart_channels[channel_id].p_sercom_registers;
-	
-	p_sercom_registers->USART_INT.SERCOM_DATA = c;
+	// UART_channel_t channel = p_uart_channels[channel_id];
 
-	while (!(p_sercom_registers->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_TXC(1)))
-	{
-		continue;
-	}
+	// NVIC_DisableIRQ(channel.irq_index);
+	UART_tx_buffer_push(channel_id, (uint8_t)c);
+	// NVIC_EnableIRQ(channel.irq_index);
+
+	p_sercom_registers->USART_INT.SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_DRE(1);
 }
+
+/* non buffered */
+// void UART_tx_char(UART_channel_id_t channel_id, char c)
+// {
+// 	xSemaphoreTake(TXMutex, portMAX_DELAY);
+// 	volatile sercom_registers_t * p_sercom_registers = p_uart_channels[channel_id].p_sercom_registers;
+	
+// 	p_sercom_registers->USART_INT.SERCOM_DATA = c;
+
+// 	while (!(p_sercom_registers->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_TXC(1)))
+// 	{
+// 		continue;
+// 	}
+// 	xSemaphoreGive(TXMutex);
+// }
 
 
 /****************************************************************************************************
@@ -219,30 +227,33 @@ void UART_tx_char(UART_channel_id_t channel_id, char c)
  * 	@return the received character if one was retrieved from the DATA register, else 0
  *
  ****************************************************************************************************/
-// char UART_rx_char(UART_channel_id_t channel_id)
-// {
-// 	// UART_channel_t channel = p_uart_channels[channel_id];
-
-// 	// NVIC_DisableIRQ(channel.irq_index);
-	
-// 	char c = UART_rx_buffer_pop(channel_id);
-// 	// NVIC_EnableIRQ(channel.irq_index);
-
-// 	return c;
-// }
-
 char UART_rx_char(UART_channel_id_t channel_id)
 {
-	UART_channel_t channel = p_uart_channels[channel_id];
-	char c = 0;
+	// UART_channel_t channel = p_uart_channels[channel_id];
 
-	if ((channel.p_sercom_registers->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_RXC(1)) != 0)
-	{
-		c = (char)(channel.p_sercom_registers->USART_INT.SERCOM_DATA);
-	}
+	// NVIC_DisableIRQ(channel.irq_index);
+	
+	char c = UART_rx_buffer_pop(channel_id);
+	// NVIC_EnableIRQ(channel.irq_index);
 
 	return c;
 }
+
+/* non buffered */
+// char UART_rx_char(UART_channel_id_t channel_id)
+// {
+// 	// xSemaphoreTake(RXMutex, portMAX_DELAY);
+// 	UART_channel_t channel = p_uart_channels[channel_id];
+// 	char c = 0;
+
+// 	if ((channel.p_sercom_registers->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_RXC(1)) != 0)
+// 	{
+// 		c = (char)(channel.p_sercom_registers->USART_INT.SERCOM_DATA);
+// 	}
+
+// 	// xSemaphoreGive(RXMutex);
+// 	return c;
+// }
 
 
 /****************************************************************************************************
@@ -457,6 +468,7 @@ void irqSERCOM0()
 
 	NVIC_ClearPendingIRQ(SERCOM0_IRQn);
 }
+
 
 uint8_t UART_shell_info(uint8_t argc, char ** argv)
 {
