@@ -56,7 +56,7 @@ APP_INC = 	-I./ \
 			-I/usr/local/arm-gnu-toolchain-13.2.Rel1-x86_64-arm-none-eabi/include \
 			$(FREERTOS_INC)
 
-APP_VPATH = main.c nvic.c sys.c io.c sercom.c uart.c shell.c chronos.c utils.c nvmctrl.c arcadia.c
+APP_VPATH = main.c nvic.c sys.c io.c sercom.c uart.c shell.c chronos.c utils.c nvmctrl.c arcadia.c drive.c
 
 # matching .o files from APP_VPATH
 APP_OBJECTS = 	$(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(wildcard $(APP_VPATH)))) $(FREERTOS_OBJECTS)

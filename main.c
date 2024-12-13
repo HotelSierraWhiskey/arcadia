@@ -26,8 +26,6 @@ void main( void )
 
 	ARCADIA_start();
 
-	// SHELL_task(NULL);
-
 	// Not reached
     while(1)
 	{

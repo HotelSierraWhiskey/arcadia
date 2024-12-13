@@ -4,6 +4,7 @@
 #include "shell.h"
 #include "chronos.h"
 #include "version.h"
+#include "arcadia.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -260,11 +261,12 @@ uint8_t SYS_shell_info(uint8_t argc, char ** argv)
 
 		SHELL_SEPARATOR();
 		SHELL_printf("%-30s: %u.%u.%u\r\n", "Firmware Version", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+		SHELL_printf("%-30s: %s\r\n", "FreeRTOS Version", VERSION_FREERTOS);
 		SHELL_printf("%-30s: %s %s\r\n", "Compilation Timestamp", __DATE__, __TIME__);
 		SHELL_printf("%-30s: %s\r\n", "Uptime", pc_time_buffer);
 		SHELL_printf("%-30s: %s (Cortex M0+)\r\n", "MCU Model Number", kpc_part_descriptors[SYS_info.k_part]);
-		SHELL_printf("%-30s: %s\r\n", "Serial Number", pc_serial_number);
 		SHELL_printf("%-30s: %s\r\n", "Clock Source Freq", kpc_sys_clock_freq_descriptors[SYS_info.clock_source_freq]);
+		SHELL_printf("%-30s: %s\r\n", "Serial Number", pc_serial_number);
 		SHELL_SEPARATOR();
 	}
 	else
@@ -282,12 +284,35 @@ uint8_t	SYS_shell_reset(uint8_t argc, char ** argv)
 		SHELL_printf("System rebooting...\r\n");
 		
 		// Delay 10ms to empty the UART tx buffer
-		CHRONOS_delay_ms(10);
+		// CHRONOS_delay_ms(10);
 		SYS_reset();
 	}
 	else
 	{
 		SHELL_printf("Usage: sys reset\r\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
+
+uint8_t	SYS_shell_qtest(uint8_t argc, char ** argv)
+{
+	if (argc == 0)
+	{
+		uint32_t test = 420;
+		
+		if (ARCADIA_send(ARCADIA_TASK_ID_DRIVE, (const void *)&test, 1000))
+		{
+			SHELL_printf("data sent\r\n");
+		}
+		else
+		{
+			SHELL_printf("Failed to send data\r\n");
+		}
+	}
+	else
+	{
+		SHELL_printf("Usage: sys qtest\r\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;

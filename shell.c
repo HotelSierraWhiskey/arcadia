@@ -119,6 +119,15 @@ static const SHELL_command_t kp_sys_command_table[] =
 								)
 	},
 	{
+		.kpc_name 			= "qtest",
+		.function 			= SYS_shell_qtest,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tTests sending messages\r\n"
+									"\tUsage: sys qtest\r\n"
+								)
+	},
+	{
 		.kpc_name 			= "reset",
 		.function 			= SYS_shell_reset,
 		.kp_command_table 	= NULL,
@@ -202,29 +211,20 @@ void SHELL_init(void)
 	SHELL_printf("%s", SHELL_PROMPT);
 }
 
-
 void SHELL_task(void * p_params)
 {
 	(void)p_params;
 
+	// SHELL_init();
+
 	while (1)
 	{
-		// SHELL_printf("BREEp\n\r");
-		// vTaskDelay(100);
-
-		// char c = UART_rx_char(UART_CHANNEL_SHELL);
-
-		// if (c)
-		// {
-		// 	UART_tx_char(UART_CHANNEL_SHELL, c);
-		// }
-
-
 		char c = UART_rx_char(UART_CHANNEL_SHELL);
 
 		// Returned zero, nothing to do
 		if (!c)
 		{
+			// vPortYield();
 			continue;
 		}
 
@@ -244,7 +244,7 @@ void SHELL_task(void * p_params)
 			SHELL_flush_buffer();
 		}
 
-		// Handle delete
+		// Handle backspace/ delete keys
 		else if (c == '\b' || c == 0x7F)
 		{
 			if (SHELL_info.u16_index > 0)
@@ -255,7 +255,6 @@ void SHELL_task(void * p_params)
 				// Null the last character
 				SHELL_info.pc_buffer[--SHELL_info.u16_index] = '\0';
 			}
-			// return;
 		}
 
 		// Push the char onto the buffer and echo
@@ -264,6 +263,8 @@ void SHELL_task(void * p_params)
 			SHELL_info.pc_buffer[SHELL_info.u16_index++] = c;
 			SHELL_printf("%c", c);
 		}
+
+		vPortYield();
 	}
 }
 

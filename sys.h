@@ -16,5 +16,6 @@ uint8_t				SYS_shell_crash				(uint8_t argc, char ** argv);
 uint8_t 			SYS_shell_delay				(uint8_t argc, char ** argv);
 uint8_t 			SYS_shell_info				(uint8_t argc, char ** argv);
 uint8_t				SYS_shell_reset				(uint8_t argc, char ** argv);
+uint8_t				SYS_shell_qtest				(uint8_t argc, char ** argv);
 
 #endif // SYS_H
