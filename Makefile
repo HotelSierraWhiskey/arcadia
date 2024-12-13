@@ -26,7 +26,7 @@ FREERTOS_VPATH = 	FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/list.c \
 					FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/port.c \
 					FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/portasm.c \
 					FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/mpu_wrappers_v2_asm.c \
-					FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/MemMang/heap_1.c \
+					# FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/MemMang/heap_1.c \
 
 FREERTOS_OBJECTS = $(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(FREERTOS_VPATH)))
 					

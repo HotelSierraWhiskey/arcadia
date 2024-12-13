@@ -112,7 +112,7 @@
  * (in words, not in bytes!).  The kernel does not use this constant for any other
  * purpose.  Demo applications use the constant to make the demos somewhat portable
  * across hardware architectures. */
-#define configMINIMAL_STACK_SIZE                   300 // 128
+#define configMINIMAL_STACK_SIZE                   128
 
 /* configMAX_TASK_NAME_LEN sets the maximum length (in characters) of a task's
  * human readable name.  Includes the NULL terminator. */
@@ -204,7 +204,7 @@
  * system-wide implementations of the necessary stubs. Note that (at the time of
  * writing) the current newlib design implements a system-wide malloc() that must
  * be provided with locks. */
-#define configUSE_NEWLIB_REENTRANT                 0
+#define configUSE_NEWLIB_REENTRANT                 1
 
 /******************************************************************************/
 /* Software timer related definitions. ****************************************/
@@ -274,7 +274,7 @@
  * memory in the build.  Set to 0 to exclude the ability to create dynamically
  * allocated objects from the build.  Defaults to 1 if left undefined.  See
  * https://www.freertos.org/Static_Vs_Dynamic_Memory_Allocation.html. */
-#define configSUPPORT_DYNAMIC_ALLOCATION             1
+#define configSUPPORT_DYNAMIC_ALLOCATION             0
 
 /* Sets the total size of the FreeRTOS heap, in bytes, when heap_1.c, heap_2.c
  * or heap_4.c are included in the build.  This value is defaulted to 4096 bytes but

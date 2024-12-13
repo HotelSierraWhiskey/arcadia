@@ -24,8 +24,6 @@ void main( void )
 	SYS_init();
 	SHELL_init();
 
-	SHELL_display_banner();
-
 	ARCADIA_start();
 
 	// SHELL_task(NULL);

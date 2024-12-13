@@ -118,8 +118,8 @@ static bool 	UART_tx_buffer_is_full		(UART_channel_id_t channel_id);
  ****************************************************************************************************/
 void UART_init(UART_channel_id_t channel_id)
 {
-	TXMutex = xSemaphoreCreateMutex();
-	RXMutex = xSemaphoreCreateMutex();
+	// TXMutex = xSemaphoreCreateMutex();
+	// RXMutex = xSemaphoreCreateMutex();
 
 	UART_channel_t 			channel = p_uart_channels[channel_id];
 	uint8_t 				u8_PCHCTRL_register_index = SERCOM_get_PCHCTRL_register_index(channel.sercom_channel_id);

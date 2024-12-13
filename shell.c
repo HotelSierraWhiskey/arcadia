@@ -12,8 +12,8 @@
 
 #define SHELL_COMMAND_BUFFER_SIZE	(128)
 #define SHELL_CRLF					"\r\n"
-#define SHELL_MAX_TOKENS			(256)
-#define SHELL_MAX_ARGS				(128)
+#define SHELL_MAX_TOKENS			(16)
+#define SHELL_MAX_ARGS				(8)
 #define SHELL_COMMAND_TABLE_END		{NULL, NULL, NULL}
 
 typedef uint8_t (* SHELL_function_t)(uint8_t argc, char ** argv);
@@ -48,6 +48,7 @@ uint8_t 		SHELL_shell_help		(uint8_t argc, char ** argv);
  ****************************************************************************************************/
 
 SemaphoreHandle_t xPrintfMutex;
+StaticSemaphore_t mutex_buffer;
 
 /**
  *	`nvm` commands
@@ -194,11 +195,11 @@ void SHELL_init(void)
 	UART_init(UART_CHANNEL_SHELL);
 	SHELL_flush_buffer();
 
-	xPrintfMutex = xSemaphoreCreateMutex();
+	xPrintfMutex = xSemaphoreCreateMutexStatic(&mutex_buffer);
 
-	// SHELL_display_banner();
+	SHELL_display_banner();
 
-	// SHELL_printf("%s", SHELL_PROMPT);
+	SHELL_printf("%s", SHELL_PROMPT);
 }
 
 
@@ -211,58 +212,58 @@ void SHELL_task(void * p_params)
 		// SHELL_printf("BREEp\n\r");
 		// vTaskDelay(100);
 
-		char c = UART_rx_char(UART_CHANNEL_SHELL);
-
-		if (c)
-		{
-			UART_tx_char(UART_CHANNEL_SHELL, c);
-		}
-
-
 		// char c = UART_rx_char(UART_CHANNEL_SHELL);
 
-		// // Returned zero, nothing to do
-		// if (!c)
+		// if (c)
 		// {
-		// 	continue;
+		// 	UART_tx_char(UART_CHANNEL_SHELL, c);
 		// }
 
-		// // Handle return key
-		// if (c == '\r')
-		// {
-		// 	if (strlen(SHELL_info.pc_buffer) == 0)
-		// 	{
-		// 		SHELL_printf("\r\n%s", SHELL_PROMPT);
-		// 	}
-		// 	else
-		// 	{
-		// 		SHELL_handle_command();
-		// 		SHELL_printf("%s", SHELL_PROMPT);
-		// 	}
 
-		// 	SHELL_flush_buffer();
-		// }
+		char c = UART_rx_char(UART_CHANNEL_SHELL);
 
-		// // Handle delete
-		// else if (c == '\b' || c == 0x7F)
-		// {
-		// 	if (SHELL_info.u16_index > 0)
-		// 	{
-		// 		// Move the cursor back, overwrite that character with a space, then move back again
-		// 		SHELL_printf("\b \b");
+		// Returned zero, nothing to do
+		if (!c)
+		{
+			continue;
+		}
+
+		// Handle return key
+		if (c == '\r')
+		{
+			if (strlen(SHELL_info.pc_buffer) == 0)
+			{
+				SHELL_printf("\r\n%s", SHELL_PROMPT);
+			}
+			else
+			{
+				SHELL_handle_command();
+				SHELL_printf("%s", SHELL_PROMPT);
+			}
+
+			SHELL_flush_buffer();
+		}
+
+		// Handle delete
+		else if (c == '\b' || c == 0x7F)
+		{
+			if (SHELL_info.u16_index > 0)
+			{
+				// Move the cursor back, overwrite that character with a space, then move back again
+				SHELL_printf("\b \b");
 				
-		// 		// Null the last character
-		// 		SHELL_info.pc_buffer[--SHELL_info.u16_index] = '\0';
-		// 	}
-		// 	// return;
-		// }
+				// Null the last character
+				SHELL_info.pc_buffer[--SHELL_info.u16_index] = '\0';
+			}
+			// return;
+		}
 
-		// // Push the char onto the buffer and echo
-		// else
-		// {
-		// 	SHELL_info.pc_buffer[SHELL_info.u16_index++] = c;
-		// 	SHELL_printf("%c", c);
-		// }
+		// Push the char onto the buffer and echo
+		else
+		{
+			SHELL_info.pc_buffer[SHELL_info.u16_index++] = c;
+			SHELL_printf("%c", c);
+		}
 	}
 }
 
