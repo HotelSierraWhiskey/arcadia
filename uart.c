@@ -3,9 +3,8 @@
 #include "io.h"
 #include "sys.h"
 #include "shell.h"
-
-#include <FreeRTOS.h>
-#include "semphr.h"
+#include "common.h"
+#include "arcadia.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -442,12 +441,16 @@ static bool UART_tx_buffer_is_full(UART_channel_id_t channel_id)
 void irqSERCOM0()
 {
 	volatile uint8_t u8_byte;
+	BaseType_t higher_priority_task_woken = pdFALSE;
 	
 	// This flag is cleared by reading the SERCOM_DATA register
 	if ((SERCOM0_REGS->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_RXC(1)) != 0)
 	{
 		u8_byte = SERCOM0_REGS->USART_INT.SERCOM_DATA;
 		UART_rx_buffer_push(UART_CHANNEL_SHELL, u8_byte);
+
+		vTaskNotifyGiveFromISR(ARCADIA_handle_from_id(ARCADIA_TASK_ID_SHELL), &higher_priority_task_woken);
+		portYIELD_FROM_ISR(higher_priority_task_woken);
 	}
 
 	if ((SERCOM0_REGS->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_DRE(1)) != 0)

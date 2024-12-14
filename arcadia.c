@@ -20,6 +20,7 @@ typedef struct _ARCADIA_rtos_task
 	ARCADIA_task_t			task;
 	StaticTask_t			task_control_block;
 	StackType_t				stack[configMINIMAL_STACK_SIZE];
+	TaskHandle_t			handle;
 
 	StaticQueue_t			queue;
 	uint8_t					u8_queue_storage[ARCADIA_Q_LENGTH * ARCADIA_Q_ITEM_SIZE];
@@ -54,7 +55,7 @@ static void ARCADIA_create_task(ARCADIA_task_id task_id)
 {
 	ARCADIA_rtos_task_t * p_rtos_task = &rtos_tasks[task_id];
 
-	xTaskCreateStatic(
+	p_rtos_task->handle = xTaskCreateStatic(
 		p_rtos_task->task,
 		p_rtos_task->kpc_name,
 		configMINIMAL_STACK_SIZE,
@@ -78,6 +79,22 @@ void ARCADIA_start(void)
 	ARCADIA_create_task(ARCADIA_TASK_ID_DRIVE);
 
     vTaskStartScheduler();
+}
+
+TaskHandle_t ARCADIA_handle_from_id(ARCADIA_task_id task_id)
+{
+	// assert task_id
+	TaskHandle_t handle;
+
+	for (uint8_t i = 0; i < ARCADIA_TASK_ID_NUM_IDS; i++)
+	{
+		if (rtos_tasks[task_id].task_id == task_id)
+		{
+			handle = rtos_tasks[task_id].handle;
+		}
+	}
+
+	return handle;
 }
 
 uint32_t ARCADIA_send(ARCADIA_task_id task_id, const void * kp_item, TickType_t ticks_to_wait)

@@ -12,11 +12,12 @@ void DRIVE_task(void * p_params)
 
 	while (1)
 	{
-		if (ARCADIA_receive(ARCADIA_TASK_ID_DRIVE, (void *)&data, 1000))
+		if (ARCADIA_receive(ARCADIA_TASK_ID_DRIVE, (void *)&data, 0))
 		{
 			SHELL_printf("Received: %u\r\n", data);
 		}
 
-		vPortYield();
+		SHELL_printf("beep\r\n");
+		vTaskDelay(500);
 	}
 }

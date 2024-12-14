@@ -15,8 +15,9 @@ typedef enum _ARCADIA_task_id
 	ARCADIA_TASK_ID_NUM_IDS
 } ARCADIA_task_id;
 
-void 			ARCADIA_start		(void);
-uint32_t 		ARCADIA_send		(ARCADIA_task_id task_id, const void * kp_item, TickType_t ticks_to_wait);
-uint32_t 		ARCADIA_receive		(ARCADIA_task_id task_id, void * p_buffer, TickType_t ticks_to_wait);
+void 			ARCADIA_start			(void);
+uint32_t 		ARCADIA_send			(ARCADIA_task_id task_id, const void * kp_item, TickType_t ticks_to_wait);
+uint32_t 		ARCADIA_receive			(ARCADIA_task_id task_id, void * p_buffer, TickType_t ticks_to_wait);
+TaskHandle_t 	ARCADIA_handle_from_id	(ARCADIA_task_id task_id);
 
 #endif // ARCADIA_H

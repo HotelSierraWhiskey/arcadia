@@ -28,8 +28,14 @@ typedef struct _SHELL_command
 
 typedef struct _SHELL_info
 {
-	char		pc_buffer[SHELL_COMMAND_BUFFER_SIZE];
-	uint16_t	u16_index;
+	char				pc_buffer[SHELL_COMMAND_BUFFER_SIZE];
+	uint16_t			u16_index;
+
+	SemaphoreHandle_t 	printf_mutex;
+	StaticSemaphore_t 	printf_mutex_buffer;
+
+	SemaphoreHandle_t 	task_mutex;
+	StaticSemaphore_t 	task_mutex_buffer;
 } SHELL_info_t;
 
 /****************************************************************************************************
@@ -46,9 +52,6 @@ uint8_t 		SHELL_shell_help		(uint8_t argc, char ** argv);
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
-
-SemaphoreHandle_t xPrintfMutex;
-StaticSemaphore_t mutex_buffer;
 
 /**
  *	`nvm` commands
@@ -204,7 +207,8 @@ void SHELL_init(void)
 	UART_init(UART_CHANNEL_SHELL);
 	SHELL_flush_buffer();
 
-	xPrintfMutex = xSemaphoreCreateMutexStatic(&mutex_buffer);
+	SHELL_info.printf_mutex = xSemaphoreCreateMutexStatic(&SHELL_info.printf_mutex_buffer);
+	SHELL_info.task_mutex = xSemaphoreCreateMutexStatic(&SHELL_info.task_mutex_buffer);
 
 	SHELL_display_banner();
 
@@ -215,56 +219,58 @@ void SHELL_task(void * p_params)
 {
 	(void)p_params;
 
+	char c;
+
 	// SHELL_init();
 
 	while (1)
 	{
-		char c = UART_rx_char(UART_CHANNEL_SHELL);
-
-		// Returned zero, nothing to do
-		if (!c)
+		if (ulTaskNotifyTake(pdFALSE, portMAX_DELAY) != 0)
 		{
-			// vPortYield();
-			continue;
-		}
+			c = UART_rx_char(UART_CHANNEL_SHELL);
 
-		// Handle return key
-		if (c == '\r')
-		{
-			if (strlen(SHELL_info.pc_buffer) == 0)
+			// Returned zero, nothing to do
+			if (!c)
 			{
-				SHELL_printf("\r\n%s", SHELL_PROMPT);
+				continue;
 			}
+
+			// Handle return key
+			if (c == '\r')
+			{
+				if (strlen(SHELL_info.pc_buffer) == 0)
+				{
+					SHELL_printf("\r\n%s", SHELL_PROMPT);
+				}
+				else
+				{
+					SHELL_handle_command();
+					SHELL_printf("%s", SHELL_PROMPT);
+				}
+
+				SHELL_flush_buffer();
+			}
+
+			// Handle backspace/ delete keys
+			else if (c == '\b' || c == 0x7F)
+			{
+				if (SHELL_info.u16_index > 0)
+				{
+					// Move the cursor back, overwrite that character with a space, then move back again
+					SHELL_printf("\b \b");
+					
+					// Null the last character
+					SHELL_info.pc_buffer[--SHELL_info.u16_index] = '\0';
+				}
+			}
+
+			// Push the char onto the buffer and echo
 			else
 			{
-				SHELL_handle_command();
-				SHELL_printf("%s", SHELL_PROMPT);
-			}
-
-			SHELL_flush_buffer();
-		}
-
-		// Handle backspace/ delete keys
-		else if (c == '\b' || c == 0x7F)
-		{
-			if (SHELL_info.u16_index > 0)
-			{
-				// Move the cursor back, overwrite that character with a space, then move back again
-				SHELL_printf("\b \b");
-				
-				// Null the last character
-				SHELL_info.pc_buffer[--SHELL_info.u16_index] = '\0';
+				SHELL_info.pc_buffer[SHELL_info.u16_index++] = c;
+				SHELL_printf("%c", c);
 			}
 		}
-
-		// Push the char onto the buffer and echo
-		else
-		{
-			SHELL_info.pc_buffer[SHELL_info.u16_index++] = c;
-			SHELL_printf("%c", c);
-		}
-
-		vPortYield();
 	}
 }
 
@@ -272,7 +278,7 @@ char		buffer[SHELL_COMMAND_BUFFER_SIZE];
 
 void SHELL_printf(const char *format, ...)
 {
-	xSemaphoreTake(xPrintfMutex, portMAX_DELAY);
+	xSemaphoreTake(SHELL_info.printf_mutex, portMAX_DELAY);
 
 	va_list 	args;
 
@@ -287,7 +293,7 @@ void SHELL_printf(const char *format, ...)
 		UART_tx_char(UART_CHANNEL_SHELL, *p);
 	}
 
-	xSemaphoreGive(xPrintfMutex);
+	xSemaphoreGive(SHELL_info.printf_mutex);
 }
 
 static void SHELL_flush_buffer(void)
