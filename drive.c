@@ -4,6 +4,10 @@
 #include "arcadia.h"
 #include "chronos.h"
 
+void DRIVE_init(void)
+{
+
+}
 
 void DRIVE_task(void * p_params)
 {

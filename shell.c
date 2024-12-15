@@ -216,8 +216,6 @@ void SHELL_task(void * p_params)
 
 	char c;
 
-	// SHELL_init();
-
 	while (1)
 	{
 		if (ulTaskNotifyTake(pdFALSE, portMAX_DELAY) != 0)

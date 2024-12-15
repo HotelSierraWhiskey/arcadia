@@ -42,9 +42,6 @@ typedef struct _UART_channel
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
 
-SemaphoreHandle_t TXMutex;
-SemaphoreHandle_t RXMutex;
-
 static const uint32_t kpu8_baud_descriptors[UART_BAUD_RATE_ID_NUM_BAUD_RATES] =
 {
 	[UART_BAUD_RATE_ID_9600] 	= 9600,
@@ -117,9 +114,6 @@ static bool 	UART_tx_buffer_is_full		(UART_channel_id_t channel_id);
  ****************************************************************************************************/
 void UART_init(UART_channel_id_t channel_id)
 {
-	// TXMutex = xSemaphoreCreateMutex();
-	// RXMutex = xSemaphoreCreateMutex();
-
 	UART_channel_t 			channel = p_uart_channels[channel_id];
 	uint8_t 				u8_PCHCTRL_register_index = SERCOM_get_PCHCTRL_register_index(channel.sercom_channel_id);
 
@@ -176,9 +170,6 @@ void UART_init(UART_channel_id_t channel_id)
 	}
 
 	channel.p_sercom_registers->USART_INT.SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_RXC(1);
-
-	// channel.p_sercom_registers->USART_INT.SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_RXC(1) |
-	// 														SERCOM_USART_INT_INTENSET_TXC(1);
 	
 	NVIC_EnableIRQ(channel.irq_index);
 }
@@ -192,31 +183,12 @@ void UART_init(UART_channel_id_t channel_id)
  ****************************************************************************************************/
 void UART_tx_char(UART_channel_id_t channel_id, char c)
 {
-	// UART_channel_t channel = p_uart_channels[channel_id];
 	volatile sercom_registers_t * p_sercom_registers = p_uart_channels[channel_id].p_sercom_registers;
-	// NVIC_DisableIRQ(channel.irq_index);
 
 	UART_tx_buffer_push(channel_id, (uint8_t)c);
 
 	p_sercom_registers->USART_INT.SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_DRE(1);
-	// NVIC_EnableIRQ(channel.irq_index);
 }
-
-/* non buffered */
-// void UART_tx_char(UART_channel_id_t channel_id, char c)
-// {
-// 	xSemaphoreTake(TXMutex, portMAX_DELAY);
-// 	volatile sercom_registers_t * p_sercom_registers = p_uart_channels[channel_id].p_sercom_registers;
-	
-// 	p_sercom_registers->USART_INT.SERCOM_DATA = c;
-
-// 	while (!(p_sercom_registers->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_TXC(1)))
-// 	{
-// 		continue;
-// 	}
-// 	xSemaphoreGive(TXMutex);
-// }
-
 
 /****************************************************************************************************
  *	Receives a character over the selected UART interface
@@ -228,32 +200,10 @@ void UART_tx_char(UART_channel_id_t channel_id, char c)
  ****************************************************************************************************/
 char UART_rx_char(UART_channel_id_t channel_id)
 {
-	// UART_channel_t channel = p_uart_channels[channel_id];
-
-	// NVIC_DisableIRQ(channel.irq_index);
-	
 	char c = UART_rx_buffer_pop(channel_id);
-	// NVIC_EnableIRQ(channel.irq_index);
 
 	return c;
 }
-
-/* non buffered */
-// char UART_rx_char(UART_channel_id_t channel_id)
-// {
-// 	// xSemaphoreTake(RXMutex, portMAX_DELAY);
-// 	UART_channel_t channel = p_uart_channels[channel_id];
-// 	char c = 0;
-
-// 	if ((channel.p_sercom_registers->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_RXC(1)) != 0)
-// 	{
-// 		c = (char)(channel.p_sercom_registers->USART_INT.SERCOM_DATA);
-// 	}
-
-// 	// xSemaphoreGive(RXMutex);
-// 	return c;
-// }
-
 
 /****************************************************************************************************
  *	Zeroes a channel's UART buffers

@@ -13,12 +13,14 @@
 #define ARCADIA_Q_ITEM_SIZE	sizeof(uint32_t)
 
 typedef void (* ARCADIA_task_t)(void *);
+typedef void (* ARCADIA_task_init_t)(void);
 
 typedef struct _ARCADIA_rtos_task
 {
 	ARCADIA_task_id			task_id;
 	const char * const		kpc_name;
 	ARCADIA_task_t			task;
+	ARCADIA_task_init_t		init;
 	StaticTask_t			task_control_block;
 	StackType_t				stack[configMINIMAL_STACK_SIZE];
 	TaskHandle_t			handle;
@@ -38,23 +40,39 @@ static ARCADIA_rtos_task_t rtos_tasks[ARCADIA_TASK_ID_NUM_IDS] =
 		.task_id 	= ARCADIA_TASK_ID_SHELL,
 		.kpc_name 	= "SHELL",
 		.task 		= SHELL_task,
+		.init		= SHELL_init
 	},
 	{
 		.task_id 	= ARCADIA_TASK_ID_DRIVE,
 		.kpc_name 	= "DRIVE",
 		.task 		= DRIVE_task,
+		.init		= DRIVE_init
 	},
 };
 
+/****************************************************************************************************
+ *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
+ ****************************************************************************************************/
 
+static void 	ARCADIA_create_task		(ARCADIA_task_id task_id);
 
 /****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
 
+/****************************************************************************************************
+ *	Sets up a task by providing with it stack, message queue, and control block memory.
+ *	Populates the given task's entry in the `rtos_tasks` table. Also performs a given task's 
+ *	application-specific initialization, if applicable.
+ *
+ * 	@param[in] task_id The ID of the task to be created
+ *
+ ****************************************************************************************************/
 static void ARCADIA_create_task(ARCADIA_task_id task_id)
 {
 	ARCADIA_rtos_task_t * p_rtos_task = &rtos_tasks[task_id];
+
+	p_rtos_task->init();
 
 	p_rtos_task->handle = xTaskCreateStatic(
 		p_rtos_task->task,
@@ -74,19 +92,26 @@ static void ARCADIA_create_task(ARCADIA_task_id task_id)
 	);
 }
 
-void ARCADIA_start(void)
+/****************************************************************************************************
+ *	Sets up all application tasks and starts the FreeRTOS scheduler
+ *
+ ****************************************************************************************************/
+void NORETURN ARCADIA_start(void)
 {
 	ARCADIA_create_task(ARCADIA_TASK_ID_SHELL);
 	ARCADIA_create_task(ARCADIA_TASK_ID_DRIVE);
 
 	vTaskStartScheduler();
+
+	// Not reached
+	while(1);
 }
 
 TaskHandle_t ARCADIA_handle_from_id(ARCADIA_task_id task_id)
 {
 	ASSERT(task_id < ARCADIA_TASK_ID_NUM_IDS);
 
-	TaskHandle_t handle;
+	TaskHandle_t handle = NULL;
 
 	for (uint8_t i = 0; i < ARCADIA_TASK_ID_NUM_IDS; i++)
 	{

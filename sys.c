@@ -119,8 +119,6 @@ void SYS_init(void)
 
 	SYS_clock_init();
 
-	CHRONOS_init();
-
 	IO_init();
 
 	// Output the main clock signal on PA27
@@ -284,7 +282,7 @@ uint8_t	SYS_shell_reset(uint8_t argc, char ** argv)
 		SHELL_printf("System rebooting...\r\n");
 		
 		// Delay 10ms to empty the UART tx buffer
-		// CHRONOS_delay_ms(10);
+		CHRONOS_delay_ms(10);
 		SYS_reset();
 	}
 	else
