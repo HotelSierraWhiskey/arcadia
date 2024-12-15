@@ -10,6 +10,8 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
+#define SHELL_LOG_DBG(fmt, ...)   	SHELL_printf("%-10s" fmt, "[SHELL]", ##__VA_ARGS__)
+
 #define SHELL_COMMAND_BUFFER_SIZE	(128)
 #define SHELL_CRLF					"\r\n"
 #define SHELL_MAX_TOKENS			(16)
@@ -60,7 +62,7 @@ static const SHELL_command_t kp_nvm_command_table[] =
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
 									"\tErases a row from NVM\r\n"
-									"\tUsage: uart info\r\n"
+									"\tUsage: nvm erase <addr>\r\n"
 								)
 	},
 	{
@@ -69,7 +71,7 @@ static const SHELL_command_t kp_nvm_command_table[] =
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
 									"\tReads a page from NVM\r\n"
-									"\tUsage: uart info\r\n"
+									"\tUsage: nvm read <addr>\r\n"
 								)
 	},
 	{
@@ -78,7 +80,7 @@ static const SHELL_command_t kp_nvm_command_table[] =
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
 									"\tWrites a page to NVM\r\n"
-									"\tUsage: uart info\r\n"
+									"\tUsage: nvm write <addr> <num_bytes> <...>\r\n"
 								)
 	},
 	//////////

@@ -9,8 +9,8 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define ARCADIA_Q_LENGTH	(5)
-#define ARCADIA_Q_ITEM_SIZE	sizeof(uint32_t)
+#define ARCADIA_Q_LENGTH		(5)
+#define ARCADIA_Q_ITEM_SIZE		sizeof(uint32_t)
 
 typedef void (* ARCADIA_task_t)(void *);
 typedef void (* ARCADIA_task_init_t)(void);
@@ -48,6 +48,11 @@ static ARCADIA_rtos_task_t rtos_tasks[ARCADIA_TASK_ID_NUM_IDS] =
 		.task 		= DRIVE_task,
 		.init		= DRIVE_init
 	},
+};
+
+static const char * const kpc_task_names[ARCADIA_MSG_ID_NUM_IDS] =
+{
+	[ARCADIA_MSG_ID_NOOP] = "NOOP",
 };
 
 /****************************************************************************************************
@@ -143,17 +148,29 @@ ARCADIA_task_id ARCADIA_get_current_task_id(void)
 	return task_id;
 }
 
-uint32_t ARCADIA_send(ARCADIA_task_id task_id, const void * kp_item)
+uint32_t ARCADIA_send(ARCADIA_task_id task_id, ARCADIA_msg_t * p_msg)
 {
 	ASSERT(task_id < ARCADIA_TASK_ID_NUM_IDS);
-	ASSERT(kp_item);
+	ASSERT(p_msg);
 
-	return (uint32_t)xQueueSend(rtos_tasks[task_id].queue_handle, kp_item, portMAX_DELAY);
+	return (uint32_t)xQueueSend(rtos_tasks[task_id].queue_handle, (const void *)p_msg, portMAX_DELAY);
 }
 
-uint32_t ARCADIA_receive(void * p_buffer)
+uint32_t ARCADIA_receive(ARCADIA_msg_t * p_msg)
 {
-	ASSERT(p_buffer);
+	ASSERT(p_msg);
 
-	return (uint32_t)xQueueReceive(rtos_tasks[ARCADIA_get_current_task_id()].queue_handle, p_buffer, portMAX_DELAY);
+	return (uint32_t)xQueueReceive(rtos_tasks[ARCADIA_get_current_task_id()].queue_handle, (void * const)p_msg, portMAX_DELAY);
+}
+
+const char * ARCADIA_get_task_name(ARCADIA_task_id task_id)
+{
+	ASSERT(task_id < ARCADIA_TASK_ID_NUM_IDS);
+	return rtos_tasks[task_id].kpc_name;
+}
+
+const char * ARCADIA_get_msg_type(ARCADIA_msg_id_t msg_id)
+{
+	ASSERT(msg_id < ARCADIA_MSG_ID_NUM_IDS);
+	return kpc_task_names[msg_id];
 }

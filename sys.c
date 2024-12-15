@@ -10,6 +10,8 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
+#define SYS_LOG_DBG(fmt, ...)   	SHELL_printf("%-10s" fmt, "[SYS]", ##__VA_ARGS__)
+
 typedef enum _SYS_clock_src_freq
 {
 	SYS_CLOCK_SRC_FREQ_48_MHZ,
@@ -215,9 +217,9 @@ uint8_t SYS_shell_delay(uint8_t argc, char ** argv)
 	{
 		if (UTILS_string_to_u32(argv[0], &u32_delay))
 		{
-			SHELL_printf("Delaying %u ms\r\n", u32_delay);
+			SYS_LOG_DBG("Delaying %u ms\r\n", u32_delay);
 			CHRONOS_delay_ms(u32_delay);
-			SHELL_printf("Done\r\n");
+			SYS_LOG_DBG("Done\r\n");
 
 			b_res = true;
 		}
@@ -279,7 +281,7 @@ uint8_t	SYS_shell_reset(uint8_t argc, char ** argv)
 {
 	if (argc == 0)
 	{
-		SHELL_printf("System rebooting...\r\n");
+		SYS_LOG_DBG("System rebooting...\r\n");
 		
 		// Delay 10ms to empty the UART tx buffer
 		CHRONOS_delay_ms(10);
@@ -297,15 +299,18 @@ uint8_t	SYS_shell_qtest(uint8_t argc, char ** argv)
 {
 	if (argc == 0)
 	{
-		uint32_t test = 420;
+		// uint32_t test = 420;
+		ARCADIA_msg_t msg;
+		msg.id = ARCADIA_MSG_ID_NOOP;
+		msg.from = ARCADIA_get_current_task_id();
 		
-		if (ARCADIA_send(ARCADIA_TASK_ID_DRIVE, (const void *)&test))
+		if (ARCADIA_send(ARCADIA_TASK_ID_DRIVE, &msg))
 		{
-			SHELL_printf("data sent\r\n");
+			SYS_LOG_DBG("Message sent\r\n");
 		}
 		else
 		{
-			SHELL_printf("Failed to send data\r\n");
+			SYS_LOG_DBG("Failed to send message\r\n");
 		}
 	}
 	else

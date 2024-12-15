@@ -1,6 +1,8 @@
 #include "nvmctrl.h"
 #include "utils.h"
 
+#define NVMCTRL_LOG_DBG(fmt, ...)   		SHELL_printf("%-10s" fmt, "[NVMCTRL]", ##__VA_ARGS__)
+
 #define NVMCTRL_COMMAND_ERASE_ROW			(0x02U)
 #define NVMCTRL_COMMAND_WRITE_PAGE			(0x04U)
 #define NVMCTRL_COMMAND_PAGE_BUFFER_CLEAR	(0x44U)
@@ -25,6 +27,7 @@ void NVMCTRL_init(void)
 void NVMCTRL_write_page(uint32_t u32_addr, uint8_t * pu8_buffer)
 {
 	uint16_t u16_data;
+	uint32_t u32_orig_addr = u32_addr;
 
 	NVMCTRL_exec(NVMCTRL_COMMAND_PAGE_BUFFER_CLEAR);
 
@@ -45,12 +48,14 @@ void NVMCTRL_write_page(uint32_t u32_addr, uint8_t * pu8_buffer)
 	NVMCTRL_REGS->NVMCTRL_ADDR = u32_addr;
 
 	NVMCTRL_exec(NVMCTRL_COMMAND_WRITE_PAGE);
+	NVMCTRL_LOG_DBG("Page write (%05X)\r\n", u32_orig_addr);
 }
 
 void NVMCTRL_erase_row(uint32_t u32_addr)
 {
 	NVMCTRL_REGS->NVMCTRL_ADDR = u32_addr >> 1;
 	NVMCTRL_exec(NVMCTRL_COMMAND_ERASE_ROW);
+	NVMCTRL_LOG_DBG("Row erase (%05X - %05X)\r\n", u32_addr, u32_addr + 0x100 - 1);
 }
 
 static void NVMCTRL_exec(uint8_t command)
@@ -159,14 +164,16 @@ uint8_t	NVMCTRL_shell_write(uint8_t argc, char ** argv)
 			}
 		}
 
-		for (uint8_t i = 0; i < NVMCTRL_PAGE_SIZE; i++)
+		for (uint8_t i = 0; i < u32_num_bytes; i++)
 		{
-			if (UTILS_string_to_u32(argv[2 + i], &u32_data))
+			if (b_res && UTILS_string_to_u32(argv[2 + i], &u32_data))
 			{
 				pu8_buffer[i] = (uint8_t)u32_data;
 			}
 			else
 			{
+				SHELL_printf("Error: %s\r\n", argv[2 + i]);
+				b_res = false;
 				break;
 			}
 		}
@@ -178,7 +185,7 @@ uint8_t	NVMCTRL_shell_write(uint8_t argc, char ** argv)
 	}
 	else
 	{
-		SHELL_printf("Usage: nvm write\r\n");
+		SHELL_printf("Usage: nvm write <addr> <num_bytes> <...>\r\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
