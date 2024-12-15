@@ -301,7 +301,7 @@ uint8_t	SYS_shell_qtest(uint8_t argc, char ** argv)
 	{
 		uint32_t test = 420;
 		
-		if (ARCADIA_send(ARCADIA_TASK_ID_DRIVE, (const void *)&test, 1000))
+		if (ARCADIA_send(ARCADIA_TASK_ID_DRIVE, (const void *)&test))
 		{
 			SHELL_printf("data sent\r\n");
 		}

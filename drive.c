@@ -13,12 +13,9 @@ void DRIVE_task(void * p_params)
 
 	while (1)
 	{
-		if (ARCADIA_receive(ARCADIA_TASK_ID_DRIVE, (void *)&data, 500))
+		if (ARCADIA_receive((void *)&data))
 		{
 			SHELL_printf("Received: %u\r\n", data);
 		}
-
-		SHELL_printf("terp\r\n");
-		CHRONOS_delay_ms(500);
 	}
 }

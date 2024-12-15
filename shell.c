@@ -299,83 +299,77 @@ static void SHELL_flush_buffer(void)
 
 static void SHELL_handle_command(void)
 {
-	uint8_t 			argc = 0;
-	char *				argv[SHELL_MAX_ARGS];
-	SHELL_command_t *	p_table = (SHELL_command_t *)kp_command_table;
-	SHELL_function_t 	shell_function = NULL;
-	bool 				b_found = false;
+	uint8_t argc = 0;
+	char *argv[SHELL_MAX_ARGS];
+	SHELL_command_t *p_table = (SHELL_command_t *)kp_command_table;
+	SHELL_function_t shell_function = NULL;
 
 	// Tokenize the input command buffer
 	char *token = strtok(SHELL_info.pc_buffer, " ");
 	while (token != NULL)
 	{
+		bool command_found = false;
+
 		// Search for the token in the current command table
-		b_found = false;
 		for (uint8_t i = 0; p_table[i].kpc_name != NULL; i++)
 		{
 			if (strcmp(p_table[i].kpc_name, token) == 0)
 			{
-				// If the command has a subcommand table, traverse into it
 				if (p_table[i].kp_command_table != NULL)
 				{
+					// Navigate to subcommand table
 					p_table = (SHELL_command_t *)p_table[i].kp_command_table;
-					b_found = true;
-					break;
 				}
-				// If the command has an associated function, set it
 				else if (p_table[i].function != NULL)
 				{
+					// Set the function to execute
 					shell_function = p_table[i].function;
-					b_found = true;
-					break;
 				}
+				command_found = true;
+				break;
 			}
 		}
 
-		// If the token was not found in the current table
-		if (!b_found)
+		// Handle unrecognized token
+		if (!command_found)
 		{
-			// If no command or subcommand matched, treat as an argument
 			if (shell_function)
 			{
 				argv[argc++] = token;
-				
+
 				if (argc >= SHELL_MAX_ARGS)
 				{
 					SHELL_printf("\r\nToo many arguments\r\n");
-					SHELL_flush_buffer();
-					return;
+					goto cleanup;
 				}
 			}
 			else
 			{
 				SHELL_printf("\r\nCommand not found: %s\r\n", token);
-				SHELL_flush_buffer();
-				return;
+				goto cleanup;
 			}
 		}
 
 		token = strtok(NULL, " ");
 	}
 
-	// Execute the function if found
+	// Execute the command or provide help
 	if (shell_function)
 	{
 		SHELL_printf("\r\n");
-
 		if (shell_function(argc, argv) != SHELL_COMMAND_SUCCESS)
 		{
 			SHELL_printf("\r\nCommand returned bad status code\r\n");
 		}
 	}
-	// We found a command table but stopped short of invoking one of its functions
-	// Issue help on that table
 	else
 	{
 		SHELL_help(p_table);
 	}
 
+cleanup:
 	SHELL_flush_buffer();
+	vPortYield();
 }
 
 static void SHELL_help(const SHELL_command_t * p_table)

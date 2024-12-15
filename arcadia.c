@@ -1,6 +1,7 @@
 #include "arcadia.h"
 #include "common.h"
 #include "FreeRTOSConfig.h"
+#include "utils.h"
 #include "shell.h"
 #include "drive.h"
 
@@ -78,12 +79,13 @@ void ARCADIA_start(void)
 	ARCADIA_create_task(ARCADIA_TASK_ID_SHELL);
 	ARCADIA_create_task(ARCADIA_TASK_ID_DRIVE);
 
-    vTaskStartScheduler();
+	vTaskStartScheduler();
 }
 
 TaskHandle_t ARCADIA_handle_from_id(ARCADIA_task_id task_id)
 {
-	// assert task_id
+	ASSERT(task_id < ARCADIA_TASK_ID_NUM_IDS);
+
 	TaskHandle_t handle;
 
 	for (uint8_t i = 0; i < ARCADIA_TASK_ID_NUM_IDS; i++)
@@ -97,12 +99,36 @@ TaskHandle_t ARCADIA_handle_from_id(ARCADIA_task_id task_id)
 	return handle;
 }
 
-uint32_t ARCADIA_send(ARCADIA_task_id task_id, const void * kp_item, TickType_t ticks_to_wait)
+ARCADIA_task_id ARCADIA_get_current_task_id(void)
 {
-	return (uint32_t)xQueueSend(rtos_tasks[task_id].queue_handle, kp_item, ticks_to_wait);
+	TaskHandle_t current_handle = xTaskGetCurrentTaskHandle();
+	ASSERT(current_handle != NULL);
+
+	ARCADIA_task_id task_id = ARCADIA_TASK_ID_NUM_IDS;
+
+	for (uint8_t i = 0; i < ARCADIA_TASK_ID_NUM_IDS; i++)
+	{
+		if (rtos_tasks[i].handle == current_handle)
+		{
+			task_id = rtos_tasks[i].task_id;
+			break;
+		}
+	}
+
+	return task_id;
 }
 
-uint32_t ARCADIA_receive(ARCADIA_task_id task_id, void * p_buffer, TickType_t ticks_to_wait)
+uint32_t ARCADIA_send(ARCADIA_task_id task_id, const void * kp_item)
 {
-	return (uint32_t)xQueueReceive(rtos_tasks[task_id].queue_handle, p_buffer, ticks_to_wait);
+	ASSERT(task_id < ARCADIA_TASK_ID_NUM_IDS);
+	ASSERT(kp_item);
+
+	return (uint32_t)xQueueSend(rtos_tasks[task_id].queue_handle, kp_item, portMAX_DELAY);
+}
+
+uint32_t ARCADIA_receive(void * p_buffer)
+{
+	ASSERT(p_buffer);
+
+	return (uint32_t)xQueueReceive(rtos_tasks[ARCADIA_get_current_task_id()].queue_handle, p_buffer, portMAX_DELAY);
 }
