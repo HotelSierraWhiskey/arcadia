@@ -192,14 +192,14 @@ void UART_init(UART_channel_id_t channel_id)
  ****************************************************************************************************/
 void UART_tx_char(UART_channel_id_t channel_id, char c)
 {
-	volatile sercom_registers_t * p_sercom_registers = p_uart_channels[channel_id].p_sercom_registers;
 	// UART_channel_t channel = p_uart_channels[channel_id];
-
+	volatile sercom_registers_t * p_sercom_registers = p_uart_channels[channel_id].p_sercom_registers;
 	// NVIC_DisableIRQ(channel.irq_index);
+
 	UART_tx_buffer_push(channel_id, (uint8_t)c);
-	// NVIC_EnableIRQ(channel.irq_index);
 
 	p_sercom_registers->USART_INT.SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_DRE(1);
+	// NVIC_EnableIRQ(channel.irq_index);
 }
 
 /* non buffered */
@@ -449,6 +449,7 @@ void irqSERCOM0()
 		u8_byte = SERCOM0_REGS->USART_INT.SERCOM_DATA;
 		UART_rx_buffer_push(UART_CHANNEL_SHELL, u8_byte);
 
+		// We pushed a byte onto SHELL's buffer. Notify SHELL.
 		vTaskNotifyGiveFromISR(ARCADIA_handle_from_id(ARCADIA_TASK_ID_SHELL), &higher_priority_task_woken);
 		portYIELD_FROM_ISR(higher_priority_task_woken);
 	}

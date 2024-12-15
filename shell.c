@@ -33,9 +33,6 @@ typedef struct _SHELL_info
 
 	SemaphoreHandle_t 	printf_mutex;
 	StaticSemaphore_t 	printf_mutex_buffer;
-
-	SemaphoreHandle_t 	task_mutex;
-	StaticSemaphore_t 	task_mutex_buffer;
 } SHELL_info_t;
 
 /****************************************************************************************************
@@ -44,7 +41,6 @@ typedef struct _SHELL_info
 
 static void 	SHELL_flush_buffer		(void);
 static void 	SHELL_handle_command	(void);
-// static void		SHELL_display_banner	(void);
 static void 	SHELL_help				(const SHELL_command_t * p_table);
 
 uint8_t 		SHELL_shell_help		(uint8_t argc, char ** argv);
@@ -208,7 +204,6 @@ void SHELL_init(void)
 	SHELL_flush_buffer();
 
 	SHELL_info.printf_mutex = xSemaphoreCreateMutexStatic(&SHELL_info.printf_mutex_buffer);
-	SHELL_info.task_mutex = xSemaphoreCreateMutexStatic(&SHELL_info.task_mutex_buffer);
 
 	SHELL_display_banner();
 

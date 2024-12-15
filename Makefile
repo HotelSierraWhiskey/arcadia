@@ -47,6 +47,7 @@ APP_CFLAGS = 	$(COMMON_FLAGS) \
 				--specs=nosys.specs \
 				-T linkerscript.ld \
 				-Wno-switch \
+				-Wno-main \
 
 APP_LDFLAGS = -T linkerscript.ld -lgcc --verbose 
 

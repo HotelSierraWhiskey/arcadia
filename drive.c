@@ -2,6 +2,7 @@
 #include "common.h"
 #include "shell.h"
 #include "arcadia.h"
+#include "chronos.h"
 
 
 void DRIVE_task(void * p_params)
@@ -12,12 +13,12 @@ void DRIVE_task(void * p_params)
 
 	while (1)
 	{
-		if (ARCADIA_receive(ARCADIA_TASK_ID_DRIVE, (void *)&data, 0))
+		if (ARCADIA_receive(ARCADIA_TASK_ID_DRIVE, (void *)&data, 500))
 		{
 			SHELL_printf("Received: %u\r\n", data);
 		}
 
-		SHELL_printf("beep\r\n");
-		vTaskDelay(500);
+		SHELL_printf("terp\r\n");
+		CHRONOS_delay_ms(500);
 	}
 }

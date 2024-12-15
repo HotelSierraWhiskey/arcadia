@@ -42,25 +42,3 @@ uint32_t CHRONOS_ticks_since(uint32_t start_ticks)
 	uint32_t current_ticks = CHRONOS_get_ticks();
 	return current_ticks - start_ticks;
 }
-
-void CHRONOS_delay_ms(uint32_t u32_ms)
-{
-	uint32_t start_ticks = CHRONOS_get_ticks();
-	
-	while (CHRONOS_ticks_since(start_ticks) < u32_ms)
-	{
-		continue;
-	}
-	
-}
-
-// void irqSysTick()
-// {
-// 	// IO_set_pin(IO_PIN_ID_PA27, IO_PIN_STATE_HIGH);
-// 	// u32_ticks++;
-// 	// IO_set_pin(IO_PIN_ID_PA27, IO_PIN_STATE_LOW);
-// 	if (xTaskIncrementTick())
-//     {
-//         portYIELD();
-//     }
-// }
