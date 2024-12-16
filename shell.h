@@ -58,11 +58,9 @@
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-
 void	SHELL_init				(void);
 void 	SHELL_task				(void * p_params);
 void 	SHELL_printf			(const char *format, ...);
 void 	SHELL_display_banner	(void);
-
 
 #endif // SHELL_H

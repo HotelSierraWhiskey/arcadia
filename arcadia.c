@@ -50,7 +50,7 @@ static ARCADIA_rtos_task_t rtos_tasks[ARCADIA_TASK_ID_NUM_IDS] =
 	},
 };
 
-static const char * const kpc_task_names[ARCADIA_MSG_ID_NUM_IDS] =
+static const char * const kpc_msg_names[ARCADIA_MSG_ID_NUM_IDS] =
 {
 	[ARCADIA_MSG_ID_NOOP] 				= "NOOP",
 	[ARCADIA_MSG_ID_DRIVE_READ_NVM]		= "DRIVE_READ_NVM",
@@ -175,5 +175,5 @@ const char * ARCADIA_get_task_name(ARCADIA_task_id_t task_id)
 const char * ARCADIA_get_msg_type(ARCADIA_msg_id_t msg_id)
 {
 	ASSERT(msg_id < ARCADIA_MSG_ID_NUM_IDS);
-	return kpc_task_names[msg_id];
+	return kpc_msg_names[msg_id];
 }

@@ -2,7 +2,7 @@
 #include "common.h"
 #include "shell.h"
 #include "arcadia.h"
-#include "chronos.h"
+#include "chrono.h"
 #include "nvmctrl.h"
 #include "utils.h"
 #include "drive_payload.h"

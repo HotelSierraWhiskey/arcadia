@@ -7,13 +7,13 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define CHRONOS_delay_ms(ms)	vTaskDelay(ms)
-#define CHRONOS_get_ticks()		xTaskGetTickCount()
+#define CHRONO_delay_ms(ms)	vTaskDelay(ms)
+#define CHRONO_get_ticks()		xTaskGetTickCount()
 
 /****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-uint32_t 	CHRONOS_ticks_since		(uint32_t start_ticks);
+uint32_t 	CHRONO_ticks_since		(uint32_t start_ticks);
 
-#endif // SYS_TIME_H
+#endif // CHRONO_H

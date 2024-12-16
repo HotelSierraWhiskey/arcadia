@@ -1,4 +1,4 @@
-#include "chronos.h"
+#include "chrono.h"
 #include "io.h"
 #include "sys.h"
 #include <FreeRTOS.h>
@@ -14,7 +14,7 @@
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
-static void		CHRONOS_init	(void);
+static void		CHRONO_init		(void);
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -22,17 +22,17 @@ static void		CHRONOS_init	(void);
 
 void vPortSetupTimerInterrupt(void)
 {
-	CHRONOS_init();
+	CHRONO_init();
 }
 
-static void CHRONOS_init(void)
+static void CHRONO_init(void)
 {
 	uint32_t u32_source_clock_freq = SYS_get_source_clock_freq();
 	SysTick_Config(SYS_TICK_FREQ_1MS(u32_source_clock_freq));
 }
 
-uint32_t CHRONOS_ticks_since(uint32_t start_ticks)
+uint32_t CHRONO_ticks_since(uint32_t start_ticks)
 {
-	uint32_t current_ticks = CHRONOS_get_ticks();
+	uint32_t current_ticks = CHRONO_get_ticks();
 	return current_ticks - start_ticks;
 }

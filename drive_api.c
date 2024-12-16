@@ -3,6 +3,10 @@
 #include "arcadia.h"
 #include "drive_payload.h"
 
+/****************************************************************************************************
+ *	F U N C T I O N S
+ ****************************************************************************************************/
+
 // TODO: these should all take a sem and wait
 
 ARCADIA_status_t DRIVE_API_read_nvm(const uint32_t ku32_addr, char * pc_data)

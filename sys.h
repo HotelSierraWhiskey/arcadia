@@ -12,6 +12,10 @@ void 				SYS_init 					(void);
 uint32_t			SYS_get_source_clock_freq 	(void);
 void				SYS_reset					(void);
 
+/****************************************************************************************************
+ *	S H E L L   F U N C T I O N S
+ ****************************************************************************************************/
+
 uint8_t				SYS_shell_crash				(uint8_t argc, char ** argv);
 uint8_t 			SYS_shell_delay				(uint8_t argc, char ** argv);
 uint8_t 			SYS_shell_info				(uint8_t argc, char ** argv);
