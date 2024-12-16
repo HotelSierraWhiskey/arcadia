@@ -37,7 +37,7 @@ APP_INC = 	-I./ \
 			$(FREERTOS_INC)
 
 # App C files
-APP_VPATH = main.c nvic.c sys.c io.c sercom.c uart.c shell.c chronos.c utils.c nvmctrl.c arcadia.c drive.c
+APP_VPATH = main.c nvic.c sys.c io.c sercom.c uart.c shell.c chronos.c utils.c nvmctrl.c arcadia.c drive.c drive_api.c
 
 # Matching .o files from APP_VPATH
 APP_OBJECTS = 	$(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(wildcard $(APP_VPATH)))) $(FREERTOS_OBJECTS)

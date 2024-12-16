@@ -7,7 +7,6 @@
 #define NVMCTRL_COMMAND_WRITE_PAGE			(0x04U)
 #define NVMCTRL_COMMAND_PAGE_BUFFER_CLEAR	(0x44U)
 #define NVMCTRL_EXEC_KEY					(0xA5U)
-#define NVMCTRL_MEMORY						((volatile uint16_t * )(0x00U))
 
 static void 	NVMCTRL_exec	(uint8_t command);
 
@@ -48,14 +47,14 @@ void NVMCTRL_write_page(uint32_t u32_addr, uint8_t * pu8_buffer)
 	NVMCTRL_REGS->NVMCTRL_ADDR = u32_addr;
 
 	NVMCTRL_exec(NVMCTRL_COMMAND_WRITE_PAGE);
-	NVMCTRL_LOG_DBG("Page write (%05X)\r\n", u32_orig_addr);
+	NVMCTRL_LOG_DBG("Page write (0x%05X)\r\n", u32_orig_addr);
 }
 
 void NVMCTRL_erase_row(uint32_t u32_addr)
 {
 	NVMCTRL_REGS->NVMCTRL_ADDR = u32_addr >> 1;
 	NVMCTRL_exec(NVMCTRL_COMMAND_ERASE_ROW);
-	NVMCTRL_LOG_DBG("Row erase (%05X - %05X)\r\n", u32_addr, u32_addr + 0x100 - 1);
+	NVMCTRL_LOG_DBG("Row erase (0x%05X - 0x%05X)\r\n", u32_addr, u32_addr + 0x100 - 1);
 }
 
 static void NVMCTRL_exec(uint8_t command)

@@ -10,14 +10,14 @@
  ****************************************************************************************************/
 
 #define ARCADIA_Q_LENGTH		(5)
-#define ARCADIA_Q_ITEM_SIZE		sizeof(uint32_t)
+#define ARCADIA_Q_ITEM_SIZE		sizeof(ARCADIA_msg_t)
 
 typedef void (* ARCADIA_task_t)(void *);
 typedef void (* ARCADIA_task_init_t)(void);
 
 typedef struct _ARCADIA_rtos_task
 {
-	ARCADIA_task_id			task_id;
+	ARCADIA_task_id_t			task_id;
 	const char * const		kpc_name;
 	ARCADIA_task_t			task;
 	ARCADIA_task_init_t		init;
@@ -52,14 +52,17 @@ static ARCADIA_rtos_task_t rtos_tasks[ARCADIA_TASK_ID_NUM_IDS] =
 
 static const char * const kpc_task_names[ARCADIA_MSG_ID_NUM_IDS] =
 {
-	[ARCADIA_MSG_ID_NOOP] = "NOOP",
+	[ARCADIA_MSG_ID_NOOP] 				= "NOOP",
+	[ARCADIA_MSG_ID_DRIVE_READ_NVM]		= "DRIVE_READ_NVM",
+	[ARCADIA_MSG_ID_DRIVE_WRITE_NVM]	= "DRIVE_WRITE_NVM",
+	[ARCADIA_MSG_ID_DRIVE_ERASE_NVM]	= "DRIVE_ERASE_NVM",
 };
 
 /****************************************************************************************************
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
-static void 	ARCADIA_create_task		(ARCADIA_task_id task_id);
+static void 	ARCADIA_create_task		(ARCADIA_task_id_t task_id);
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -73,7 +76,7 @@ static void 	ARCADIA_create_task		(ARCADIA_task_id task_id);
  * 	@param[in] task_id The ID of the task to be created
  *
  ****************************************************************************************************/
-static void ARCADIA_create_task(ARCADIA_task_id task_id)
+static void ARCADIA_create_task(ARCADIA_task_id_t task_id)
 {
 	ARCADIA_rtos_task_t * p_rtos_task = &rtos_tasks[task_id];
 
@@ -112,7 +115,7 @@ void NORETURN ARCADIA_start(void)
 	while(1);
 }
 
-TaskHandle_t ARCADIA_handle_from_id(ARCADIA_task_id task_id)
+TaskHandle_t ARCADIA_handle_from_id(ARCADIA_task_id_t task_id)
 {
 	ASSERT(task_id < ARCADIA_TASK_ID_NUM_IDS);
 
@@ -129,12 +132,12 @@ TaskHandle_t ARCADIA_handle_from_id(ARCADIA_task_id task_id)
 	return handle;
 }
 
-ARCADIA_task_id ARCADIA_get_current_task_id(void)
+ARCADIA_task_id_t ARCADIA_get_current_task_id(void)
 {
 	TaskHandle_t current_handle = xTaskGetCurrentTaskHandle();
 	ASSERT(current_handle != NULL);
 
-	ARCADIA_task_id task_id = ARCADIA_TASK_ID_NUM_IDS;
+	ARCADIA_task_id_t task_id = ARCADIA_TASK_ID_NUM_IDS;
 
 	for (uint8_t i = 0; i < ARCADIA_TASK_ID_NUM_IDS; i++)
 	{
@@ -148,7 +151,7 @@ ARCADIA_task_id ARCADIA_get_current_task_id(void)
 	return task_id;
 }
 
-uint32_t ARCADIA_send(ARCADIA_task_id task_id, ARCADIA_msg_t * p_msg)
+uint32_t ARCADIA_send(ARCADIA_task_id_t task_id, ARCADIA_msg_t * p_msg)
 {
 	ASSERT(task_id < ARCADIA_TASK_ID_NUM_IDS);
 	ASSERT(p_msg);
@@ -163,7 +166,7 @@ uint32_t ARCADIA_receive(ARCADIA_msg_t * p_msg)
 	return (uint32_t)xQueueReceive(rtos_tasks[ARCADIA_get_current_task_id()].queue_handle, (void * const)p_msg, portMAX_DELAY);
 }
 
-const char * ARCADIA_get_task_name(ARCADIA_task_id task_id)
+const char * ARCADIA_get_task_name(ARCADIA_task_id_t task_id)
 {
 	ASSERT(task_id < ARCADIA_TASK_ID_NUM_IDS);
 	return rtos_tasks[task_id].kpc_name;

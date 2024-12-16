@@ -4,6 +4,8 @@
 #include "common.h"
 #include "shell.h"
 
+#define NVMCTRL_MEMORY				((volatile uint16_t * )(0x00U))
+
 void		NVMCTRL_init			(void);
 void 		NVMCTRL_write_page		(uint32_t u32_addr, uint8_t * pu8_buffer);
 void 		NVMCTRL_erase_row		(uint32_t u32_addr);
