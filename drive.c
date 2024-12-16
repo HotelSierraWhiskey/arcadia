@@ -18,7 +18,6 @@
  ****************************************************************************************************/
 
 static void 	DRIVE_handle_message		(void);
-static void 	DRIVE_handle_msg_noop		(ARCADIA_msg_t * p_msg);
 static void 	DRIVE_handle_msg_read_nvm	(ARCADIA_msg_t * p_msg);
 static void 	DRIVE_handle_msg_write_nvm	(ARCADIA_msg_t * p_msg);
 static void 	DRIVE_handle_msg_erase_nvm	(ARCADIA_msg_t * p_msg);
@@ -55,7 +54,6 @@ static void DRIVE_handle_message(void)
 		switch (msg.id)
 		{
 			case ARCADIA_MSG_ID_NOOP:
-				DRIVE_handle_msg_noop(&msg);
 				break;
 
 			case ARCADIA_MSG_ID_DRIVE_READ_NVM:
@@ -74,11 +72,6 @@ static void DRIVE_handle_message(void)
 				DRIVE_LOG_DBG("Unexpected message: %u\r\n", msg.id);
 		}
 	}
-}
-
-static void DRIVE_handle_msg_noop(ARCADIA_msg_t * p_msg)
-{
-	//
 }
 
 static void	DRIVE_handle_msg_read_nvm(ARCADIA_msg_t * p_msg)
@@ -105,6 +98,13 @@ static void DRIVE_handle_msg_write_nvm(ARCADIA_msg_t * p_msg)
 	uint8_t * 	pc_buffer = (uint8_t *)p_msg->payload.drive_payload_write_nvm.pc_buffer;
 
 	NVMCTRL_write_page(u32_addr, pc_buffer);
+
+	*p_msg->payload.drive_payload_write_nvm.p_result_status = ARCADIA_STATUS_OK;
+
+	DRIVE_LOG_DBG("Handled msg %s with status %u\r\n",
+		ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_read_nvm.p_result_status);
+
+	ARCADIA_semaphore_give(p_msg->semaphore);
 }
 
 static void DRIVE_handle_msg_erase_nvm(ARCADIA_msg_t * p_msg)
@@ -112,4 +112,11 @@ static void DRIVE_handle_msg_erase_nvm(ARCADIA_msg_t * p_msg)
 	uint32_t 	u32_addr = p_msg->payload.drive_payload_erase_nvm.u32_addr;
 
 	NVMCTRL_erase_row(u32_addr);
+
+	*p_msg->payload.drive_payload_erase_nvm.p_result_status = ARCADIA_STATUS_OK;
+
+	DRIVE_LOG_DBG("Handled msg %s with status %u\r\n",
+		ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_read_nvm.p_result_status);
+
+	ARCADIA_semaphore_give(p_msg->semaphore);
 }

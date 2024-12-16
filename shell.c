@@ -2,6 +2,7 @@
 #include "uart.h"
 #include "sys.h"
 #include "nvmctrl.h"
+#include "drive_api.h"
 
 #include <FreeRTOS.h>
 #include "semphr.h"
@@ -50,6 +51,114 @@ uint8_t 		SHELL_shell_help		(uint8_t argc, char ** argv);
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
+
+// Top-level command table
+static const SHELL_command_t kp_command_table[];
+
+// DRIVE command tables
+static const SHELL_command_t kp_drive_command_table[];
+static const SHELL_command_t kp_drive_nvm_command_table[];
+
+// NVM command tables
+static const SHELL_command_t kp_nvm_command_table[];
+
+// SYS command tables
+static const SHELL_command_t kp_sys_command_table[];
+
+// UART command tables
+static const SHELL_command_t kp_uart_command_table[];
+
+/**
+ *	Top level commands
+ */
+static const SHELL_command_t kp_command_table[] =
+{
+	{
+		.kpc_name 			= "help",
+		.function 			= SHELL_shell_help,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		=	(
+									"\tDisplays this message\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "drive",
+		.function 			= NULL,
+		.kp_command_table 	= kp_drive_command_table,
+		.kpc_docstring		= NULL
+	},
+	{
+		.kpc_name 			= "nvm",
+		.function 			= NULL,
+		.kp_command_table 	= kp_nvm_command_table,
+		.kpc_docstring		= NULL
+	},
+	{
+		.kpc_name 			= "sys",
+		.function 			= NULL,
+		.kp_command_table 	= kp_sys_command_table,
+		.kpc_docstring		= NULL
+	},
+	{
+		.kpc_name 			= "uart",
+		.function 			= NULL,
+		.kp_command_table 	= kp_uart_command_table,
+		.kpc_docstring		= NULL
+	},
+	//////////
+	SHELL_COMMAND_TABLE_END
+};
+
+/**
+ *	`drive` commands
+ */
+static const SHELL_command_t kp_drive_command_table[] =
+{
+	{
+		.kpc_name 			= "nvm",
+		.function 			= NULL,
+		.kp_command_table 	= kp_drive_nvm_command_table,
+		.kpc_docstring		= NULL
+	},
+	//////////
+	SHELL_COMMAND_TABLE_END
+};
+
+/**
+ *	`drive nvm` commands
+ */
+static const SHELL_command_t kp_drive_nvm_command_table[] =
+{
+	{
+		.kpc_name 			= "erase",
+		.function 			= DRIVE_API_shell_erase_nvm,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tErases a row from NVM\r\n"
+									"\tUsage: drive nvm erase <addr>\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "read",
+		.function 			= DRIVE_API_shell_read_nvm,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tReads a page from NVM\r\n"
+									"\tUsage: drive nvm read <addr>\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "write",
+		.function 			= DRIVE_API_shell_write_nvm,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tErases a row from NVM\r\n"
+									"\tUsage: drive nvm write <addr> <num_bytes> <...>\r\n"
+								)
+	},
+	//////////
+	SHELL_COMMAND_TABLE_END
+};
 
 /**
  *	`nvm` commands
@@ -154,41 +263,6 @@ static const SHELL_command_t kp_uart_command_table[] =
 									"\tDisplays UART configuration\r\n"
 									"\tUsage: uart info\r\n"
 								)
-	},
-	//////////
-	SHELL_COMMAND_TABLE_END
-};
-
-/**
- *	Top level commands
- */
-static const SHELL_command_t kp_command_table[] =
-{
-	{
-		.kpc_name 			= "help",
-		.function 			= SHELL_shell_help,
-		.kp_command_table 	= NULL,
-		.kpc_docstring		=	(
-									"\tDisplays this message\r\n"
-								)
-	},
-	{
-		.kpc_name 			= "nvm",
-		.function 			= NULL,
-		.kp_command_table 	= kp_nvm_command_table,
-		.kpc_docstring		= NULL
-	},
-	{
-		.kpc_name 			= "sys",
-		.function 			= NULL,
-		.kp_command_table 	= kp_sys_command_table,
-		.kpc_docstring		= NULL
-	},
-	{
-		.kpc_name 			= "uart",
-		.function 			= NULL,
-		.kp_command_table 	= kp_uart_command_table,
-		.kpc_docstring		= NULL
 	},
 	//////////
 	SHELL_COMMAND_TABLE_END

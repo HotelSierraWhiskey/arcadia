@@ -12,6 +12,7 @@ typedef struct _DRIVE_PAYLOAD_write_nvm
 {
 	uint32_t			u32_addr;
 	char *				pc_buffer;
+	ARCADIA_status_t *	p_result_status;
 } DRIVE_PAYLOAD_write_nvm_t;
 
 typedef struct _DRIVE_PAYLOAD_read_nvm
@@ -23,7 +24,8 @@ typedef struct _DRIVE_PAYLOAD_read_nvm
 
 typedef struct _DRIVE_PAYLOAD_erase_nvm
 {
-	uint32_t	u32_addr;
+	uint32_t			u32_addr;
+	ARCADIA_status_t *	p_result_status;
 } DRIVE_PAYLOAD_erase_nvm_t;
 
 #endif // DRIVE_PAYLOAD_H

@@ -98,7 +98,7 @@ uint8_t	NVMCTRL_shell_erase(uint8_t argc, char ** argv)
 	}
 	if (!b_res)
 	{
-		SHELL_printf("Usage: nvm erase\r\n");
+		SHELL_printf("Usage: nvm erase <addr>\r\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
