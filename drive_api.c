@@ -2,6 +2,7 @@
 #include "drive_api.h"
 #include "arcadia.h"
 #include "drive_payload.h"
+#include "shell.h"
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -16,18 +17,20 @@ ARCADIA_status_t DRIVE_API_read_nvm(const uint32_t ku32_addr, char * pc_data)
 
 	msg.id = ARCADIA_MSG_ID_DRIVE_READ_NVM;
 	msg.from = ARCADIA_get_current_task_id();
+	msg.semaphore = ARCADIA_semaphore_alloc(&msg.semaphore_buffer);
 
 	msg.payload.drive_payload_read_nvm.u32_addr = ku32_addr;
 	msg.payload.drive_payload_read_nvm.pc_buffer = pc_data;
+	msg.payload.drive_payload_read_nvm.p_result_status = &status;
 
-	if (ARCADIA_send(ARCADIA_TASK_ID_DRIVE, &msg))
+	ARCADIA_send(ARCADIA_TASK_ID_DRIVE, &msg);
+
+	if (!ARCADIA_semaphore_take(msg.semaphore))
 	{
-		status = ARCADIA_STATUS_OK;
+		status = ARCADIA_STATUS_API_TIMEOUT;
 	}
-	else
-	{
-		status = ARCADIA_STATUS_FAILED;
-	}
+
+	ARCADIA_semaphore_free(msg.semaphore);
 
 	return status;
 }

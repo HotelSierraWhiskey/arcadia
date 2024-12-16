@@ -49,6 +49,9 @@ static void DRIVE_handle_message(void)
 
 	if (ARCADIA_receive(&msg))
 	{
+		DRIVE_LOG_DBG("Received msg %s from %s\r\n", 
+			ARCADIA_get_msg_type(msg.id), ARCADIA_get_task_name(msg.from));
+
 		switch (msg.id)
 		{
 			case ARCADIA_MSG_ID_NOOP:
@@ -75,8 +78,7 @@ static void DRIVE_handle_message(void)
 
 static void DRIVE_handle_msg_noop(ARCADIA_msg_t * p_msg)
 {
-	DRIVE_LOG_DBG("Received msg type %s from %s\r\n", 
-		ARCADIA_get_msg_type(p_msg->id), ARCADIA_get_task_name(p_msg->from));
+	//
 }
 
 static void	DRIVE_handle_msg_read_nvm(ARCADIA_msg_t * p_msg)
@@ -84,13 +86,17 @@ static void	DRIVE_handle_msg_read_nvm(ARCADIA_msg_t * p_msg)
 	uint32_t 	u32_addr = p_msg->payload.drive_payload_read_nvm.u32_addr;
 	uint8_t * 	pc_buffer = (uint8_t *)p_msg->payload.drive_payload_read_nvm.pc_buffer;
 
-	DRIVE_LOG_DBG("Received msg type %s from %s\r\n", 
-		ARCADIA_get_msg_type(p_msg->id), ARCADIA_get_task_name(p_msg->from));
+	*p_msg->payload.drive_payload_read_nvm.p_result_status = ARCADIA_STATUS_OK;
 
 	for (uint16_t i = 0; i < NVMCTRL_PAGE_SIZE; i++)
 	{
 		pc_buffer[i] = ((uint8_t *)NVMCTRL_MEMORY)[u32_addr + i];
 	}
+
+	DRIVE_LOG_DBG("Handled msg %s with status %u\r\n",
+		ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_read_nvm.p_result_status);
+
+	ARCADIA_semaphore_give(p_msg->semaphore);
 }
 
 static void DRIVE_handle_msg_write_nvm(ARCADIA_msg_t * p_msg)
@@ -98,18 +104,12 @@ static void DRIVE_handle_msg_write_nvm(ARCADIA_msg_t * p_msg)
 	uint32_t 	u32_addr = p_msg->payload.drive_payload_write_nvm.u32_addr;
 	uint8_t * 	pc_buffer = (uint8_t *)p_msg->payload.drive_payload_write_nvm.pc_buffer;
 
-	DRIVE_LOG_DBG("Received msg type %s from %s\r\n", 
-		ARCADIA_get_msg_type(p_msg->id), ARCADIA_get_task_name(p_msg->from));
-
 	NVMCTRL_write_page(u32_addr, pc_buffer);
 }
 
 static void DRIVE_handle_msg_erase_nvm(ARCADIA_msg_t * p_msg)
 {
 	uint32_t 	u32_addr = p_msg->payload.drive_payload_erase_nvm.u32_addr;
-
-	DRIVE_LOG_DBG("Received msg type %s from %s\r\n", 
-		ARCADIA_get_msg_type(p_msg->id), ARCADIA_get_task_name(p_msg->from));
 
 	NVMCTRL_erase_row(u32_addr);
 }

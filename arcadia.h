@@ -8,6 +8,12 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
+#define ARCADIA_semaphore_wait_ms 			(5000U)
+#define ARCADIA_semaphore_alloc(p_buffer) 	xSemaphoreCreateBinaryStatic(p_buffer)
+#define ARCADIA_semaphore_free(semaphore) 	vSemaphoreDelete(semaphore)
+#define ARCADIA_semaphore_take(semaphore) 	xSemaphoreTake(semaphore, pdMS_TO_TICKS(ARCADIA_semaphore_wait_ms))
+#define ARCADIA_semaphore_give(semaphore)	xSemaphoreGive(semaphore)
+
 typedef enum _ARCADIA_task_id
 {
 	ARCADIA_TASK_ID_SHELL = 0,
@@ -26,14 +32,6 @@ typedef enum _ARCADIA_msg_id
 	ARCADIA_MSG_ID_NUM_IDS
 } ARCADIA_msg_id_t;
 
-typedef enum _ARCADIA_status
-{
-	ARCADIA_STATUS_OK = 0,
-	ARCADIA_STATUS_FAILED,
-	//////////
-	ARCADIA_STATUS_NUM_STATUSES
-} ARCADIA_status_t;
-
 typedef union _ARCADIA_payload
 {
 	// DRIVE task payloads
@@ -47,6 +45,8 @@ typedef struct _ARCADIA_msg
 	ARCADIA_msg_id_t		id;
 	ARCADIA_task_id_t		from;
 	ARCADIA_payload_t		payload;
+	SemaphoreHandle_t		semaphore;
+	StaticSemaphore_t		semaphore_buffer;
 } ARCADIA_msg_t;
 
 /****************************************************************************************************

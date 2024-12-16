@@ -271,6 +271,21 @@ uint8_t SYS_shell_info(uint8_t argc, char ** argv)
 		SHELL_printf("%-30s: %s\r\n", "Clock Source Freq", kpc_sys_clock_freq_descriptors[SYS_info.clock_source_freq]);
 		SHELL_printf("%-30s: %s\r\n", "Serial Number", pc_serial_number);
 		SHELL_SEPARATOR();
+
+
+		char t[64];
+		DRIVE_API_read_nvm(0x1f600, t);
+
+		for (uint16_t i = 0; i < NVMCTRL_PAGE_SIZE; i++)
+		{
+			SHELL_printf("%02X ", t[i]);
+
+			if ((i + 1) % 16 == 0)
+			{
+				SHELL_printf("\r\n");
+			}
+		}
+
 	}
 	else
 	{
