@@ -25,7 +25,7 @@ APP_CFLAGS = 	$(COMMON_FLAGS) \
 				-fdata-sections \
 				-nostartfiles \
 				--specs=nosys.specs \
-				-T linkerscript.ld \
+				-T toolchain/linkerscript.ld \
 				-Wno-switch \
 				-Wno-main \
 
@@ -116,7 +116,7 @@ size:
 # compile and upload
 .PHONY:
 upload_app:
-	make compile_app && $(JLINK) -CommanderScript upload.jlink
+	make compile_app && $(JLINK) -CommanderScript toolchain/upload.jlink
 
 .PHONY:
 gdb_server:

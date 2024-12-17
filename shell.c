@@ -4,9 +4,6 @@
 #include "nvmctrl.h"
 #include "drive_api.h"
 
-#include <FreeRTOS.h>
-#include "semphr.h"
-
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
@@ -17,10 +14,16 @@
 #define SHELL_CRLF					"\r\n"
 #define SHELL_MAX_TOKENS			(16)
 #define SHELL_MAX_ARGS				(8)
-#define SHELL_COMMAND_TABLE_END		{NULL, NULL, NULL}
+#define SHELL_COMMAND_TABLE_END		{NULL, NULL, NULL, NULL}
 
+/**
+ *	Shell function pointer typedef
+ */
 typedef uint8_t (* SHELL_function_t)(uint8_t argc, char ** argv);
 
+/**
+ *	Shell command entry
+ */
 typedef struct _SHELL_command
 {
 	const char *					kpc_name;
@@ -29,11 +32,13 @@ typedef struct _SHELL_command
 	const char *					kpc_docstring;
 } SHELL_command_t;
 
+/**
+ *	Module info struct
+ */
 typedef struct _SHELL_info
 {
 	char				pc_buffer[SHELL_COMMAND_BUFFER_SIZE];
 	uint16_t			u16_index;
-
 	SemaphoreHandle_t 	printf_mutex;
 	StaticSemaphore_t 	printf_mutex_buffer;
 } SHELL_info_t;
@@ -229,21 +234,21 @@ static const SHELL_command_t kp_sys_command_table[] =
 								)
 	},
 	{
-		.kpc_name 			= "qtest",
-		.function 			= SYS_shell_qtest,
-		.kp_command_table 	= NULL,
-		.kpc_docstring		= 	(
-									"\tTests sending messages\r\n"
-									"\tUsage: sys qtest\r\n"
-								)
-	},
-	{
 		.kpc_name 			= "reset",
 		.function 			= SYS_shell_reset,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
 									"\tPerforms a software reset\r\n"
 									"\tUsage: sys reset\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "wm",
+		.function 			= SYS_shell_wm,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tView task high watermarks\r\n"
+									"\tUsage: sys wm\r\n"
 								)
 	},
 	//////////
@@ -268,12 +273,18 @@ static const SHELL_command_t kp_uart_command_table[] =
 	SHELL_COMMAND_TABLE_END
 };
 
+static char printf_buffer[SHELL_COMMAND_BUFFER_SIZE];
+
 static SHELL_info_t SHELL_info;
 
 /****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
 
+/****************************************************************************************************
+ *	Pre-kernel module initialization function
+ *
+ ****************************************************************************************************/
 void SHELL_init(void)
 {
 	UART_init(UART_CHANNEL_SHELL);
@@ -286,6 +297,10 @@ void SHELL_init(void)
 	SHELL_printf("%s", SHELL_PROMPT);
 }
 
+/****************************************************************************************************
+ *	Top level task loop
+ *
+ ****************************************************************************************************/
 void SHELL_task(void * p_params)
 {
 	(void)p_params;
@@ -343,8 +358,10 @@ void SHELL_task(void * p_params)
 	}
 }
 
-char		buffer[SHELL_COMMAND_BUFFER_SIZE];
-
+/****************************************************************************************************
+ *	Shell's `printf` implementation, used system-wide
+ *
+ ****************************************************************************************************/
 void SHELL_printf(const char *format, ...)
 {
 	xSemaphoreTake(SHELL_info.printf_mutex, portMAX_DELAY);
@@ -353,11 +370,11 @@ void SHELL_printf(const char *format, ...)
 
 	va_start(args, format);
 
-	(void)vsnprintf(buffer, sizeof(buffer), format, args);
+	(void)vsnprintf(printf_buffer, sizeof(printf_buffer), format, args);
 
 	va_end(args);
 
-	for (char *p = buffer; *p != '\0'; ++p)
+	for (char *p = printf_buffer; *p != '\0'; ++p)
 	{
 		UART_tx_char(UART_CHANNEL_SHELL, *p);
 	}
@@ -365,12 +382,20 @@ void SHELL_printf(const char *format, ...)
 	xSemaphoreGive(SHELL_info.printf_mutex);
 }
 
+/****************************************************************************************************
+ *	Flushes the shell command buffer
+ *
+ ****************************************************************************************************/
 static void SHELL_flush_buffer(void)
 {
 	memset(SHELL_info.pc_buffer, 0, SHELL_COMMAND_BUFFER_SIZE);
 	SHELL_info.u16_index = 0;
 }
 
+/****************************************************************************************************
+ *	Processes the the shell command buffer when a command is entered in the serial debug interface
+ *
+ ****************************************************************************************************/
 static void SHELL_handle_command(void)
 {
 	uint8_t argc = 0;
@@ -430,7 +455,12 @@ static void SHELL_handle_command(void)
 	// Execute the command or provide help
 	if (shell_function)
 	{
-		SHELL_printf("\r\n");
+		// Keep spacing uniform when top-level help is called
+		if (shell_function != SHELL_shell_help)
+		{
+			SHELL_printf("\r\n");
+		}
+
 		if (shell_function(argc, argv) != SHELL_COMMAND_SUCCESS)
 		{
 			SHELL_printf("\r\nCommand returned bad status code\r\n");
@@ -446,6 +476,12 @@ cleanup:
 	vPortYield();
 }
 
+/****************************************************************************************************
+ *	Displays the commands and docs associated with a given command table
+ *
+ * 	@param[in] p_table The command table to view
+ *
+ ****************************************************************************************************/
 static void SHELL_help(const SHELL_command_t * p_table)
 {
 	SHELL_printf("\r\n\nCommands:\r\n");
@@ -471,6 +507,10 @@ static void SHELL_help(const SHELL_command_t * p_table)
 	SHELL_SEPARATOR();
 }
 
+/****************************************************************************************************
+ *	Displays the Arcadia banner
+ *
+ ****************************************************************************************************/
 void SHELL_display_banner(void)
 {
 	SHELL_printf("\r\n");
@@ -486,6 +526,16 @@ void SHELL_display_banner(void)
 	SHELL_printf("\r\n");
 }
 
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Runs `SHELL_help` on the top-level command table
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
 uint8_t SHELL_shell_help(uint8_t argc, char ** argv)
 {
 	// Just issue help on the top-level command table

@@ -1,13 +1,10 @@
-#include "common.h"
 #include "sys.h"
 #include "io.h"
 #include "shell.h"
 #include "chrono.h"
 #include "version.h"
 #include "arcadia.h"
-
-//tmp
-#include "drive_api.h"
+#include "utils.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -15,6 +12,9 @@
 
 #define SYS_LOG_DBG(fmt, ...)   	SHELL_printf("%-10s" fmt, "[SYS]", ##__VA_ARGS__)
 
+/**
+ *	Clock frequency enumerated type
+ */
 typedef enum _SYS_clock_src_freq
 {
 	SYS_CLOCK_SRC_FREQ_48_MHZ,
@@ -37,6 +37,9 @@ typedef enum _SYS_clock_src_freq
 	SYS_CLOCK_SRC_FREQ_NUM_FREQ
 } SYS_clock_src_freq_t;
 
+/**
+ *	Supported MCU enumerated type
+ */
 typedef enum _SYS_part
 {
 	SYS_PART_ATSAMC21E18A,
@@ -44,6 +47,9 @@ typedef enum _SYS_part
 	SYS_PART_NUM_PARTS
 } SYS_part_t;
 
+/**
+ *	Module info typedef
+ */
 typedef struct _SYS_info
 {
 	SYS_part_t				k_part;
@@ -54,6 +60,9 @@ typedef struct _SYS_info
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
 
+/**
+ *	Table of clock frequency descriptors
+ */
 static const char * const kpc_sys_clock_freq_descriptors[SYS_CLOCK_SRC_FREQ_NUM_FREQ] = 
 {
 	[SYS_CLOCK_SRC_FREQ_48_MHZ] 	= "48 MHz",
@@ -74,6 +83,9 @@ static const char * const kpc_sys_clock_freq_descriptors[SYS_CLOCK_SRC_FREQ_NUM_
 	[SYS_CLOCK_SRC_FREQ_3_MHZ] 		= "3 MHz",
 };
 
+/**
+ *	Table of clock frequency values
+ */
 static const uint32_t kpu32_sys_clock_frequencies[SYS_CLOCK_SRC_FREQ_NUM_FREQ] = 
 {
 	[SYS_CLOCK_SRC_FREQ_48_MHZ]   = 48000000,
@@ -94,11 +106,17 @@ static const uint32_t kpu32_sys_clock_frequencies[SYS_CLOCK_SRC_FREQ_NUM_FREQ] =
 	[SYS_CLOCK_SRC_FREQ_3_MHZ]    = 3000000,
 };
 
+/**
+ *	Table of MCU part descriptors
+ */
 static const char * const kpc_part_descriptors[SYS_PART_NUM_PARTS] = 
 {
 	[SYS_PART_ATSAMC21E18A] = "ATSAMC21E18A"
 };
 
+/**
+ *	The sys info struct 
+ */
 static SYS_info_t SYS_info;
 
 /****************************************************************************************************
@@ -160,6 +178,10 @@ static void SYS_osc48m_init(void)
 	SYS_info.clock_source_freq = SYS_CLOCK_SRC_FREQ_48_MHZ;
 }
 
+/****************************************************************************************************
+ *	Triggers a software reset
+ *
+ ****************************************************************************************************/
 void SYS_reset(void)
 {
 	NVIC_SystemReset();
@@ -168,6 +190,7 @@ void SYS_reset(void)
 /****************************************************************************************************
  *	Clock initialization
  *
+ *	GLCK 0 only. Hardcoded to use a division factor of one. Enable output on GCLK_IO[0] by default.
  ****************************************************************************************************/
 static void SYS_clock_init(void)
 {
@@ -192,11 +215,27 @@ static void SYS_clock_init(void)
 	}
 }
 
+/****************************************************************************************************
+ *	Retrieves the configured clock source (OSC48) frequency from the 
+ *	`kpu32_sys_clock_frequencies` table
+ *
+ *	@return The clock frequency value
+ ****************************************************************************************************/
 uint32_t SYS_get_source_clock_freq(void)
 {
 	return kpu32_sys_clock_frequencies[SYS_info.clock_source_freq];
 }
 
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Invokes a Hard Fault
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
 uint8_t SYS_shell_crash(uint8_t argc, char ** argv)
 {
 	if (argc == 0)
@@ -211,6 +250,16 @@ uint8_t SYS_shell_crash(uint8_t argc, char ** argv)
 	return SHELL_COMMAND_SUCCESS;
 }
 
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Blocking delay in calling task's context for a given number of milliseconds
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
 uint8_t SYS_shell_delay(uint8_t argc, char ** argv)
 {
 	bool b_res = false;
@@ -236,6 +285,16 @@ uint8_t SYS_shell_delay(uint8_t argc, char ** argv)
 	return SHELL_COMMAND_SUCCESS;
 }
 
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Displays general system information
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
 uint8_t SYS_shell_info(uint8_t argc, char ** argv)
 {
 	if (argc == 0)
@@ -271,21 +330,6 @@ uint8_t SYS_shell_info(uint8_t argc, char ** argv)
 		SHELL_printf("%-30s: %s\r\n", "Clock Source Freq", kpc_sys_clock_freq_descriptors[SYS_info.clock_source_freq]);
 		SHELL_printf("%-30s: %s\r\n", "Serial Number", pc_serial_number);
 		SHELL_SEPARATOR();
-
-
-		char t[64];
-		DRIVE_API_read_nvm(0x1f600, t);
-
-		for (uint16_t i = 0; i < NVMCTRL_PAGE_SIZE; i++)
-		{
-			SHELL_printf("%02X ", t[i]);
-
-			if ((i + 1) % 16 == 0)
-			{
-				SHELL_printf("\r\n");
-			}
-		}
-
 	}
 	else
 	{
@@ -295,6 +339,16 @@ uint8_t SYS_shell_info(uint8_t argc, char ** argv)
 	return SHELL_COMMAND_SUCCESS;
 }
 
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Triggers a software reset
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
 uint8_t	SYS_shell_reset(uint8_t argc, char ** argv)
 {
 	if (argc == 0)
@@ -313,33 +367,43 @@ uint8_t	SYS_shell_reset(uint8_t argc, char ** argv)
 	return SHELL_COMMAND_SUCCESS;
 }
 
-uint8_t	SYS_shell_qtest(uint8_t argc, char ** argv)
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Retrieve high watermark for each task's stack
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
+uint8_t	SYS_shell_wm(uint8_t argc, char ** argv)
 {
 	if (argc == 0)
 	{
-		// uint32_t test = 420;
-		ARCADIA_msg_t msg;
-		msg.id = ARCADIA_MSG_ID_NOOP;
-		msg.from = ARCADIA_get_current_task_id();
-		
-		if (ARCADIA_send(ARCADIA_TASK_ID_DRIVE, &msg))
+		SHELL_SEPARATOR();
+		for (uint8_t i = 0; i < ARCADIA_TASK_ID_NUM_IDS; i++)
 		{
-			SYS_LOG_DBG("Message sent\r\n");
+			SHELL_printf("%-10s %u\r\n", 
+				ARCADIA_get_task_name(i),
+				uxTaskGetStackHighWaterMark(ARCADIA_handle_from_id(i)));
 		}
-		else
-		{
-			SYS_LOG_DBG("Failed to send message\r\n");
-		}
+		SHELL_SEPARATOR();
 	}
 	else
 	{
-		SHELL_printf("Usage: sys qtest\r\n");
+		SHELL_printf("Usage: sys wm\r\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
 }
 
+
 #if ( configCHECK_FOR_STACK_OVERFLOW > 0 )
+/****************************************************************************************************
+ *	Stack overflow hook
+ *
+ ****************************************************************************************************/
 void vApplicationStackOverflowHook(TaskHandle_t xTask, char * pcTaskName )
 {
 	// Check pcTaskName for the name of the offending task,
