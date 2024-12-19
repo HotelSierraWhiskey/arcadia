@@ -1,24 +1,28 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 
 MEMORY
-
 {
-	FLASH	(rx):	ORIGIN = 0x00000000, LENGTH = 0x00040000
+	FLASH	(rx):	ORIGIN = 0x00000000, LENGTH = 0x0003FC00
 	RAM		(rwx):	ORIGIN = 0x20000000, LENGTH = 0x00004000
+	APPNVM  (rx): 	ORIGIN = 0x0003FC00, LENGTH = 0x00000400
 }
 
+PHDRS
+{
+    text   PT_LOAD FLAGS(4); /* Read-Execute segment */
+    data   PT_LOAD FLAGS(6); /* Read-Write segment */
+    stack  PT_LOAD FLAGS(6); /* Read-Write for stack */
+}
 
 /*
  * Section definitions:
  *
  * .text 		- machine instructions.
+ * .appnvm		- application specific flash
  * .data 		- initialized data defined in the program.
  * .bss 		- un-initialized global and static variables (to be initialized to 0 before starting main).
  * .stack		- just contains the pointer to the stack end at the right place.
  */
-/* 
-EXTERN(vector_table)
-ENTRY(reset_handler) */
 
 SECTIONS
 {
@@ -28,33 +32,33 @@ SECTIONS
 		KEEP(*(.nvic_table))
 		*(.text.* .text .gnu.linkonce.t.*)
 		*(.rodata.* .rodata .gnu.linkonce.r.*)
-
-		/* . = ALIGN(4);
-		PROVIDE(beginCtors = .);
-		*(.init_array.* .ctors.*)
-		KEEP(*(.init_array .ctors))
-		PROVIDE(endCtors = .); */
-    } >FLASH
+    } >FLASH :text
 
     .ARM.extab : {
         *(.ARM.extab*)
-    } >FLASH
+    } >FLASH :text
 
     .ARM.exidx : {
         __exidx_start = .;
         *(.ARM.exidx*)
         __exidx_end = .;
-    } >FLASH
+    } >FLASH :text
 
     PROVIDE(u32_end_text = .);
-	
 
+	.appnvm :
+	{
+		PROVIDE(app_nvm_base = .);
+		KEEP(*(.app_nvm*))
+		*(.appnvm.* .appnvm)
+	} >APPNVM :text
+	
 	.stack :
 	{
 		/* Reserve 4k for the stack (which grows down so is at the start of RAM) */
 		. += 0x00001000;
 		PROVIDE(u32_stack_top = .);
-	} >RAM
+	} >RAM :stack
 
 	.data :
 	{
@@ -62,7 +66,7 @@ SECTIONS
 		*(.data.* .data)
 		*(vtable)
 		PROVIDE(u32_end_data = .);
-	} >RAM AT >FLASH
+	} >RAM AT >FLASH :data
 
 	.bss :
 	{
@@ -71,13 +75,13 @@ SECTIONS
 		*(COMMON)
 		PROVIDE(u32_end_bss = .);
         PROVIDE(end = .);
-	} >RAM
+	} >RAM :data
 
 	.note.gnu.build-id :
 	{
 		PROVIDE(buildID = .);
 		KEEP(*(.note.gnu.build-id))
-	} >FLASH
+	} >FLASH :text
 
 	/* Stabs debugging sections. */
 	.stab 0 : { *(.stab) }

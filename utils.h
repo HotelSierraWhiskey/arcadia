@@ -8,8 +8,10 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define NORETURN		__attribute__((noreturn))
-#define WEAKREF			__attribute__((weak))
+#define NORETURN			__attribute__((noreturn))
+#define WEAKREF				__attribute__((weak))
+#define SECTION_APP_NVM		__attribute__((section(".app_nvm")))
+#define UNUSED(x)			(void)(x)
 
 #define ASSERT(x) do { \
 	if (!(x)) \

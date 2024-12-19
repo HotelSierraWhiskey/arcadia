@@ -3,14 +3,15 @@
 
 #include "common.h"
 #include "arcadia.h"
+#include "nvmctrl.h"
 
 /****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-ARCADIA_status_t	DRIVE_API_read_nvm			(const uint32_t u32_addr, char * pc_data);
-ARCADIA_status_t	DRIVE_API_write_nvm			(const uint32_t u32_addr, char * pc_data);
-ARCADIA_status_t	DRIVE_API_erase_nvm			(const uint32_t u32_addr);
+ARCADIA_status_t	DRIVE_API_read_nvm			(const NVMCTRL_app_nvm_row_id_t row_id, char * pc_data);
+ARCADIA_status_t	DRIVE_API_write_nvm			(const NVMCTRL_app_nvm_row_id_t row_id, const char * kpc_data);
+ARCADIA_status_t	DRIVE_API_erase_nvm			(const NVMCTRL_app_nvm_row_id_t row_id);
 
 uint8_t				DRIVE_API_shell_erase_nvm	(uint8_t argc, char ** argv);
 uint8_t				DRIVE_API_shell_read_nvm	(uint8_t argc, char ** argv);

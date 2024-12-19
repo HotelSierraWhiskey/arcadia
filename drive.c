@@ -26,15 +26,23 @@ static void 	DRIVE_handle_msg_erase_nvm	(ARCADIA_msg_t * p_msg);
  *	F U N C T I O N S
  ****************************************************************************************************/
 
+/****************************************************************************************************
+ *	Pre-kernel module initialization function
+ *
+ ****************************************************************************************************/
 void DRIVE_init(void)
 {
 	// Initialize NVMCTRL module
 	NVMCTRL_init();
 }
 
+/****************************************************************************************************
+ *	Top level task loop
+ *
+ ****************************************************************************************************/
 void DRIVE_task(void * p_params)
 {
-	(void)p_params;
+	UNUSED(p_params);
 
 	while (1)
 	{
@@ -42,6 +50,10 @@ void DRIVE_task(void * p_params)
 	}
 }
 
+/****************************************************************************************************
+ *	DRIVE task main message handler
+ *
+ ****************************************************************************************************/
 static void DRIVE_handle_message(void)
 {
 	ARCADIA_msg_t msg;
@@ -74,6 +86,14 @@ static void DRIVE_handle_message(void)
 	}
 }
 
+/****************************************************************************************************
+ *	Blocking message handler for `ARCADIA_MSG_ID_DRIVE_READ_NVM`
+ *
+ * 	Reads a row of data into the provided payload's buffer
+ * 
+ * 	@param[in] p_msg A pointer to the received message
+ *
+ ****************************************************************************************************/
 static void	DRIVE_handle_msg_read_nvm(ARCADIA_msg_t * p_msg)
 {
 	uint32_t 	u32_addr = p_msg->payload.drive_payload_read_nvm.u32_addr;
@@ -81,7 +101,9 @@ static void	DRIVE_handle_msg_read_nvm(ARCADIA_msg_t * p_msg)
 
 	*p_msg->payload.drive_payload_read_nvm.p_result_status = ARCADIA_STATUS_OK;
 
-	for (uint16_t i = 0; i < NVMCTRL_PAGE_SIZE; i++)
+	DRIVE_LOG_DBG("Reading row (0x%08X - 0x%08X)\r\n", u32_addr, u32_addr + NVMCTRL_ROW_SIZE - 1);
+
+	for (uint16_t i = 0; i < NVMCTRL_ROW_SIZE; i++)
 	{
 		pc_buffer[i] = ((uint8_t *)NVMCTRL_MEMORY)[u32_addr + i];
 	}
@@ -92,12 +114,26 @@ static void	DRIVE_handle_msg_read_nvm(ARCADIA_msg_t * p_msg)
 	ARCADIA_semaphore_give(p_msg->semaphore);
 }
 
+/****************************************************************************************************
+ *	Blocking message handler for `ARCADIA_MSG_ID_DRIVE_WRITE_NVM`
+ *
+ * 	Writes the data in the payload's buffer into the provided address
+ * 
+ * 	@param[in] p_msg A pointer to the received message
+ *
+ ****************************************************************************************************/
 static void DRIVE_handle_msg_write_nvm(ARCADIA_msg_t * p_msg)
 {
 	uint32_t 	u32_addr = p_msg->payload.drive_payload_write_nvm.u32_addr;
-	uint8_t * 	pc_buffer = (uint8_t *)p_msg->payload.drive_payload_write_nvm.pc_buffer;
+	uint8_t * 	pc_buffer = (uint8_t *)p_msg->payload.drive_payload_write_nvm.kpc_buffer;
 
-	NVMCTRL_write_page(u32_addr, pc_buffer);
+	DRIVE_LOG_DBG("Writing to row (0x%08X - 0x%08X)\r\n", u32_addr, u32_addr + NVMCTRL_ROW_SIZE - 1);
+
+	for (uint8_t i = 0; i < (NVMCTRL_ROW_SIZE / NVMCTRL_PAGE_SIZE); i++)
+	{
+		NVMCTRL_write_page(u32_addr, pc_buffer + (NVMCTRL_PAGE_SIZE * i));
+		u32_addr += NVMCTRL_PAGE_SIZE;
+	}
 
 	*p_msg->payload.drive_payload_write_nvm.p_result_status = ARCADIA_STATUS_OK;
 
@@ -107,9 +143,19 @@ static void DRIVE_handle_msg_write_nvm(ARCADIA_msg_t * p_msg)
 	ARCADIA_semaphore_give(p_msg->semaphore);
 }
 
+/****************************************************************************************************
+ *	Blocking message handler for `ARCADIA_MSG_ID_DRIVE_ERASE_NVM`
+ *
+ * 	Erases a row at the provided address
+ * 
+ * 	@param[in] p_msg A pointer to the received message
+ *
+ ****************************************************************************************************/
 static void DRIVE_handle_msg_erase_nvm(ARCADIA_msg_t * p_msg)
 {
 	uint32_t 	u32_addr = p_msg->payload.drive_payload_erase_nvm.u32_addr;
+
+	DRIVE_LOG_DBG("Erasing row (0x%08X - 0x%08X)\r\n", u32_addr, u32_addr + NVMCTRL_ROW_SIZE - 1);
 
 	NVMCTRL_erase_row(u32_addr);
 

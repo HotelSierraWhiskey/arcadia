@@ -11,7 +11,7 @@
 typedef struct _DRIVE_PAYLOAD_write_nvm
 {
 	uint32_t			u32_addr;
-	char *				pc_buffer;
+	const char *		kpc_buffer;
 	ARCADIA_status_t *	p_result_status;
 } DRIVE_PAYLOAD_write_nvm_t;
 

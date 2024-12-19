@@ -1,4 +1,5 @@
 #include "shell.h"
+#include "utils.h"
 #include "uart.h"
 #include "sys.h"
 #include "nvmctrl.h"
@@ -303,7 +304,7 @@ void SHELL_init(void)
  ****************************************************************************************************/
 void SHELL_task(void * p_params)
 {
-	(void)p_params;
+	UNUSED(p_params);
 
 	char c;
 

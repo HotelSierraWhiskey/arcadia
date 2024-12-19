@@ -10,7 +10,18 @@
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-ARCADIA_status_t DRIVE_API_read_nvm(const uint32_t ku32_addr, char * pc_data)
+/****************************************************************************************************
+ *	Blocking API function to read a row of data
+ *
+ * 	@param[in]	k_row_id The ID of the desired NVM row from which to read
+ * 	@param[out]	pc_data A buffer to load with the retrieved data
+ * 
+ *	@return 
+ * 	`ARCADIA_STATUS_OK` if successful, 
+ *	`ARCADIA_STATUS_API_TIMEOUT` if the DRIVE task was busy
+ *	`ARCADIA_STATUS_FAILED` if something went wrong
+ ****************************************************************************************************/
+ARCADIA_status_t DRIVE_API_read_nvm(const NVMCTRL_app_nvm_row_id_t k_row_id, char * pc_data)
 {
 	ARCADIA_status_t 	status = ARCADIA_STATUS_FAILED;
 	ARCADIA_msg_t 		msg;
@@ -19,7 +30,7 @@ ARCADIA_status_t DRIVE_API_read_nvm(const uint32_t ku32_addr, char * pc_data)
 	msg.from = ARCADIA_get_current_task_id();
 	msg.semaphore = ARCADIA_semaphore_alloc(&msg.semaphore_buffer);
 
-	msg.payload.drive_payload_read_nvm.u32_addr = ku32_addr;
+	msg.payload.drive_payload_read_nvm.u32_addr = NVMCTRL_get_addr_from_row_id(k_row_id);
 	msg.payload.drive_payload_read_nvm.pc_buffer = pc_data;
 	msg.payload.drive_payload_read_nvm.p_result_status = &status;
 
@@ -35,7 +46,18 @@ ARCADIA_status_t DRIVE_API_read_nvm(const uint32_t ku32_addr, char * pc_data)
 	return status;
 }
 
-ARCADIA_status_t DRIVE_API_write_nvm(const uint32_t ku32_addr, char * pc_data)
+/****************************************************************************************************
+ *	Blocking API function to write a row of data
+ *
+ * 	@param[in]	k_row_id The ID of the desired NVM row at which to write
+ * 	@param[in]	kpc_data The row of data to write
+ * 
+ *	@return 
+ * 	`ARCADIA_STATUS_OK` if successful, 
+ *	`ARCADIA_STATUS_API_TIMEOUT` if the DRIVE task was busy
+ *	`ARCADIA_STATUS_FAILED` if something went wrong
+ ****************************************************************************************************/
+ARCADIA_status_t DRIVE_API_write_nvm(const NVMCTRL_app_nvm_row_id_t k_row_id, const char * kpc_data)
 {
 	ARCADIA_status_t 	status = ARCADIA_STATUS_FAILED;
 	ARCADIA_msg_t 		msg;
@@ -44,8 +66,8 @@ ARCADIA_status_t DRIVE_API_write_nvm(const uint32_t ku32_addr, char * pc_data)
 	msg.from = ARCADIA_get_current_task_id();
 	msg.semaphore = ARCADIA_semaphore_alloc(&msg.semaphore_buffer);
 
-	msg.payload.drive_payload_write_nvm.u32_addr = ku32_addr;
-	msg.payload.drive_payload_write_nvm.pc_buffer = pc_data;
+	msg.payload.drive_payload_write_nvm.u32_addr = NVMCTRL_get_addr_from_row_id(k_row_id);
+	msg.payload.drive_payload_write_nvm.kpc_buffer = kpc_data;
 	msg.payload.drive_payload_write_nvm.p_result_status = &status;
 
 	ARCADIA_send(ARCADIA_TASK_ID_DRIVE, &msg);
@@ -60,7 +82,17 @@ ARCADIA_status_t DRIVE_API_write_nvm(const uint32_t ku32_addr, char * pc_data)
 	return status;
 }
 
-ARCADIA_status_t DRIVE_API_erase_nvm(const uint32_t ku32_addr)
+/****************************************************************************************************
+ *	Blocking API function to erase a row of data
+ *
+ * 	@param[in] k_row_id The ID of the desired row to erase
+ * 
+ *	@return 
+ * 	`ARCADIA_STATUS_OK` if successful, 
+ *	`ARCADIA_STATUS_API_TIMEOUT` if the DRIVE task was busy
+ *	`ARCADIA_STATUS_FAILED` if something went wrong
+ ****************************************************************************************************/
+ARCADIA_status_t DRIVE_API_erase_nvm(const NVMCTRL_app_nvm_row_id_t k_row_id)
 {
 	ARCADIA_status_t 	status = ARCADIA_STATUS_FAILED;
 	ARCADIA_msg_t 		msg;
@@ -69,7 +101,7 @@ ARCADIA_status_t DRIVE_API_erase_nvm(const uint32_t ku32_addr)
 	msg.from = ARCADIA_get_current_task_id();
 	msg.semaphore = ARCADIA_semaphore_alloc(&msg.semaphore_buffer);
 
-	msg.payload.drive_payload_erase_nvm.u32_addr = ku32_addr;
+	msg.payload.drive_payload_erase_nvm.u32_addr = NVMCTRL_get_addr_from_row_id(k_row_id);
 	msg.payload.drive_payload_erase_nvm.p_result_status = &status;
 
 	ARCADIA_send(ARCADIA_TASK_ID_DRIVE, &msg);
@@ -84,18 +116,28 @@ ARCADIA_status_t DRIVE_API_erase_nvm(const uint32_t ku32_addr)
 	return status;
 }
 
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Erases a row of data at the address of the provided row ID
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
 uint8_t DRIVE_API_shell_erase_nvm(uint8_t argc, char ** argv)
 {
 	bool 		b_res = false;
-	uint32_t 	u32_addr;
+	uint32_t 	u32_row;
 	
 	if (argc == 1)
 	{
-		if (UTILS_string_to_u32(argv[0], &u32_addr))
+		if (UTILS_string_to_u32(argv[0], &u32_row))
 		{
-			if (u32_addr % NVMCTRL_PAGE_SIZE == 0)
+			if (u32_row < NVMCTRL_APP_NVM_ROW_NUM_ROWS)
 			{
-				DRIVE_API_erase_nvm(u32_addr);
+				DRIVE_API_erase_nvm((const NVMCTRL_app_nvm_row_id_t)u32_row);
 
 				b_res = true;
 			}
@@ -103,35 +145,55 @@ uint8_t DRIVE_API_shell_erase_nvm(uint8_t argc, char ** argv)
 	}
 	if (!b_res)
 	{
-		SHELL_printf("Usage: drive nvm_erase <addr>\r\n");
+		SHELL_printf("Usage: drive nvm_erase <row_id>\r\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
 }
 
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Reads and displays a row of data from the address of the provided row ID
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
 uint8_t DRIVE_API_shell_read_nvm(uint8_t argc, char ** argv)
 {
 	bool 		b_res = false;
-	uint32_t 	u32_addr;
-	char 		pc_buffer[NVMCTRL_PAGE_SIZE];
+	uint32_t 	u32_row;
+	char 		pc_buffer[NVMCTRL_ROW_SIZE];
 
 	if (argc == 1)
 	{
-		if (UTILS_string_to_u32(argv[0], &u32_addr))
+		if (UTILS_string_to_u32(argv[0], &u32_row))
 		{
-			if (ARCADIA_STATUS_OK == DRIVE_API_read_nvm((const uint32_t)u32_addr, pc_buffer))
+			if (u32_row < NVMCTRL_APP_NVM_ROW_NUM_ROWS)
 			{
-				SHELL_SEPARATOR();
-				for (uint16_t i = 0; i < NVMCTRL_PAGE_SIZE; i++)
+				if (ARCADIA_STATUS_OK == DRIVE_API_read_nvm((const NVMCTRL_app_nvm_row_id_t)u32_row, pc_buffer))
 				{
-					SHELL_printf("%02X ", pc_buffer[i]);
-
-					if ((i + 1) % 16 == 0)
+					SHELL_SEPARATOR();
+					for (uint8_t u8_page = 0; u8_page < NVMCTRL_ROW_SIZE / NVMCTRL_PAGE_SIZE; u8_page++)
 					{
-						SHELL_printf("\r\n");
+						for (uint16_t i = 0; i < NVMCTRL_PAGE_SIZE; i++)
+						{
+							SHELL_printf("%02X ", pc_buffer[i + (NVMCTRL_PAGE_SIZE * u8_page)]);
+
+							if ((i + 1) % 16 == 0)
+							{
+								SHELL_printf("\r\n");
+							}
+						}
+						if (u8_page < (NVMCTRL_ROW_SIZE / NVMCTRL_PAGE_SIZE - 1))
+						{
+							SHELL_printf("\r\n");
+						}
 					}
+					SHELL_SEPARATOR();
 				}
-				SHELL_SEPARATOR();
 			}
 			b_res = true;
 		}
@@ -139,27 +201,38 @@ uint8_t DRIVE_API_shell_read_nvm(uint8_t argc, char ** argv)
 	
 	if (!b_res)
 	{
-		SHELL_printf("Usage: drive nvm read <addr>\r\n");
+		SHELL_printf("Usage: drive nvm read <row_id>\r\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
 }
 
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Writes a row of data to the address of the provided row ID
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
 uint8_t DRIVE_API_shell_write_nvm(uint8_t argc, char ** argv)
 {
-	bool 		b_res = false;
-	uint32_t 	u32_addr;
-	uint32_t 	u32_num_bytes;
-	uint32_t 	u32_data;
-	char		pc_buffer[NVMCTRL_PAGE_SIZE];
+	bool 				b_res = false;
+	uint32_t 			u32_row;
+	uint32_t 			u32_num_bytes;
+	uint32_t 			u32_data;
+	char				pc_buffer[NVMCTRL_ROW_SIZE];
+	ARCADIA_status_t	status;
 
-	memset(pc_buffer, 0, NVMCTRL_PAGE_SIZE);
+	memset(pc_buffer, 0, NVMCTRL_ROW_SIZE);
 
 	if (argc >= 3)
 	{
-		if (UTILS_string_to_u32(argv[0], &u32_addr))
+		if (UTILS_string_to_u32(argv[0], &u32_row))
 		{
-			if (u32_addr % NVMCTRL_PAGE_SIZE == 0)
+			if (u32_row < NVMCTRL_APP_NVM_ROW_NUM_ROWS)
 			{
 				b_res = true;
 			}
@@ -167,37 +240,42 @@ uint8_t DRIVE_API_shell_write_nvm(uint8_t argc, char ** argv)
 
 		if (b_res && UTILS_string_to_u32(argv[1], &u32_num_bytes))
 		{
-			if (u32_num_bytes > NVMCTRL_PAGE_SIZE)
+			if(u32_num_bytes != argc - 2 || u32_num_bytes > NVMCTRL_ROW_SIZE)
 			{
 				b_res = false;
 			}
 		}
 
-		for (uint8_t i = 0; i < u32_num_bytes; i++)
+		if (b_res)
 		{
-			if (b_res && UTILS_string_to_u32(argv[2 + i], &u32_data))
+			for (uint8_t i = 0; i < u32_num_bytes; i++)
 			{
-				pc_buffer[i] = (uint8_t)u32_data;
-			}
-			else
-			{
-				SHELL_printf("Error: %s\r\n", argv[2 + i]);
-				b_res = false;
-				break;
+				if (UTILS_string_to_u32(argv[2 + i], &u32_data))
+				{
+					pc_buffer[i] = (uint8_t)u32_data;
+				}
+				else
+				{
+					SHELL_printf("Error: %s\r\n", argv[2 + i]);
+					b_res = false;
+					break;
+				}
 			}
 		}
 	}
 	
 	if (b_res)
 	{
-		if (ARCADIA_STATUS_OK == DRIVE_API_write_nvm((const uint32_t) u32_addr, pc_buffer))
+		status = DRIVE_API_write_nvm((const NVMCTRL_app_nvm_row_id_t)u32_row, pc_buffer);
+
+		if (status != ARCADIA_STATUS_OK)
 		{
-			SHELL_printf("Wrote page to %0X\r\n", u32_addr);
+			SHELL_printf("Failed to write to nvm row #%u (status: %u)\r\n", u32_row, status);
 		}
 	}
 	else
 	{
-		SHELL_printf("Usage: drive nvm write <addr> <num_bytes> <...>\r\n");
+		SHELL_printf("Usage: drive nvm write <row_id> <num_bytes> <...>\r\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;

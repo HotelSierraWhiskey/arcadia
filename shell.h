@@ -51,6 +51,9 @@
 		SHELL_printf("%s", SHELL_PROMPT); \
 	} while(0)
 
+#define SHELL_PRINT_WARNING(error, ...) \
+    SHELL_PRINT_COLOR(SHELL_COLOR_YELLOW, error, ##__VA_ARGS__)
+
 #define SHELL_PRINT_ERROR(error, ...) \
     SHELL_PRINT_COLOR(SHELL_COLOR_RED, error, ##__VA_ARGS__)
 

@@ -10,13 +10,24 @@
 
 #define NVMCTRL_MEMORY				((volatile uint16_t * )(0x00U))
 
+typedef enum _NVMCTRL_app_nvm_row_id
+{
+	NVMCTRL_APP_NVM_ROW_ID_0 = 0,
+	NVMCTRL_APP_NVM_ROW_ID_1,
+	NVMCTRL_APP_NVM_ROW_ID_2,
+	NVMCTRL_APP_NVM_ROW_ID_3,
+	//////////
+	NVMCTRL_APP_NVM_ROW_NUM_ROWS
+} NVMCTRL_app_nvm_row_id_t;
+
 /****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-void		NVMCTRL_init			(void);
-void 		NVMCTRL_write_page		(uint32_t u32_addr, uint8_t * pu8_buffer);
-void 		NVMCTRL_erase_row		(uint32_t u32_addr);
+void		NVMCTRL_init					(void);
+void 		NVMCTRL_write_page				(uint32_t u32_addr, uint8_t * pu8_buffer);
+void 		NVMCTRL_erase_row				(uint32_t u32_addr);
+uint32_t	NVMCTRL_get_addr_from_row_id	(const NVMCTRL_app_nvm_row_id_t k_row_id);
 
 /****************************************************************************************************
  *	S H E L L   F U N C T I O N S

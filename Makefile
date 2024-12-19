@@ -113,6 +113,10 @@ clean_app:
 size:
 	@$(SIZE) $(APP_BUILD_DIR)/$(APP_BASENAME).elf
 
+.PHONY:
+elf:
+	@arm-none-eabi-readelf -S $(APP_BUILD_DIR)/$(APP_BASENAME).elf
+
 # compile and upload
 .PHONY:
 upload_app:
