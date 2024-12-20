@@ -5,6 +5,8 @@
 #include "nvmctrl.h"
 #include "drive_api.h"
 
+#include "chrono.h"
+
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
@@ -310,6 +312,10 @@ void SHELL_task(void * p_params)
 
 	while (1)
 	{
+		SHELL_printf("COUNT: %u\r\n", TC0_REGS->COUNT16.TC_COUNT);
+		CHRONO_delay_ms(1000);
+		continue;
+
 		if (ulTaskNotifyTake(pdFALSE, portMAX_DELAY) != 0)
 		{
 			c = UART_rx_char(UART_CHANNEL_SHELL);
