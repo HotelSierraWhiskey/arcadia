@@ -312,8 +312,18 @@ void SHELL_task(void * p_params)
 
 	while (1)
 	{
+		TC0_REGS->COUNT16.TC_CTRLBSET = TC_CTRLBSET_CMD_READSYNC;
+
+		while (TC0_REGS->COUNT16.TC_SYNCBUSY & TC_SYNCBUSY_COUNT(1))
+		{
+			continue;
+		}
+
 		SHELL_printf("COUNT: %u\r\n", TC0_REGS->COUNT16.TC_COUNT);
-		CHRONO_delay_ms(1000);
+
+
+
+		CHRONO_delay_ms(5);
 		continue;
 
 		if (ulTaskNotifyTake(pdFALSE, portMAX_DELAY) != 0)

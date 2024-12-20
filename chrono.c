@@ -7,7 +7,7 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define SYS_TICK_FREQ_1MS(source_clock_freq) ((source_clock_freq) / (1000U))
+#define CHRONO_SYS_TICK_FREQ_1MS(source_clock_freq) ((source_clock_freq) / (1000U))
 
 /****************************************************************************************************
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
@@ -27,7 +27,7 @@ void vPortSetupTimerInterrupt(void)
 static void CHRONO_init(void)
 {
 	uint32_t u32_source_clock_freq = SYS_get_source_clock_freq();
-	SysTick_Config(SYS_TICK_FREQ_1MS(u32_source_clock_freq));
+	SysTick_Config(CHRONO_SYS_TICK_FREQ_1MS(u32_source_clock_freq));
 
 	IO_config_pin_direction(IO_PIN_ID_PA27, IO_DIRECTION_OUTPUT);
 
@@ -39,16 +39,21 @@ static void CHRONO_init(void)
 	TC0_REGS->COUNT16.TC_INTENSET = TC_INTENSET_MC0(1);
 	// TC0_REGS->COUNT16.TC_INTENSET = TC_INTENSET_OVF(1);
 
-	// TC0_REGS->COUNT16.TC_CC[0] = 1000;
+	TC0_REGS->COUNT16.TC_CC[0] = 1000;
 	// TC0_REGS->COUNT16.TC_CCBUF[0] = 1001;
 
-	TC0_REGS->COUNT16.TC_COUNT = 1000;
+	// TC0_REGS->COUNT16.TC_COUNT = 1000;
 	
 	TC0_REGS->COUNT16.TC_CTRLA = 	TC_CTRLA_MODE_COUNT16 |
-									// TC_CTRLA_PRESCALER_DIV1024 |
-									TC_CTRLA_CAPTEN0(1) |
-									TC_CTRLA_DIR(1) |
+									TC_CTRLA_PRESCALER_DIV1024 |
+									// TC_CTRLA_CAPTEN0(1) |
+									// TC_CTRLA_DIR(1) |
 									TC_CTRLA_ENABLE(1);
+
+	while (TC0_REGS->COUNT16.TC_SYNCBUSY & TC_SYNCBUSY_ENABLE(1))
+	{
+		continue;
+	}
 
 	SHELL_printf("Current timer count: %lu\r\n", TC0_REGS->COUNT16.TC_COUNT);
 	SHELL_printf("Interrupt flags: %lu\r\n", TC0_REGS->COUNT16.TC_INTFLAG);
@@ -71,10 +76,10 @@ void irqTC0(void)
 {
 	if ((TC0_REGS->COUNT16.TC_INTFLAG & TC_INTFLAG_MC0(1)) != 0)
 	{
-		SHELL_printf("Current timer count: %lu\r\n", TC0_REGS->COUNT16.TC_COUNT);
-		SHELL_printf("Interrupt flags: %lu\r\n", TC0_REGS->COUNT16.TC_INTFLAG);
-		SHELL_printf("TC_CC 0: %lu\r\n", TC0_REGS->COUNT16.TC_CC[0]);
-		SHELL_printf("TC_CCBUF 0: %lu\r\n", TC0_REGS->COUNT16.TC_CCBUF[0]);
+		// SHELL_printf("Current timer count: %lu\r\n", TC0_REGS->COUNT16.TC_COUNT);
+		// SHELL_printf("Interrupt flags: %lu\r\n", TC0_REGS->COUNT16.TC_INTFLAG);
+		// SHELL_printf("TC_CC 0: %lu\r\n", TC0_REGS->COUNT16.TC_CC[0]);
+		// SHELL_printf("TC_CCBUF 0: %lu\r\n", TC0_REGS->COUNT16.TC_CCBUF[0]);
 
 		if (s)
 		{
@@ -87,9 +92,16 @@ void irqTC0(void)
 			s = true;
 		}
 
+		TC0_REGS->COUNT16.TC_CTRLBSET = TC_CTRLBSET_CMD_RETRIGGER;
+
+		// while (TC0_REGS->COUNT16.TC_SYNCBUSY & TC_SYNCBUSY(1))
+		// {
+		// 	continue;
+		// }
+
 		// uint32_t next_match = TC0_REGS->COUNT16.TC_COUNT + 1000;
         // TC0_REGS->COUNT16.TC_CCBUF[0] = next_match;
-		TC0_REGS->COUNT16.TC_COUNT = 0;
+		// TC0_REGS->COUNT16.TC_COUNT = 0;
 
 		TC0_REGS->COUNT16.TC_INTFLAG = TC_INTFLAG_MC0(1);
 	}
