@@ -10,7 +10,9 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define SYS_LOG_DBG(fmt, ...)   	SHELL_printf("%-10s" fmt, "[SYS]", ##__VA_ARGS__)
+#define SYS_LOG_DBG(fmt, ...)   			SHELL_printf("%-10s" fmt, "[SYS]", ##__VA_ARGS__)
+
+#define SYS_OTP5_OSC32K_CALIBRATION_MASK	(0x0007F000)
 
 /**
  *	Clock frequency enumerated type
@@ -123,8 +125,9 @@ static SYS_info_t SYS_info;
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
-static void 	SYS_clock_init			(void);
 static void 	SYS_osc48m_init			(void);
+static void		SYS_osc32k_init			(void);
+static void 	SYS_clock_init			(void);
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -140,12 +143,26 @@ void SYS_init(void)
 
 	SYS_osc48m_init();
 
+	SYS_osc32k_init();
+
 	SYS_clock_init();
 
 	IO_init();
 
-	// Output the main clock signal on PA27
+	// Output the GCLK[0] signal on GCLK_IO[0] pin PA27
 	// IO_enable_peripheral_function_for_pin(IO_PIN_ID_PA27, IO_PERIPHERAL_FUNCTION_H);
+
+	// Output the GCLK[1] signal on GCLK_IO[1] pin PA15
+	IO_enable_peripheral_function_for_pin(IO_PIN_ID_PA15, IO_PERIPHERAL_FUNCTION_H);
+}
+
+/****************************************************************************************************
+ *	Triggers a software reset
+ *
+ ****************************************************************************************************/
+void SYS_reset(void)
+{
+	NVIC_SystemReset();
 }
 
 /****************************************************************************************************
@@ -179,25 +196,49 @@ static void SYS_osc48m_init(void)
 }
 
 /****************************************************************************************************
- *	Triggers a software reset
+ *	Initializes OSC32K (the high accuracy internal 32.768kHz oscillator)
  *
+ * 	Calibration data is loaded from a one-time programmable software calibration area in NVM
+ * 	before being written to OSC32K's CALIB bit group.
+ * 
+ * 	@warning
+ * 	We need more calibration data.
+ * 	The CALIB value that closest approximates 32.768kHz is ~33% less than the calibration
+ * 	value in ROM. The datasheet does not specify what voltage this calibration value applies to.
+ * 
  ****************************************************************************************************/
-void SYS_reset(void)
+static void	SYS_osc32k_init(void)
 {
-	NVIC_SystemReset();
+	OSC32KCTRL_REGS->OSC32KCTRL_OSC32K = 	OSC32KCTRL_OSC32K_EN32K(1) |
+											OSC32KCTRL_OSC32K_CALIB(0x46) |
+										 	OSC32KCTRL_OSC32K_ENABLE(1);
+
+	while ((OSC32KCTRL_REGS->OSC32KCTRL_OSC32K & OSC32KCTRL_STATUS_OSC32KRDY(1)) == 0)
+	{
+		continue;
+	}
 }
 
 /****************************************************************************************************
- *	Clock initialization
+ *	System Clock initialization
  *
- *	GLCK 0 only. Hardcoded to use a division factor of one. Enable output on GCLK_IO[0] by default.
+ *	Initializes GCLK 0, which clocks the CPU.
+ *	Sourced by OSC48M with a division factor of one. Enable output on GCLK_IO[0] by default.
+ *
+ * 	Initializes GCLK 1, which clocks the TC peripheral instances
+ * 	Sourced by OSC32K with a division factor of 32768 for 1Hz. Enable output on GCLK_IO[1] by default.
+ *
+ * 	@note 	Signal output for the above clocks are enabled by default, but their associated peripheral
+ * 			channels aren't necessarily enabled. If you need these signals for debugging, enable the
+ * 			associated GCLK_IO[n] peripheral channel.
+ * 
  ****************************************************************************************************/
 static void SYS_clock_init(void)
 {
 	// Enable clock ready interrupt
 	MCLK_REGS->MCLK_INTENSET = MCLK_INTENSET_CKRDY(1);
 
-	// Provide GCLK0 with OSC48M as a clock source
+	// Configure GCLK0 with OSC48M as a clock source
 	GCLK_REGS->GCLK_GENCTRL[0] = GCLK_GENCTRL_SRC(GCLK_GENCTRL_SRC_OSC48M) | 
                                  GCLK_GENCTRL_GENEN(1) |
 								 GCLK_GENCTRL_DIVSEL(0) |
@@ -213,6 +254,13 @@ static void SYS_clock_init(void)
 	{
 		continue;
 	}
+
+	// Configure GCLK1 with OSC32K as a clock source
+	GCLK_REGS->GCLK_GENCTRL[1] = 	GCLK_GENCTRL_SRC(GCLK_GENCTRL_SRC_OSC32K) |
+								 	GCLK_GENCTRL_DIV(1) |
+									GCLK_GENCTRL_OE(1) |
+								 	GCLK_GENCTRL_IDC(1) |
+									GCLK_GENCTRL_GENEN(1);
 }
 
 /****************************************************************************************************
