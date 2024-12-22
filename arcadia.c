@@ -135,6 +135,7 @@ TaskHandle_t ARCADIA_handle_from_id(ARCADIA_task_id_t task_id)
 ARCADIA_task_id_t ARCADIA_get_current_task_id(void)
 {
 	TaskHandle_t current_handle = xTaskGetCurrentTaskHandle();
+
 	ASSERT(current_handle != NULL);
 
 	ARCADIA_task_id_t task_id = ARCADIA_TASK_ID_NUM_IDS;
@@ -157,6 +158,14 @@ uint32_t ARCADIA_send(ARCADIA_task_id_t task_id, ARCADIA_msg_t * p_msg)
 	ASSERT(p_msg);
 
 	return (uint32_t)xQueueSend(rtos_tasks[task_id].queue_handle, (const void *)p_msg, portMAX_DELAY);
+}
+
+uint32_t ARCADIA_send_from_isr(ARCADIA_task_id_t task_id, ARCADIA_msg_t * p_msg)
+{
+	ASSERT(task_id < ARCADIA_TASK_ID_NUM_IDS);
+	ASSERT(p_msg);
+
+	return (uint32_t)xQueueSendFromISR(rtos_tasks[task_id].queue_handle, (const void *)p_msg, NULL);
 }
 
 uint32_t ARCADIA_receive(ARCADIA_msg_t * p_msg)
