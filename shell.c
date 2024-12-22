@@ -4,6 +4,7 @@
 #include "sys.h"
 #include "nvmctrl.h"
 #include "drive_api.h"
+#include "timer.h"
 
 #include "chrono.h"
 
@@ -73,6 +74,9 @@ static const SHELL_command_t kp_nvm_command_table[];
 // SYS command tables
 static const SHELL_command_t kp_sys_command_table[];
 
+// TIMER command tables
+static const SHELL_command_t kp_timer_command_table[];
+
 // UART command tables
 static const SHELL_command_t kp_uart_command_table[];
 
@@ -105,6 +109,12 @@ static const SHELL_command_t kp_command_table[] =
 		.kpc_name 			= "sys",
 		.function 			= NULL,
 		.kp_command_table 	= kp_sys_command_table,
+		.kpc_docstring		= NULL
+	},
+	{
+		.kpc_name 			= "timer",
+		.function 			= NULL,
+		.kp_command_table 	= kp_timer_command_table,
 		.kpc_docstring		= NULL
 	},
 	{
@@ -259,6 +269,42 @@ static const SHELL_command_t kp_sys_command_table[] =
 };
 
 /**
+ *	`timer` commands
+ */
+static const SHELL_command_t kp_timer_command_table[] =
+{
+	{
+		.kpc_name 			= "info",
+		.function 			= TIMER_shell_info,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tDisplays timer information\r\n"
+									"\tUsage: timer info\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "start",
+		.function 			= TIMER_shell_start_timer,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tStarts a specified timer\r\n"
+									"\tUsage: timer start <id> <seconds> <mode>\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "stop",
+		.function 			= TIMER_shell_stop_timer,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tStops a specified timer\r\n"
+									"\tUsage: timer stop <id>\r\n"
+								)
+	},
+	//////////
+	SHELL_COMMAND_TABLE_END
+};
+
+/**
  *	`uart` commands
  */
 static const SHELL_command_t kp_uart_command_table[] =
@@ -312,27 +358,14 @@ void SHELL_task(void * p_params)
 
 	while (1)
 	{
-		TC0_REGS->COUNT16.TC_CTRLBSET = TC_CTRLBSET_CMD_READSYNC;
-
-		while (TC0_REGS->COUNT16.TC_SYNCBUSY & TC_SYNCBUSY_COUNT(1))
-		{
-			continue;
-		}
-
-		SHELL_printf("COUNT: %u\r\n", TC0_REGS->COUNT16.TC_COUNT);
-
-
-
-		CHRONO_delay_ms(5);
-		continue;
-
 		if (ulTaskNotifyTake(pdFALSE, portMAX_DELAY) != 0)
 		{
 			c = UART_rx_char(UART_CHANNEL_SHELL);
 
-			// Returned zero, nothing to do
+			// Returned zero, nothing to do, let someone else do some work
 			if (!c)
 			{
+				CHRONO_delay_ms(1);
 				continue;
 			}
 

@@ -47,6 +47,7 @@ void DRIVE_task(void * p_params)
 	while (1)
 	{
 		DRIVE_handle_message();
+		vPortYield();
 	}
 }
 
