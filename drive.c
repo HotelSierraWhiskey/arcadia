@@ -11,7 +11,8 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define DRIVE_LOG_DBG(fmt, ...)   SHELL_printf("%-10s" fmt, "[DRIVE]", ##__VA_ARGS__)
+#define DRIVE_LOG_DBG(fmt, ...)   		SHELL_printf("%-10s" fmt, "[DRIVE]", ##__VA_ARGS__)
+#define DRIVE_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("%-10s" fmt, "[DRIVE]", ##__VA_ARGS__)
 
 /****************************************************************************************************
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
@@ -67,7 +68,6 @@ static void DRIVE_handle_message(void)
 		switch (msg.id)
 		{
 			case ARCADIA_MSG_ID_NOOP:
-				ARCADIA_semaphore_give(msg.semaphore);
 				break;
 
 			case ARCADIA_MSG_ID_DRIVE_READ_NVM:
