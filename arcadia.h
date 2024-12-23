@@ -3,12 +3,13 @@
 
 #include "common.h"
 #include "drive_payload.h"
+#include "chrono_payload.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define ARCADIA_SEMAPHORE_WAIT_MS 			(5000U)
+#define ARCADIA_SEMAPHORE_WAIT_MS 			(1000U)
 #define ARCADIA_INVALID_TASK				(0xFF)
 #define ARCADIA_semaphore_alloc(p_buffer) 	xSemaphoreCreateBinaryStatic(p_buffer)
 #define ARCADIA_semaphore_free(semaphore) 	vSemaphoreDelete(semaphore)
@@ -19,6 +20,7 @@ typedef enum _ARCADIA_task_id
 {
 	ARCADIA_TASK_ID_SHELL = 0,
 	ARCADIA_TASK_ID_DRIVE,
+	ARCADIA_TASK_ID_CHRONO,
 	//////////
 	ARCADIA_TASK_ID_NUM_IDS
 } ARCADIA_task_id_t;
@@ -32,6 +34,10 @@ typedef enum _ARCADIA_msg_id
 	ARCADIA_MSG_ID_DRIVE_READ_NVM,
 	ARCADIA_MSG_ID_DRIVE_WRITE_NVM,
 	ARCADIA_MSG_ID_DRIVE_ERASE_NVM,
+
+	// CHRONO task messages
+	ARCADIA_MSG_ID_CHRONO_TIMER_ELAPSED,
+	ARCADIA_MSG_ID_CHRONO_SCHEDULE_MSG_FOR_TASK,
 	//////////
 	ARCADIA_MSG_ID_NUM_IDS
 } ARCADIA_msg_id_t;
@@ -39,9 +45,13 @@ typedef enum _ARCADIA_msg_id
 typedef union _ARCADIA_payload
 {
 	// DRIVE task payloads
-	DRIVE_PAYLOAD_write_nvm_t	drive_payload_write_nvm;
-	DRIVE_PAYLOAD_read_nvm_t	drive_payload_read_nvm;
-	DRIVE_PAYLOAD_erase_nvm_t	drive_payload_erase_nvm;
+	DRIVE_PAYLOAD_write_nvm_t				drive_payload_write_nvm;
+	DRIVE_PAYLOAD_read_nvm_t				drive_payload_read_nvm;
+	DRIVE_PAYLOAD_erase_nvm_t				drive_payload_erase_nvm;
+
+	// CHRONO task payloads
+	CHRONO_PAYLOAD_timer_elapsed_t			chrono_payload_timer_elapsed;
+	CHRONO_PAYLOAD_schedule_msg_for_task_t	chrono_payload_schedule_msg_for_task;
 } ARCADIA_payload_t;
 
 typedef struct _ARCADIA_msg

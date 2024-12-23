@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "shell.h"
 #include "drive.h"
+#include "chrono.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -48,14 +49,24 @@ static ARCADIA_rtos_task_t rtos_tasks[ARCADIA_TASK_ID_NUM_IDS] =
 		.task 		= DRIVE_task,
 		.init		= DRIVE_init
 	},
+	{
+		.task_id 	= ARCADIA_TASK_ID_CHRONO,
+		.kpc_name 	= "CHRONO",
+		.task 		= CHRONO_task,
+		.init		= CHRONO_init
+	},
 };
 
 static const char * const kpc_msg_names[ARCADIA_MSG_ID_NUM_IDS] =
 {
-	[ARCADIA_MSG_ID_NOOP] 				= "NOOP",
-	[ARCADIA_MSG_ID_DRIVE_READ_NVM]		= "DRIVE_READ_NVM",
-	[ARCADIA_MSG_ID_DRIVE_WRITE_NVM]	= "DRIVE_WRITE_NVM",
-	[ARCADIA_MSG_ID_DRIVE_ERASE_NVM]	= "DRIVE_ERASE_NVM",
+	[ARCADIA_MSG_ID_NOOP] 							= "NOOP",
+
+	[ARCADIA_MSG_ID_DRIVE_READ_NVM]					= "DRIVE_READ_NVM",
+	[ARCADIA_MSG_ID_DRIVE_WRITE_NVM]				= "DRIVE_WRITE_NVM",
+	[ARCADIA_MSG_ID_DRIVE_ERASE_NVM]				= "DRIVE_ERASE_NVM",
+
+	[ARCADIA_MSG_ID_CHRONO_TIMER_ELAPSED]			= "CHRONO_TIMER_ELAPSED",
+	[ARCADIA_MSG_ID_CHRONO_SCHEDULE_MSG_FOR_TASK]	= "CHRONO_SCHEDULE_MSG_FOR_TASK"
 };
 
 /****************************************************************************************************
@@ -108,6 +119,7 @@ void NORETURN ARCADIA_start(void)
 {
 	ARCADIA_create_task(ARCADIA_TASK_ID_SHELL);
 	ARCADIA_create_task(ARCADIA_TASK_ID_DRIVE);
+	ARCADIA_create_task(ARCADIA_TASK_ID_CHRONO);
 
 	vTaskStartScheduler();
 

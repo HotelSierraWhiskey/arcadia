@@ -67,6 +67,7 @@ static void DRIVE_handle_message(void)
 		switch (msg.id)
 		{
 			case ARCADIA_MSG_ID_NOOP:
+				ARCADIA_semaphore_give(msg.semaphore);
 				break;
 
 			case ARCADIA_MSG_ID_DRIVE_READ_NVM:
