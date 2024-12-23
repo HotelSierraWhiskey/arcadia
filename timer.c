@@ -15,14 +15,6 @@
 #define TIMER_CTRLA_ENABLE					(TC_CTRLA_MODE_COUNT16 | TC_CTRLA_PRESCALER_DIV1024 | TC_CTRLA_ENABLE(1))
 #define TIMER_CTRLA_DISABLE					(TC_CTRLA_ENABLE(0))
 
-typedef struct _TIMER_info
-{
-	uint16_t			u16_period;
-	TIMER_mode_t		mode;
-	tc_registers_t *	p_timer_regs;
-	uint8_t				u8_irq_id;
-} TIMER_info_t;
-
 /****************************************************************************************************
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
@@ -124,8 +116,16 @@ TIMER_id_t TIMER_alloc(uint16_t u16_period, TIMER_mode_t mode)
 	return timer_id;
 }
 
+const TIMER_info_t * TIMER_get_timer_info(const TIMER_id_t k_timer_id)
+{
+	ASSERT(k_timer_id < TIMER_ID_NUM_TIMERS);
+	return &p_timer_pool[k_timer_id];
+}
+
 void TIMER_start(const TIMER_id_t k_timer_id)
 {
+	ASSERT(k_timer_id < TIMER_ID_NUM_TIMERS);
+
 	TIMER_info_t * p_timer = &p_timer_pool[k_timer_id];
 
 	NVIC_EnableIRQ(p_timer->u8_irq_id);
@@ -141,6 +141,8 @@ void TIMER_start(const TIMER_id_t k_timer_id)
 
 void TIMER_stop(const TIMER_id_t k_timer_id)
 {
+	ASSERT(k_timer_id < TIMER_ID_NUM_TIMERS);
+
 	TIMER_info_t * p_timer = &p_timer_pool[k_timer_id];
 
 	p_timer->p_timer_regs->COUNT16.TC_CTRLA &= ~TIMER_CTRLA_ENABLE;
@@ -150,17 +152,15 @@ void TIMER_stop(const TIMER_id_t k_timer_id)
 	NVIC_DisableIRQ(p_timer->u8_irq_id);
 }
 
-
 static uint16_t TIMER_get_timer_count(const TIMER_id_t k_timer_id)
 {
+	ASSERT(k_timer_id < TIMER_ID_NUM_TIMERS);
+
 	TIMER_info_t * 	p_timer = &p_timer_pool[k_timer_id];
 
 	p_timer->p_timer_regs->COUNT16.TC_CTRLBSET = TC_CTRLBSET_CMD_READSYNC;
 
-	// while (p_timer->p_timer_regs->COUNT16.TC_SYNCBUSY & TC_SYNCBUSY_CTRLB(1))
-	// {
-	// 	continue;
-	// }
+	// fixme?
 	CHRONO_delay_ms(10);
 
 	while (p_timer->p_timer_regs->COUNT16.TC_SYNCBUSY & TC_SYNCBUSY_COUNT(1))

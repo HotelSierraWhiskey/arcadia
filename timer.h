@@ -30,14 +30,23 @@ typedef enum _TIMER_mode
 	TIMER_MODE_NUM_MODES
 } TIMER_mode_t;
 
+typedef struct _TIMER_info
+{
+	uint16_t			u16_period;
+	TIMER_mode_t		mode;
+	tc_registers_t *	p_timer_regs;
+	uint8_t				u8_irq_id;
+} TIMER_info_t;
+
 /****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-void 			TIMER_init					(void);
-void 			TIMER_start					(const TIMER_id_t k_timer_id);
-void 			TIMER_stop					(const TIMER_id_t k_timer_id);
-TIMER_id_t		TIMER_alloc					(uint16_t u16_period, TIMER_mode_t mode);
+void 					TIMER_init					(void);
+void 					TIMER_start					(const TIMER_id_t k_timer_id);
+void 					TIMER_stop					(const TIMER_id_t k_timer_id);
+TIMER_id_t				TIMER_alloc					(uint16_t u16_period, TIMER_mode_t mode);
+const TIMER_info_t *	TIMER_get_timer_info		(const TIMER_id_t k_timer_id);
 
 uint8_t			TIMER_shell_start_timer		(uint8_t argc, char ** argv);
 uint8_t			TIMER_shell_stop_timer		(uint8_t argc, char ** argv);
