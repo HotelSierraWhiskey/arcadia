@@ -35,9 +35,9 @@ typedef enum _TIMER_mode
  ****************************************************************************************************/
 
 void 			TIMER_init					(void);
-void 			TIMER_config				(const TIMER_id_t k_timer_id, uint16_t u16_period, TIMER_mode_t mode);
 void 			TIMER_start					(const TIMER_id_t k_timer_id);
 void 			TIMER_stop					(const TIMER_id_t k_timer_id);
+TIMER_id_t		TIMER_alloc					(uint16_t u16_period, TIMER_mode_t mode);
 
 uint8_t			TIMER_shell_start_timer		(uint8_t argc, char ** argv);
 uint8_t			TIMER_shell_stop_timer		(uint8_t argc, char ** argv);

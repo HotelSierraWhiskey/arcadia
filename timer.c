@@ -2,6 +2,8 @@
 #include "io.h"
 #include "utils.h"
 #include "arcadia.h"
+#include "chrono_payload.h"
+#include "chrono.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -25,8 +27,9 @@ typedef struct _TIMER_info
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
-static uint16_t 	TIMER_get_time_remaining	(const TIMER_id_t k_timer_id);
-static void 		TIMER_on_match				(const TIMER_id_t k_timer_id);
+static uint16_t 	TIMER_get_timer_count	(const TIMER_id_t k_timer_id);
+static void 		TIMER_on_match			(const TIMER_id_t k_timer_id);
+static void 		TIMER_config			(const TIMER_id_t k_timer_id, uint16_t u16_period, TIMER_mode_t mode);
 
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
@@ -104,17 +107,21 @@ void TIMER_init(void)
 	}
 }
 
-void TIMER_config(const TIMER_id_t k_timer_id, uint16_t u16_period, TIMER_mode_t mode)
+TIMER_id_t TIMER_alloc(uint16_t u16_period, TIMER_mode_t mode)
 {
-	TIMER_info_t * p_timer = &p_timer_pool[k_timer_id];
+	TIMER_id_t timer_id = TIMER_INVALID;
 
-	p_timer->u16_period = u16_period;
-	p_timer->mode = mode;
+	for (uint8_t i = 0; i < TIMER_ID_NUM_TIMERS; i++)
+	{
+		if (TIMER_AVAILABLE == p_timer_pool[i].u16_period)
+		{
+			TIMER_config(i, u16_period, mode);
+			timer_id = i;
+			break;
+		}
+	}
 
-	SHELL_printf("TASK TO NOTIFY %u\r\n", ARCADIA_get_current_task_id());
-	SHELL_printf("TASK TO NOTIFY %u\r\n", ARCADIA_get_current_task_id());
-
-	p_timer->p_timer_regs->COUNT16.TC_CC[0] = (u16_period * TIMER_PRESCALED_SECOND_COUNT_VALUE);
+	return timer_id;
 }
 
 void TIMER_start(const TIMER_id_t k_timer_id)
@@ -144,35 +151,37 @@ void TIMER_stop(const TIMER_id_t k_timer_id)
 }
 
 
-static uint16_t TIMER_get_time_remaining(const TIMER_id_t k_timer_id)
+static uint16_t TIMER_get_timer_count(const TIMER_id_t k_timer_id)
 {
 	TIMER_info_t * 	p_timer = &p_timer_pool[k_timer_id];
-	uint16_t		u16_count_val;
-	uint16_t		u16_time_remaining = 0;
 
 	p_timer->p_timer_regs->COUNT16.TC_CTRLBSET = TC_CTRLBSET_CMD_READSYNC;
+
+	// while (p_timer->p_timer_regs->COUNT16.TC_SYNCBUSY & TC_SYNCBUSY_CTRLB(1))
+	// {
+	// 	continue;
+	// }
+	CHRONO_delay_ms(10);
 
 	while (p_timer->p_timer_regs->COUNT16.TC_SYNCBUSY & TC_SYNCBUSY_COUNT(1))
 	{
 		continue;
 	}
 
-	u16_count_val = p_timer->p_timer_regs->COUNT16.TC_COUNT;
-
-	if (p_timer->u16_period > 0)
-	{
-		u16_time_remaining = u16_count_val / p_timer->u16_period;
-	}
-
-	return u16_time_remaining;
+	return p_timer->p_timer_regs->COUNT16.TC_COUNT;
 }
 
 volatile bool s = true;
 
 static void TIMER_on_match(const TIMER_id_t k_timer_id)
 {
-	TIMER_info_t * 	p_timer = &p_timer_pool[k_timer_id];
-	ARCADIA_msg_t 	msg;
+	TIMER_info_t * 					p_timer = &p_timer_pool[k_timer_id];
+	ARCADIA_msg_t 					msg;
+	CHRONO_PAYLOAD_timer_elapsed_t 	payload = {.timer_id = k_timer_id};
+	
+	msg.id = ARCADIA_MSG_ID_CHRONO_TIMER_ELAPSED;
+	msg.payload.chrono_payload_timer_elapsed = payload;
+	msg.from = ARCADIA_TASK_ID_CHRONO;
 
 	if ((p_timer->p_timer_regs->COUNT16.TC_INTFLAG & TC_INTFLAG_MC0(1)) != 0)
 	{
@@ -197,14 +206,22 @@ static void TIMER_on_match(const TIMER_id_t k_timer_id)
 			TIMER_stop(k_timer_id);
 		}
 
-		msg.from = ARCADIA_TASK_ID_SHELL; //p_timer->task_to_notify;
-		msg.id = ARCADIA_MSG_ID_NOOP;
-		ARCADIA_send_from_isr(ARCADIA_TASK_ID_SHELL, &msg);
+		ARCADIA_send_from_isr(ARCADIA_TASK_ID_CHRONO, &msg);
 
 		p_timer->p_timer_regs->COUNT16.TC_INTFLAG = TC_INTFLAG_MC0(1);
 	}
 
 	NVIC_ClearPendingIRQ(p_timer->u8_irq_id);
+}
+
+static void TIMER_config(const TIMER_id_t k_timer_id, uint16_t u16_period, TIMER_mode_t mode)
+{
+	TIMER_info_t * p_timer = &p_timer_pool[k_timer_id];
+
+	p_timer->u16_period = u16_period;
+	p_timer->mode = mode;
+
+	p_timer->p_timer_regs->COUNT16.TC_CC[0] = (u16_period * TIMER_PRESCALED_SECOND_COUNT_VALUE);
 }
 
 void irqTC0(void)
@@ -313,6 +330,13 @@ uint8_t	TIMER_shell_stop_timer(uint8_t argc, char ** argv)
 
 uint8_t	TIMER_shell_info(uint8_t argc, char ** argv)
 {
+	uint32_t 	u32_current_count;
+	uint32_t 	u32_time_remaining;
+	uint32_t 	u32_hours;
+	uint32_t 	u32_minutes;
+	uint32_t 	u32_seconds;
+	char 		pc_time_buffer[16] = { 0 };
+
 	if (argc == 0)
 	{
 		SHELL_SEPARATOR();
@@ -326,9 +350,19 @@ uint8_t	TIMER_shell_info(uint8_t argc, char ** argv)
 			}
 			else
 			{
+				u32_current_count = TIMER_get_timer_count(i) / TIMER_PRESCALED_SECOND_COUNT_VALUE;
+
+				u32_time_remaining = p_timer_pool[i].u16_period - u32_current_count;
+
+				u32_hours = u32_time_remaining / 3600;
+				u32_minutes = (u32_time_remaining % 3600) / 60;
+				u32_seconds = u32_time_remaining % 60;
+
+				snprintf(pc_time_buffer, sizeof(pc_time_buffer), "%02lu:%02lu:%02lu", u32_hours, u32_minutes, u32_seconds);
 				SHELL_printf("\t%-20s: Running\r\n", "Status");
 				SHELL_printf("\t%-20s: %s\r\n", "Mode", kpc_mode_descriptors[p_timer_pool[i].mode]);
-				SHELL_printf("\t%-20s: %u/%u\r\n", "Time Remaining", TIMER_get_time_remaining(i), p_timer_pool[i].u16_period);
+				SHELL_printf("\t%-20s: %s\r\n", "Time Remaining", pc_time_buffer);
+				memset(pc_time_buffer, 0, sizeof(pc_time_buffer));
 			}
 			if (i < (TIMER_ID_NUM_TIMERS - 1))
 			{
