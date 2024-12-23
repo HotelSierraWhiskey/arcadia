@@ -23,16 +23,23 @@
  ****************************************************************************************************/
 ARCADIA_status_t DRIVE_API_read_nvm(const NVMCTRL_app_nvm_row_id_t k_row_id, char * pc_data)
 {
-	ARCADIA_status_t 	status = ARCADIA_STATUS_FAILED;
-	ARCADIA_msg_t 		msg;
+	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
 
-	msg.id = ARCADIA_MSG_ID_DRIVE_READ_NVM;
-	msg.from = ARCADIA_get_current_task_id();
+	DRIVE_PAYLOAD_read_nvm_t payload =
+	{
+		.u32_addr = NVMCTRL_get_addr_from_row_id(k_row_id),
+		.pc_buffer = pc_data,
+		.p_result_status = &status,
+	};
+
+	ARCADIA_msg_t msg =
+	{
+		.id = ARCADIA_MSG_ID_DRIVE_READ_NVM,
+		.from = ARCADIA_get_current_task_id(),
+		.payload.drive_payload_read_nvm = payload
+	};
+
 	msg.semaphore = ARCADIA_semaphore_alloc(&msg.semaphore_buffer);
-
-	msg.payload.drive_payload_read_nvm.u32_addr = NVMCTRL_get_addr_from_row_id(k_row_id);
-	msg.payload.drive_payload_read_nvm.pc_buffer = pc_data;
-	msg.payload.drive_payload_read_nvm.p_result_status = &status;
 
 	ARCADIA_send(ARCADIA_TASK_ID_DRIVE, &msg);
 
@@ -59,16 +66,23 @@ ARCADIA_status_t DRIVE_API_read_nvm(const NVMCTRL_app_nvm_row_id_t k_row_id, cha
  ****************************************************************************************************/
 ARCADIA_status_t DRIVE_API_write_nvm(const NVMCTRL_app_nvm_row_id_t k_row_id, const char * kpc_data)
 {
-	ARCADIA_status_t 	status = ARCADIA_STATUS_FAILED;
-	ARCADIA_msg_t 		msg;
+	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
 
-	msg.id = ARCADIA_MSG_ID_DRIVE_WRITE_NVM;
-	msg.from = ARCADIA_get_current_task_id();
+	DRIVE_PAYLOAD_write_nvm_t payload =
+	{
+		.u32_addr = NVMCTRL_get_addr_from_row_id(k_row_id),
+		.kpc_buffer = kpc_data,
+		.p_result_status = &status
+	};
+
+	ARCADIA_msg_t msg =
+	{
+		.id = ARCADIA_MSG_ID_DRIVE_WRITE_NVM,
+		.from = ARCADIA_get_current_task_id(),
+		.payload.drive_payload_write_nvm = payload
+	};
+
 	msg.semaphore = ARCADIA_semaphore_alloc(&msg.semaphore_buffer);
-
-	msg.payload.drive_payload_write_nvm.u32_addr = NVMCTRL_get_addr_from_row_id(k_row_id);
-	msg.payload.drive_payload_write_nvm.kpc_buffer = kpc_data;
-	msg.payload.drive_payload_write_nvm.p_result_status = &status;
 
 	ARCADIA_send(ARCADIA_TASK_ID_DRIVE, &msg);
 
@@ -95,14 +109,21 @@ ARCADIA_status_t DRIVE_API_write_nvm(const NVMCTRL_app_nvm_row_id_t k_row_id, co
 ARCADIA_status_t DRIVE_API_erase_nvm(const NVMCTRL_app_nvm_row_id_t k_row_id)
 {
 	ARCADIA_status_t 	status = ARCADIA_STATUS_FAILED;
-	ARCADIA_msg_t 		msg;
 
-	msg.id = ARCADIA_MSG_ID_DRIVE_ERASE_NVM;
-	msg.from = ARCADIA_get_current_task_id();
+	DRIVE_PAYLOAD_erase_nvm_t payload =
+	{
+		.u32_addr = NVMCTRL_get_addr_from_row_id(k_row_id),
+		.p_result_status = &status
+	};
+
+	ARCADIA_msg_t msg =
+	{
+		.id = ARCADIA_MSG_ID_DRIVE_ERASE_NVM,
+		.from = ARCADIA_get_current_task_id(),
+		.payload.drive_payload_erase_nvm = payload
+	};
+
 	msg.semaphore = ARCADIA_semaphore_alloc(&msg.semaphore_buffer);
-
-	msg.payload.drive_payload_erase_nvm.u32_addr = NVMCTRL_get_addr_from_row_id(k_row_id);
-	msg.payload.drive_payload_erase_nvm.p_result_status = &status;
 
 	ARCADIA_send(ARCADIA_TASK_ID_DRIVE, &msg);
 	
