@@ -59,14 +59,18 @@ static ARCADIA_rtos_task_t rtos_tasks[ARCADIA_TASK_ID_NUM_IDS] =
 
 static const char * const kpc_msg_names[ARCADIA_MSG_ID_NUM_IDS] =
 {
+	// Universal msg descriptors
 	[ARCADIA_MSG_ID_NOOP] 							= "NOOP",
 
+	// DRIVE msg descriptors
 	[ARCADIA_MSG_ID_DRIVE_READ_NVM]					= "DRIVE_READ_NVM",
 	[ARCADIA_MSG_ID_DRIVE_WRITE_NVM]				= "DRIVE_WRITE_NVM",
 	[ARCADIA_MSG_ID_DRIVE_ERASE_NVM]				= "DRIVE_ERASE_NVM",
 
+	// CHRONO msg descriptors
 	[ARCADIA_MSG_ID_CHRONO_TIMER_ELAPSED]			= "CHRONO_TIMER_ELAPSED",
-	[ARCADIA_MSG_ID_CHRONO_SCHEDULE_MSG_FOR_TASK]	= "CHRONO_SCHEDULE_MSG_FOR_TASK"
+	[ARCADIA_MSG_ID_CHRONO_SCHEDULE_MSG_FOR_TASK]	= "CHRONO_SCHEDULE_MSG_FOR_TASK",
+	[ARCADIA_MSG_ID_CHRONO_CANCEL_SCHEDULED_MSG]	= "CHRONO_CANCEL_SCHEDULED_MSG"
 };
 
 /****************************************************************************************************
@@ -127,6 +131,11 @@ void NORETURN ARCADIA_start(void)
 	while(1);
 }
 
+void vApplicationIdleHook(void)
+{
+    while(1);
+}
+
 TaskHandle_t ARCADIA_handle_from_id(ARCADIA_task_id_t task_id)
 {
 	ASSERT(task_id < ARCADIA_TASK_ID_NUM_IDS);
@@ -169,6 +178,13 @@ uint32_t ARCADIA_send(ARCADIA_task_id_t task_id, ARCADIA_msg_t * p_msg)
 	ASSERT(task_id < ARCADIA_TASK_ID_NUM_IDS);
 	ASSERT(p_msg);
 
+	// Notify SHELL task to unblock it from `ulTaskNotifyTake` (it's waiting on UART input or notifications).
+	// This ensures it processes inbound messages immediately.
+	if (ARCADIA_TASK_ID_SHELL == task_id)
+	{
+		xTaskNotifyGive(rtos_tasks[ARCADIA_TASK_ID_SHELL].handle);
+	}
+
 	return (uint32_t)xQueueSend(rtos_tasks[task_id].queue_handle, (const void *)p_msg, portMAX_DELAY);
 }
 
@@ -185,6 +201,13 @@ uint32_t ARCADIA_receive(ARCADIA_msg_t * p_msg)
 	ASSERT(p_msg);
 
 	return (uint32_t)xQueueReceive(rtos_tasks[ARCADIA_get_current_task_id()].queue_handle, (void * const)p_msg, portMAX_DELAY);
+}
+
+uint32_t ARCADIA_receive_nb(ARCADIA_msg_t * p_msg)
+{
+	ASSERT(p_msg);
+
+	return (uint32_t)xQueueReceive(rtos_tasks[ARCADIA_get_current_task_id()].queue_handle, (void * const)p_msg, 0);
 }
 
 const char * ARCADIA_get_task_name(ARCADIA_task_id_t task_id)

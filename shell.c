@@ -2,17 +2,18 @@
 #include "utils.h"
 #include "uart.h"
 #include "sys.h"
+#include "timer.h"
 #include "nvmctrl.h"
 #include "drive_api.h"
-#include "timer.h"
-
+#include "chrono_api.h"
 #include "chrono.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define SHELL_LOG_DBG(fmt, ...)   	SHELL_printf("%-10s" fmt, "[SHELL]", ##__VA_ARGS__)
+#define SHELL_LOG_DBG(fmt, ...)   					SHELL_printf("%-10s" fmt, "[SHELL]", ##__VA_ARGS__)
+#define SHELL_LOG_WARN(fmt, ...)   				SHELL_PRINT_WARNING("%-10s" fmt, "[SHELL]", ##__VA_ARGS__)
 
 #define SHELL_COMMAND_BUFFER_SIZE	(128)
 #define SHELL_CRLF					"\r\n"
@@ -53,6 +54,7 @@ typedef struct _SHELL_info
 
 static void 	SHELL_flush_buffer		(void);
 static void 	SHELL_handle_command	(void);
+static void 	SHELL_handle_msg		(void);
 static void 	SHELL_help				(const SHELL_command_t * p_table);
 
 uint8_t 		SHELL_shell_help		(uint8_t argc, char ** argv);
@@ -63,6 +65,9 @@ uint8_t 		SHELL_shell_help		(uint8_t argc, char ** argv);
 
 // Top-level command table
 static const SHELL_command_t kp_command_table[];
+
+// CHRONO command table
+static const SHELL_command_t kp_chrono_command_table[];
 
 // DRIVE command tables
 static const SHELL_command_t kp_drive_command_table[];
@@ -85,6 +90,18 @@ static const SHELL_command_t kp_uart_command_table[];
  */
 static const SHELL_command_t kp_command_table[] =
 {
+		{
+		.kpc_name 			= "chrono",
+		.function 			= NULL,
+		.kp_command_table 	= kp_chrono_command_table,
+		.kpc_docstring		= NULL
+	},
+	{
+		.kpc_name 			= "drive",
+		.function 			= NULL,
+		.kp_command_table 	= kp_drive_command_table,
+		.kpc_docstring		= NULL
+	},
 	{
 		.kpc_name 			= "help",
 		.function 			= SHELL_shell_help,
@@ -92,12 +109,6 @@ static const SHELL_command_t kp_command_table[] =
 		.kpc_docstring		=	(
 									"\tDisplays this message\r\n"
 								)
-	},
-	{
-		.kpc_name 			= "drive",
-		.function 			= NULL,
-		.kp_command_table 	= kp_drive_command_table,
-		.kpc_docstring		= NULL
 	},
 	{
 		.kpc_name 			= "nvm",
@@ -122,6 +133,33 @@ static const SHELL_command_t kp_command_table[] =
 		.function 			= NULL,
 		.kp_command_table 	= kp_uart_command_table,
 		.kpc_docstring		= NULL
+	},
+	//////////
+	SHELL_COMMAND_TABLE_END
+};
+
+/**
+ *	`chrono` commands
+ */
+static const SHELL_command_t kp_chrono_command_table[] =
+{
+	{
+		.kpc_name 			= "cancel",
+		.function 			= CHRONO_API_shell_cancel,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tCancels a scheduled message\r\n"
+									"\tUsage: chrono cancel <timer_id>\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "sn",
+		.function 			= CHRONO_API_shell_sn,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tSchedules a NOOP for a given task\r\n"
+									"\tUsage: chrono sn <task_id> <delay> <mode>\r\n"
+								)
 	},
 	//////////
 	SHELL_COMMAND_TABLE_END
@@ -358,14 +396,15 @@ void SHELL_task(void * p_params)
 
 	while (1)
 	{
+		// Block and wait for a notification from the debug SERCOM's ISR or from a message notification
 		if (ulTaskNotifyTake(pdFALSE, portMAX_DELAY) != 0)
 		{
+			SHELL_handle_msg();
+
 			c = UART_rx_char(UART_CHANNEL_SHELL);
 
-			// Returned zero, nothing to do, let someone else do some work
 			if (!c)
 			{
-				CHRONO_delay_ms(1);
 				continue;
 			}
 
@@ -442,6 +481,26 @@ static void SHELL_flush_buffer(void)
 	SHELL_info.u16_index = 0;
 }
 
+static void SHELL_handle_msg(void)
+{
+	ARCADIA_msg_t msg;
+
+	if (ARCADIA_receive_nb(&msg))
+	{
+		SHELL_LOG_DBG("Received msg %s from %s\r\n", 
+			ARCADIA_get_msg_type(msg.id), ARCADIA_get_task_name(msg.from));
+
+		switch (msg.id)
+		{
+			case ARCADIA_MSG_ID_NOOP:
+				break;
+			
+			default:
+				SHELL_LOG_DBG("Unexpected message: %u\r\n", msg.id);
+		}
+	}
+}
+
 /****************************************************************************************************
  *	Processes the the shell command buffer when a command is entered in the serial debug interface
  *
@@ -455,6 +514,7 @@ static void SHELL_handle_command(void)
 
 	// Tokenize the input command buffer
 	char *token = strtok(SHELL_info.pc_buffer, " ");
+	
 	while (token != NULL)
 	{
 		bool command_found = false;

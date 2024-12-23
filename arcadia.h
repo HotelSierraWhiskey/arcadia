@@ -2,6 +2,7 @@
 #define ARCADIA_H
 
 #include "common.h"
+#include "arcadia_task.h"
 #include "drive_payload.h"
 #include "chrono_payload.h"
 
@@ -16,15 +17,6 @@
 #define ARCADIA_semaphore_take(semaphore) 	xSemaphoreTake(semaphore, pdMS_TO_TICKS(ARCADIA_SEMAPHORE_WAIT_MS))
 #define ARCADIA_semaphore_give(semaphore)	xSemaphoreGive(semaphore)
 
-typedef enum _ARCADIA_task_id
-{
-	ARCADIA_TASK_ID_SHELL = 0,
-	ARCADIA_TASK_ID_DRIVE,
-	ARCADIA_TASK_ID_CHRONO,
-	//////////
-	ARCADIA_TASK_ID_NUM_IDS
-} ARCADIA_task_id_t;
-
 typedef enum _ARCADIA_msg_id
 {
 	// Universal messages
@@ -38,6 +30,7 @@ typedef enum _ARCADIA_msg_id
 	// CHRONO task messages
 	ARCADIA_MSG_ID_CHRONO_TIMER_ELAPSED,
 	ARCADIA_MSG_ID_CHRONO_SCHEDULE_MSG_FOR_TASK,
+	ARCADIA_MSG_ID_CHRONO_CANCEL_SCHEDULED_MSG,
 	//////////
 	ARCADIA_MSG_ID_NUM_IDS
 } ARCADIA_msg_id_t;
@@ -52,6 +45,7 @@ typedef union _ARCADIA_payload
 	// CHRONO task payloads
 	CHRONO_PAYLOAD_timer_elapsed_t			chrono_payload_timer_elapsed;
 	CHRONO_PAYLOAD_schedule_msg_for_task_t	chrono_payload_schedule_msg_for_task;
+	CHRONO_PAYLOAD_cancel_scheduled_msg_t	chrono_payload_cancel_scheduled_msg;
 } ARCADIA_payload_t;
 
 typedef struct _ARCADIA_msg
@@ -71,6 +65,7 @@ void 				ARCADIA_start					(void);
 uint32_t 			ARCADIA_send					(ARCADIA_task_id_t task_id, ARCADIA_msg_t * p_msg);
 uint32_t 			ARCADIA_send_from_isr			(ARCADIA_task_id_t task_id, ARCADIA_msg_t * p_msg);
 uint32_t 			ARCADIA_receive					(ARCADIA_msg_t * p_msg);
+uint32_t 			ARCADIA_receive_nb				(ARCADIA_msg_t * p_msg);
 TaskHandle_t 		ARCADIA_handle_from_id			(ARCADIA_task_id_t task_id);
 ARCADIA_task_id_t 	ARCADIA_get_current_task_id		(void);
 const char *		ARCADIA_get_task_name			(ARCADIA_task_id_t task_id);
