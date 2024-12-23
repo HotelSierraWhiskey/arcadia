@@ -25,6 +25,9 @@ static void 		TIMER_config			(const TIMER_id_t k_timer_id, uint16_t u16_period, 
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
 
+/**
+ *	The timer pool
+ */
 static TIMER_info_t p_timer_pool[TIMER_ID_NUM_TIMERS] =
 {
 	[TIMER_ID_0] =
@@ -57,6 +60,9 @@ static TIMER_info_t p_timer_pool[TIMER_ID_NUM_TIMERS] =
 	}
 };
 
+/**
+ *	String representations of timer operation modes
+ */
 const char * const kpc_mode_descriptors[TIMER_MODE_NUM_MODES] =
 {
 	[TIMER_MODE_SINGLE_SHOT]	= "SINGLE_SHOT",
@@ -97,6 +103,15 @@ void TIMER_init(void)
 	}
 }
 
+/****************************************************************************************************
+ *	Allocates and configures a timer from the timer pool
+ *
+ * 	@param[in] u16_period 	The number of seconds before the timer elapses
+ * 	@param[in] mode 		The operation mode of the timer
+ * 
+ *	@return A timer iD if one was allocated, else `TIMER_INVALID` if the pool was empty
+ *
+ ****************************************************************************************************/
 TIMER_id_t TIMER_alloc(uint16_t u16_period, TIMER_mode_t mode)
 {
 	TIMER_id_t timer_id = TIMER_INVALID;
@@ -114,12 +129,28 @@ TIMER_id_t TIMER_alloc(uint16_t u16_period, TIMER_mode_t mode)
 	return timer_id;
 }
 
+/****************************************************************************************************
+ *	Retrieves a timer's logical channel information
+ *
+ * 	@param[in] k_timer_id 	The ID of the timer to retrieve
+ * 
+ *	@return the associated entry in the `p_timer_pool`
+ *
+ ****************************************************************************************************/
 const TIMER_info_t * TIMER_get_timer_info(const TIMER_id_t k_timer_id)
 {
 	ASSERT(k_timer_id < TIMER_ID_NUM_TIMERS);
 	return &p_timer_pool[k_timer_id];
 }
 
+/****************************************************************************************************
+ *	Starts a timer
+ *
+ * 	Enables the timer's IRQ line, and engages the associated timer peripheral.
+ *
+ * 	@param[in] k_timer_id 	The ID of the timer to start
+ *
+ ****************************************************************************************************/
 void TIMER_start(const TIMER_id_t k_timer_id)
 {
 	ASSERT(k_timer_id < TIMER_ID_NUM_TIMERS);
@@ -134,9 +165,17 @@ void TIMER_start(const TIMER_id_t k_timer_id)
 	{
 		continue;
 	}
-
 }
 
+/****************************************************************************************************
+ *	Stops a timer
+ *
+ * 	Disables a hardware timer completely, clears its match flag and disables its IRQ line.
+ * 	In addition, the timer's previously configured `u16_period` member will be reset to 0.
+ *
+ * 	@param[in] k_timer_id 	The ID of the timer to stop
+ *
+ ****************************************************************************************************/
 void TIMER_stop(const TIMER_id_t k_timer_id)
 {
 	ASSERT(k_timer_id < TIMER_ID_NUM_TIMERS);
@@ -150,6 +189,16 @@ void TIMER_stop(const TIMER_id_t k_timer_id)
 	NVIC_DisableIRQ(p_timer->u8_irq_id);
 }
 
+/****************************************************************************************************
+ *	Retrieves the raw value in the timer's COUNT register
+ *
+ * 	This value needs to be manaully read-synchronized via a `TC_CTRLBSET_CMD_READSYNC` command,
+ * 	And should therefore be used sparingly/ for debugging/ development only.
+ *
+ * 	@param[in] k_timer_id 	The ID of the timer to read
+ *
+ * 	@return The value in the timer's COUNT register
+ ****************************************************************************************************/
 uint16_t TIMER_get_timer_count(const TIMER_id_t k_timer_id)
 {
 	ASSERT(k_timer_id < TIMER_ID_NUM_TIMERS);
@@ -169,8 +218,38 @@ uint16_t TIMER_get_timer_count(const TIMER_id_t k_timer_id)
 	return p_timer->p_timer_regs->COUNT16.TC_COUNT;
 }
 
-volatile bool s = true;
+/****************************************************************************************************
+ *	Configures a hardware timer
+ *
+ * 	@param[in] k_timer_id 	The ID of the timer to configure
+ * 	@param[in] u16_period 	The number of seconds before the timer's associated ISR fires
+ * 	@param[in] mode 		The desired operation mode
+ *
+ ****************************************************************************************************/
+static void TIMER_config(const TIMER_id_t k_timer_id, uint16_t u16_period, TIMER_mode_t mode)
+{
+	TIMER_info_t * p_timer = &p_timer_pool[k_timer_id];
 
+	p_timer->u16_period = u16_period;
+	p_timer->mode = mode;
+
+	p_timer->p_timer_regs->COUNT16.TC_CC[0] = (u16_period * TIMER_PRESCALED_SECOND_COUNT_VALUE);
+}
+
+/****************************************************************************************************
+ *	Generic handler used in each hardware timer's ISR.
+ *
+ * 	A timer elapses when its MC0 (Match/ Compare) flag is set.
+ * 	A timer's MC0 flag is set when its COUNT register matches the CC value for which the timer was 
+ * 	configured.
+ * 
+ * 	When a timer elapses, an `ARCADIA_MSG_ID_CHRONO_TIMER_ELAPSED` message that includes the timer's 
+ * 	ID is sent from ISR context to the CHRONO task. The ID of the elapsed timer is used in task context
+ * 	for message scheduling.
+ * 	
+ * 	@param[in] k_timer_id The ID of the timer that just elapsed
+ * 	
+ ****************************************************************************************************/
 static void TIMER_on_match(const TIMER_id_t k_timer_id)
 {
 	TIMER_info_t * 					p_timer = &p_timer_pool[k_timer_id];
@@ -183,18 +262,6 @@ static void TIMER_on_match(const TIMER_id_t k_timer_id)
 
 	if ((p_timer->p_timer_regs->COUNT16.TC_INTFLAG & TC_INTFLAG_MC0(1)) != 0)
 	{
-		if (s)
-		{
-			IO_set_pin(IO_PIN_ID_PA27, IO_PIN_STATE_HIGH);
-			s = false;
-		}
-		else
-		{
-			IO_set_pin(IO_PIN_ID_PA27, IO_PIN_STATE_LOW);
-			s = true;
-		}
-
-
 		if (p_timer->mode == TIMER_MODE_REPEAT)
 		{
 			p_timer->p_timer_regs->COUNT16.TC_CTRLBSET = TC_CTRLBSET_CMD_RETRIGGER;
@@ -212,36 +279,56 @@ static void TIMER_on_match(const TIMER_id_t k_timer_id)
 	NVIC_ClearPendingIRQ(p_timer->u8_irq_id);
 }
 
-static void TIMER_config(const TIMER_id_t k_timer_id, uint16_t u16_period, TIMER_mode_t mode)
-{
-	TIMER_info_t * p_timer = &p_timer_pool[k_timer_id];
-
-	p_timer->u16_period = u16_period;
-	p_timer->mode = mode;
-
-	p_timer->p_timer_regs->COUNT16.TC_CC[0] = (u16_period * TIMER_PRESCALED_SECOND_COUNT_VALUE);
-}
-
+/****************************************************************************************************
+ *	TC0 Interrupt Service Routine
+ *
+ ****************************************************************************************************/
 void irqTC0(void)
 {
 	TIMER_on_match(TIMER_ID_0);
 }
 
+/****************************************************************************************************
+ *	TC1 Interrupt Service Routine
+ *
+ ****************************************************************************************************/
 void irqTC1(void)
 {
 	TIMER_on_match(TIMER_ID_1);
 }
 
+/****************************************************************************************************
+ *	TC2 Interrupt Service Routine
+ *
+ ****************************************************************************************************/
 void irqTC2(void)
 {
 	TIMER_on_match(TIMER_ID_2);
 }
 
+/****************************************************************************************************
+ *	TC3 Interrupt Service Routine
+ *
+ ****************************************************************************************************/
 void irqTC3(void)
 {
 	TIMER_on_match(TIMER_ID_3);
 }
 
+/****************************************************************************************************
+ *	S H E L L   F U N C T I O N S
+ ****************************************************************************************************/
+
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Configures and starts a timer
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
 uint8_t	TIMER_shell_start_timer(uint8_t argc, char ** argv)
 {
 	uint32_t 		timer_id;
@@ -296,6 +383,16 @@ uint8_t	TIMER_shell_start_timer(uint8_t argc, char ** argv)
 	return SHELL_COMMAND_SUCCESS;
 }
 
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Stops a timer
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
 uint8_t	TIMER_shell_stop_timer(uint8_t argc, char ** argv)
 {
 	uint32_t 		timer_id;
@@ -326,6 +423,16 @@ uint8_t	TIMER_shell_stop_timer(uint8_t argc, char ** argv)
 
 }
 
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Displays the status of each timer
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
 uint8_t	TIMER_shell_info(uint8_t argc, char ** argv)
 {
 	uint32_t 	u32_current_count;

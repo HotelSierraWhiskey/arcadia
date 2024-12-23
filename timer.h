@@ -13,6 +13,9 @@
 #define TIMER_SINGLE_SHOT					(false)
 #define TIMER_PRESCALED_SECOND_COUNT_VALUE	(32U)
 
+/**
+ *	Timer IDs
+ */
 typedef enum _TIMER_id
 {
 	TIMER_ID_0 = 0,
@@ -23,6 +26,9 @@ typedef enum _TIMER_id
 	TIMER_ID_NUM_TIMERS
 } TIMER_id_t;
 
+/**
+ *	Timer operation modes
+ */
 typedef enum _TIMER_mode
 {
 	TIMER_MODE_SINGLE_SHOT = 0,
@@ -31,6 +37,9 @@ typedef enum _TIMER_mode
 	TIMER_MODE_NUM_MODES
 } TIMER_mode_t;
 
+/**
+ *	Logical timer channel information
+ */
 typedef struct _TIMER_info
 {
 	uint16_t			u16_period;
@@ -49,6 +58,10 @@ void 					TIMER_stop					(const TIMER_id_t k_timer_id);
 TIMER_id_t				TIMER_alloc					(uint16_t u16_period, TIMER_mode_t mode);
 const TIMER_info_t *	TIMER_get_timer_info		(const TIMER_id_t k_timer_id);
 uint16_t		 		TIMER_get_timer_count		(const TIMER_id_t k_timer_id);
+
+/****************************************************************************************************
+ *	S H E L L   F U N C T I O N S
+ ****************************************************************************************************/
 
 uint8_t					TIMER_shell_start_timer		(uint8_t argc, char ** argv);
 uint8_t					TIMER_shell_stop_timer		(uint8_t argc, char ** argv);

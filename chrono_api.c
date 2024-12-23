@@ -4,6 +4,22 @@
 #include "utils.h"
 #include "chrono.h"
 
+/****************************************************************************************************
+ *	F U N C T I O N S
+ ****************************************************************************************************/
+
+/****************************************************************************************************
+ *	API function to schedule a message for a given task in the future
+ *
+ * 	@param[in] p_msg 				A pointer to the message to be scheduled
+ * 	@param[in] task_id 				The task to whom the message will be sent
+ * 	@param[in] u16_delta_seconds 	The number of seconds in the future the message will be sent
+ * 	@param[in] mode 				The operation mode of the associated hardware timer
+ * 
+ *	@return 
+ * 	`TIMER_INVALID` if the timer pool was empty, else the ID of the allocated timer
+ * 
+ ****************************************************************************************************/
 TIMER_id_t CHRONO_API_schedule_msg_for_task(ARCADIA_msg_t * p_msg, ARCADIA_task_id_t task_id, uint16_t u16_delta_seconds, TIMER_mode_t mode)
 {
 	TIMER_id_t 			timer_id = TIMER_INVALID;
@@ -42,6 +58,15 @@ TIMER_id_t CHRONO_API_schedule_msg_for_task(ARCADIA_msg_t * p_msg, ARCADIA_task_
 	return timer_id;
 }
 
+/****************************************************************************************************
+ *	API function to cancel a scheduled message associated with the provided timer ID.
+ *
+ * 	@param[in] timer_id The timer associated with the schedule entry
+ * 
+ *	@return 
+ * 	`ARCADIA_STATUS_OK` always
+ * 
+ ****************************************************************************************************/
 ARCADIA_status_t CHRONO_API_cancel_scheduled_message(TIMER_id_t timer_id)
 {
 	ASSERT(timer_id < TIMER_ID_NUM_TIMERS);
@@ -70,6 +95,10 @@ ARCADIA_status_t CHRONO_API_cancel_scheduled_message(TIMER_id_t timer_id)
 
 	return status;
 }
+
+/****************************************************************************************************
+ *	S H E L L   F U N C T I O N S
+ ****************************************************************************************************/
 
 /****************************************************************************************************
  *	Shell utility
@@ -175,6 +204,16 @@ uint8_t CHRONO_API_shell_cancel(uint8_t argc, char ** argv)
 	return SHELL_COMMAND_SUCCESS;
 }
 
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Displays the CHRONO message schedule
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
 uint8_t CHRONO_API_shell_info(uint8_t argc, char ** argv)
 {
 	TIMER_info_t * 					p_timer_info;
