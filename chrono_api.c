@@ -2,6 +2,7 @@
 #include "chrono_api.h"
 #include "chrono_payload.h"
 #include "utils.h"
+#include "chrono.h"
 
 TIMER_id_t CHRONO_API_schedule_msg_for_task(ARCADIA_msg_t * p_msg, ARCADIA_task_id_t task_id, uint16_t u16_delta_seconds, TIMER_mode_t mode)
 {
@@ -169,6 +170,66 @@ uint8_t CHRONO_API_shell_cancel(uint8_t argc, char ** argv)
 	else
 	{
 		SHELL_printf("Usage: chrono cancel <timer_id>\r\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
+
+uint8_t CHRONO_API_shell_info(uint8_t argc, char ** argv)
+{
+	TIMER_info_t * 					p_timer_info;
+	CHRONO_msg_schedule_entry_t *	p_msg_schedule_entry;
+	uint32_t 						u32_current_count;
+	uint32_t 						u32_time_remaining;
+	uint32_t 						u32_hours;
+	uint32_t 						u32_minutes;
+	uint32_t 						u32_seconds;
+	char 							pc_time_buffer[16] = { 0 };
+
+	if (argc == 0)
+	{
+		SHELL_SEPARATOR();
+
+		for (uint8_t i = 0; i < TIMER_ID_NUM_TIMERS; i++)
+		{
+			p_timer_info 			= (TIMER_info_t *)TIMER_get_timer_info(i);
+			p_msg_schedule_entry 	= CHRONO_get_msg_schedule_entry(i);
+
+			SHELL_printf("Slot %u\r\n", i);
+
+			if (TIMER_AVAILABLE == p_timer_info->u16_period)
+			{
+				SHELL_printf("\t%-20s: Unscheduled\r\n", "Status");
+			}
+			else
+			{
+				u32_current_count = TIMER_get_timer_count(i) / TIMER_PRESCALED_SECOND_COUNT_VALUE;
+
+				u32_time_remaining = p_timer_info->u16_period - u32_current_count;
+
+				u32_hours = u32_time_remaining / 3600;
+				u32_minutes = (u32_time_remaining % 3600) / 60;
+				u32_seconds = u32_time_remaining % 60;
+
+				snprintf(pc_time_buffer, sizeof(pc_time_buffer), "%02lu:%02lu:%02lu", u32_hours, u32_minutes, u32_seconds);
+
+				SHELL_printf("\t%-20s: Scheduled\r\n", "Status");
+				SHELL_printf("\t%-20s: %s\r\n", "Msg", ARCADIA_get_msg_type(p_msg_schedule_entry->msg.id));
+				SHELL_printf("\t%-20s: %s\r\n", "Addressed Task", ARCADIA_get_task_name(p_msg_schedule_entry->task_id));
+				SHELL_printf("\t%-20s: %s\r\n", "From", ARCADIA_get_task_name(p_msg_schedule_entry->msg.from));
+				SHELL_printf("\t%-20s: %s\r\n", "Time Remaining", pc_time_buffer);
+			}
+			if (i < TIMER_ID_NUM_TIMERS - 1)
+			{
+				SHELL_printf("\r\n");
+			}
+		}
+
+		SHELL_SEPARATOR();
+	}
+	else
+	{
+		SHELL_printf("Usage: chrono info\r\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;

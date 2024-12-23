@@ -7,10 +7,11 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define TIMER_INVALID		(-1)
-#define TIMER_AVAILABLE		(0U)
-#define TIMER_REPEAT		(true)
-#define TIMER_SINGLE_SHOT	(false)
+#define TIMER_INVALID						(-1)
+#define TIMER_AVAILABLE						(0U)
+#define TIMER_REPEAT						(true)
+#define TIMER_SINGLE_SHOT					(false)
+#define TIMER_PRESCALED_SECOND_COUNT_VALUE	(32U)
 
 typedef enum _TIMER_id
 {
@@ -47,9 +48,10 @@ void 					TIMER_start					(const TIMER_id_t k_timer_id);
 void 					TIMER_stop					(const TIMER_id_t k_timer_id);
 TIMER_id_t				TIMER_alloc					(uint16_t u16_period, TIMER_mode_t mode);
 const TIMER_info_t *	TIMER_get_timer_info		(const TIMER_id_t k_timer_id);
+uint16_t		 		TIMER_get_timer_count		(const TIMER_id_t k_timer_id);
 
-uint8_t			TIMER_shell_start_timer		(uint8_t argc, char ** argv);
-uint8_t			TIMER_shell_stop_timer		(uint8_t argc, char ** argv);
-uint8_t			TIMER_shell_info			(uint8_t argc, char ** argv);
+uint8_t					TIMER_shell_start_timer		(uint8_t argc, char ** argv);
+uint8_t					TIMER_shell_stop_timer		(uint8_t argc, char ** argv);
+uint8_t					TIMER_shell_info			(uint8_t argc, char ** argv);
 
 #endif // TIMER_H

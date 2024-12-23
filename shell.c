@@ -153,6 +153,15 @@ static const SHELL_command_t kp_chrono_command_table[] =
 								)
 	},
 	{
+		.kpc_name 			= "info",
+		.function 			= CHRONO_API_shell_info,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tDisplays chrono msg schedule\r\n"
+									"\tUsage: chrono info\r\n"
+								)
+	},
+	{
 		.kpc_name 			= "sn",
 		.function 			= CHRONO_API_shell_sn,
 		.kp_command_table 	= NULL,

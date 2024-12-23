@@ -14,5 +14,6 @@ ARCADIA_status_t 	CHRONO_API_cancel_scheduled_message		(TIMER_id_t timer_id);
 
 uint8_t 			CHRONO_API_shell_sn						(uint8_t argc, char ** argv);
 uint8_t 			CHRONO_API_shell_cancel					(uint8_t argc, char ** argv);
+uint8_t 			CHRONO_API_shell_info					(uint8_t argc, char ** argv);
 
 #endif // CHRONO_API_H

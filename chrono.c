@@ -15,12 +15,6 @@
 
 #define CHRONO_SYS_TICK_FREQ_1MS(source_clock_freq) ((source_clock_freq) / (1000U))
 
-typedef struct _CHRONO_msg_schedule_entry
-{
-	ARCADIA_task_id_t	task_id;
-	ARCADIA_msg_t		msg;
-} CHRONO_msg_schedule_entry_t;
-
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
@@ -84,6 +78,12 @@ void CHRONO_task(void * p_params)
 		CHRONO_handle_message();
 		vPortYield();
 	}
+}
+
+CHRONO_msg_schedule_entry_t	* CHRONO_get_msg_schedule_entry(TIMER_id_t timer_id)
+{
+	ASSERT(timer_id < TIMER_ID_NUM_TIMERS);
+	return &p_msg_schedule[timer_id];
 }
 
 /****************************************************************************************************

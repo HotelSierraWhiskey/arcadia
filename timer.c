@@ -11,7 +11,6 @@
 
 #define TIMER_LOG_DBG(fmt, ...)   			SHELL_printf("%-10s" fmt, "[TIMER]", ##__VA_ARGS__)
 
-#define TIMER_PRESCALED_SECOND_COUNT_VALUE	(32U)
 #define TIMER_CTRLA_ENABLE					(TC_CTRLA_MODE_COUNT16 | TC_CTRLA_PRESCALER_DIV1024 | TC_CTRLA_ENABLE(1))
 #define TIMER_CTRLA_DISABLE					(TC_CTRLA_ENABLE(0))
 
@@ -19,7 +18,6 @@
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
-static uint16_t 	TIMER_get_timer_count	(const TIMER_id_t k_timer_id);
 static void 		TIMER_on_match			(const TIMER_id_t k_timer_id);
 static void 		TIMER_config			(const TIMER_id_t k_timer_id, uint16_t u16_period, TIMER_mode_t mode);
 
@@ -152,7 +150,7 @@ void TIMER_stop(const TIMER_id_t k_timer_id)
 	NVIC_DisableIRQ(p_timer->u8_irq_id);
 }
 
-static uint16_t TIMER_get_timer_count(const TIMER_id_t k_timer_id)
+uint16_t TIMER_get_timer_count(const TIMER_id_t k_timer_id)
 {
 	ASSERT(k_timer_id < TIMER_ID_NUM_TIMERS);
 
