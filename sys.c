@@ -17,6 +17,11 @@
 #define SYS_OTP5_OSC32K_CALIBRATION_MASK	(0x0007F000)
 
 /**
+ *	Manually derived calibration value
+ */
+#define SYS_OSC32K_CALIB_VALUE				(0x46)
+
+/**
  *	Clock frequency enumerated type
  */
 typedef enum _SYS_clock_src_freq
@@ -150,12 +155,6 @@ void SYS_init(void)
 	SYS_clock_init();
 
 	IO_init();
-
-	// Output the GCLK[0] signal on GCLK_IO[0] pin PA27
-	// IO_enable_peripheral_function_for_pin(IO_PIN_ID_PA27, IO_PERIPHERAL_FUNCTION_H);
-
-	// Output the GCLK[1] signal on GCLK_IO[1] pin PA15
-	IO_enable_peripheral_function_for_pin(IO_PIN_ID_PA15, IO_PERIPHERAL_FUNCTION_H);
 }
 
 /****************************************************************************************************
@@ -212,7 +211,7 @@ static void SYS_osc48m_init(void)
 static void	SYS_osc32k_init(void)
 {
 	OSC32KCTRL_REGS->OSC32KCTRL_OSC32K = 	OSC32KCTRL_OSC32K_EN32K(1) |
-											OSC32KCTRL_OSC32K_CALIB(0x46) |
+											OSC32KCTRL_OSC32K_CALIB(SYS_OSC32K_CALIB_VALUE) |
 										 	OSC32KCTRL_OSC32K_ENABLE(1);
 
 	while ((OSC32KCTRL_REGS->OSC32KCTRL_OSC32K & OSC32KCTRL_STATUS_OSC32KRDY(1)) == 0)

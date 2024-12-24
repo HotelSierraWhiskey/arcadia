@@ -24,7 +24,15 @@ void NORETURN UTILS_error_crash(void)
 	while(1);
 }
 
-bool UTILS_string_to_u32(const char *kpc_str, uint32_t *u32_out)
+/****************************************************************************************************
+ *	Utility function to convert a string to an unsigned 32-bit integer
+ * 	
+ *	@param[in] 	kpc_str The source string
+ *	@param[out] u32_out The unsigned integer result
+ *
+ * 	@return `true` if decoding was successful, else `false`
+ ****************************************************************************************************/
+bool UTILS_string_to_u32(const char * kpc_str, uint32_t * u32_out)
 {
     char *endptr = NULL;
     
