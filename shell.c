@@ -7,6 +7,7 @@
 #include "drive_api.h"
 #include "chrono_api.h"
 #include "chrono.h"
+#include "spi.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -82,6 +83,9 @@ static const SHELL_command_t kp_sys_command_table[];
 // TIMER command tables
 static const SHELL_command_t kp_timer_command_table[];
 
+// SPI command tables
+static const SHELL_command_t kp_spi_command_table[];
+
 // UART command tables
 static const SHELL_command_t kp_uart_command_table[];
 
@@ -114,6 +118,12 @@ static const SHELL_command_t kp_command_table[] =
 		.kpc_name 			= "nvm",
 		.function 			= NULL,
 		.kp_command_table 	= kp_nvm_command_table,
+		.kpc_docstring		= NULL
+	},
+	{
+		.kpc_name 			= "spi",
+		.function 			= NULL,
+		.kp_command_table 	= kp_spi_command_table,
 		.kpc_docstring		= NULL
 	},
 	{
@@ -345,6 +355,21 @@ static const SHELL_command_t kp_timer_command_table[] =
 		.kpc_docstring		= 	(
 									"\tStops a specified timer\r\n"
 									"\tUsage: timer stop <id>\r\n"
+								)
+	},
+	//////////
+	SHELL_COMMAND_TABLE_END
+};
+
+static const SHELL_command_t kp_spi_command_table[] =
+{
+	{
+		.kpc_name 			= "write",
+		.function 			= SPI_shell_write,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tWrites a byte to the SPI interface\r\n"
+									"\tUsage: spi write <channel_id> <num_bytes> <...>\r\n"
 								)
 	},
 	//////////

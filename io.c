@@ -75,13 +75,13 @@ static const IO_pin_t pin_map[IO_PIN_ID_NUM_PINS] =
 	},
 	[IO_PIN_ID_PA06] =
 	{
-		.kcp_name = "PA06",
+		.kcp_name = "UART_CHANNEL_SHELL_TX",
 		.group = IO_GROUP_A,
 		.u8_number = 6
 	},
 	[IO_PIN_ID_PA07] =
 	{
-		.kcp_name = "PA07",
+		.kcp_name = "UART_CHANNEL_SHELL_RX",
 		.group = IO_GROUP_A,
 		.u8_number = 7
 	},
@@ -123,25 +123,25 @@ static const IO_pin_t pin_map[IO_PIN_ID_NUM_PINS] =
 	},
 	[IO_PIN_ID_PA16] =
 	{
-		.kcp_name = "PA16",
+		.kcp_name = "SPI_CHANNEL_SD_CARD_DATA_IN",
 		.group = IO_GROUP_A,
 		.u8_number = 16
 	},
 	[IO_PIN_ID_PA17] =
 	{
-		.kcp_name = "PA17",
+		.kcp_name = "SPI_CHANNEL_SD_CARD_SS",
 		.group = IO_GROUP_A,
 		.u8_number = 17
 	},
 	[IO_PIN_ID_PA18] =
 	{
-		.kcp_name = "PA18",
+		.kcp_name = "SPI_CHANNEL_SD_CARD_DATA_OUT",
 		.group = IO_GROUP_A,
 		.u8_number = 18
 	},
 	[IO_PIN_ID_PA19] =
 	{
-		.kcp_name = "PA19",
+		.kcp_name = "SPI_CHANNEL_SD_CARD_CLOCK",
 		.group = IO_GROUP_A,
 		.u8_number = 19
 	},
