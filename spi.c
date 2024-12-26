@@ -63,13 +63,6 @@ static SPI_channel_t p_spi_channels[SPI_CHANNEL_NUM_CHANNELS] =
 };
 
 /****************************************************************************************************
- *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
- ****************************************************************************************************/
-
-static void 	SPI_ss_pin_high		(SPI_channel_id_t channel_id);
-static void 	SPI_ss_pin_low		(SPI_channel_id_t channel_id);
-
-/****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
 
@@ -141,13 +134,13 @@ void SPI_init(SPI_channel_id_t channel_id)
  * 	@note SS pin must be manually pulled high/ low.
  *
  * 	@param[in] channel_id The logical channel over which to transfer data
- * 	@param[in] u8_data The data to send
+ * 	@param[in] u8_byte The data to send
  *
  * 	@return data from the addressed slave device
  ****************************************************************************************************/
-uint8_t SPI_transfer(SPI_channel_id_t channel_id, uint8_t u8_data)
+uint8_t SPI_exchange(SPI_channel_id_t channel_id, uint8_t u8_byte)
 {
-	p_spi_channels[channel_id]._p_sercom_registers->SPIM.SERCOM_DATA = u8_data;
+	p_spi_channels[channel_id]._p_sercom_registers->SPIM.SERCOM_DATA = u8_byte;
 
 	while ((p_spi_channels[channel_id]._p_sercom_registers->SPIM.SERCOM_INTFLAG & SERCOM_SPIM_INTFLAG_DRE(1)) == 0)
 	{
@@ -168,7 +161,7 @@ uint8_t SPI_transfer(SPI_channel_id_t channel_id, uint8_t u8_data)
  * 	@param[in] channel_id The desired SPI channel
  *
  ****************************************************************************************************/
-static void SPI_ss_pin_high(SPI_channel_id_t channel_id)
+void SPI_ss_pin_high(SPI_channel_id_t channel_id)
 {
 	IO_set_pin(p_spi_channels[channel_id].ss_pin, IO_PIN_STATE_HIGH);
 }
@@ -179,7 +172,7 @@ static void SPI_ss_pin_high(SPI_channel_id_t channel_id)
  * 	@param[in] channel_id The desired SPI channel
  *
  ****************************************************************************************************/
-static void SPI_ss_pin_low(SPI_channel_id_t channel_id)
+void SPI_ss_pin_low(SPI_channel_id_t channel_id)
 {
 	IO_set_pin(p_spi_channels[channel_id].ss_pin, IO_PIN_STATE_LOW);
 }
@@ -241,7 +234,7 @@ uint8_t	SPI_shell_write(uint8_t argc, char ** argv)
 		for (uint8_t i = 0; i < u32_num_bytes; i++)
 		{
 			SPI_ss_pin_low(u32_channel_id);
-			SPI_transfer((SPI_channel_id_t)u32_channel_id, u32_data[i]);
+			SPI_exchange((SPI_channel_id_t)u32_channel_id, u32_data[i]);
 			SPI_ss_pin_high(u32_channel_id);
 		}
 	}

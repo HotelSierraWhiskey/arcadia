@@ -22,7 +22,9 @@ typedef enum _SPI_channel_id
  ****************************************************************************************************/
 
 void		SPI_init 			(SPI_channel_id_t channel_id);
-uint8_t 	SPI_transfer		(SPI_channel_id_t channel_id, uint8_t u8_data);
+uint8_t 	SPI_exchange		(SPI_channel_id_t channel_id, uint8_t u8_byte);
+void 		SPI_ss_pin_high		(SPI_channel_id_t channel_id);
+void 		SPI_ss_pin_low		(SPI_channel_id_t channel_id);
 
 /****************************************************************************************************
  *	S H E L L   F U N C T I O N S
