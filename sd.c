@@ -1,6 +1,8 @@
 #include "sd.h"
 #include "spi.h"
 #include "shell.h"
+#include "chrono.h"
+#include "utils.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -10,29 +12,43 @@
 #define SD_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("%-10s" fmt, "[SD]", ##__VA_ARGS__)
 
 #define SD_CMD_LEN						(6)
-#define SD_DEFAULT_BLOCKLEN 			(512U)
+#define SD_BLOCK_SIZE 					(512U)
 #define SD_RESPONSE_IDLE 				(0x01)
 #define SD_RESPONSE_READY 				(0x00)
+#define SD_INIT_RETRIES					(5)
+
+typedef struct _SD_info
+{
+	uint8_t	pu8_buffer[SD_BLOCK_SIZE];
+} SD_info_t;
 
 /****************************************************************************************************
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
 /**
- *	SD CMDs	
+ *	SD CMDs
  */
-static uint8_t 		SD_cmd_go_idle_state				(void);						// CMD0
-static uint8_t 		SD_cmd_send_interface_condition		(void);						// CMD8
-static uint8_t 		SD_cmd_app_cmd						(void);						// CMD55
-static uint8_t 		SD_cmd_send_op_cond					(void);						// ACMD41
-static uint8_t 		SD_cmd_read_ocr						(void); 					// CMD58
-static uint8_t 		SD_cmd_set_blocklen					(uint32_t u32_blocklen); 	// CMD16
+static uint8_t 		SD_cmd_go_idle_state				(void);							// CMD0
+static uint8_t 		SD_cmd_send_interface_condition		(void);							// CMD8
+static uint8_t 		SD_cmd_app_cmd						(void);							// CMD55
+static uint8_t 		SD_cmd_send_op_cond					(void);							// ACMD41
+static uint8_t 		SD_cmd_read_ocr						(void); 						// CMD58
+static uint8_t 		SD_cmd_set_blocklen					(uint32_t u32_blocklen); 		// CMD16
+static uint8_t 		SD_cmd_write_single_block			(uint32_t u32_block_address);	// CMD24
+static uint8_t 		SD_cmd_read_single_block			(uint32_t u32_block_address);	// CMD17
 
 /**
  *	SD utilities
  */
-static uint8_t 		SD_exchange							(uint8_t u8_byte);
+static uint8_t 		SD_transfer							(uint8_t u8_byte);
 static uint8_t 		SD_await_r1_response				(uint8_t u8_expected);
+
+/****************************************************************************************************
+ *	P R I V A T E   V A R I A B L E S
+ ****************************************************************************************************/
+
+SD_info_t SD_info;
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -43,46 +59,120 @@ static uint8_t 		SD_await_r1_response				(uint8_t u8_expected);
  *
  * 	Initializes the card for SPI mode by transmitting 74+ clock pulses.
  *	Issues: 
- *		CMD0	(GO_IDLE_STATE),
- *		CMD8 	(SEND_IF_COND),
+ *		CMD0	(GO_IDLE_STATE)
+ *		CMD8 	(SEND_IF_COND)
  *		CMD55	(APP_CMD)
  *		ACMD41 	(SD_SEND_OP_COND)
- *		CMD58	(READ_OCR),
+ *		CMD58	(READ_OCR)
  *		CMD16	(SET_BLOCKLEN)
  ****************************************************************************************************/
 void SD_card_init(void)
 {
+	uint8_t u8_retries = SD_INIT_RETRIES;
 	uint8_t u8_response;
+
+	memset(SD_info.pu8_buffer, 0 , SD_BLOCK_SIZE);
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 
-	// Send 74+ clock cycles with SS high
+	// send 74+ clock cycles with SS high
 	for (uint8_t i = 0; i < 10; i++)
 	{
-		SPI_exchange(SPI_CHANNEL_SD_CARD, 0xFF);
+		SPI_transfer(SPI_CHANNEL_SD_CARD, 0xFF);
 	}
 
 	u8_response = SD_cmd_go_idle_state();
-	SD_LOG_DBG("SD_cmd_go_idle_state\r\n");
+	SD_LOG_DBG("SD_cmd_go_idle_state: %u\r\n", u8_response);
 
 	u8_response = SD_cmd_send_interface_condition();
-	SD_LOG_DBG("SD_cmd_send_interface_condition\r\n");
+	SD_LOG_DBG("SD_cmd_send_interface_condition: %u\r\n", u8_response);
 
 	do
 	{
+		CHRONO_delay_ms(500);
+
 		u8_response = SD_cmd_app_cmd();
-		SD_LOG_DBG("SD_cmd_app_cmd\r\n");
+		SD_LOG_DBG("SD_cmd_app_cmd: %u\r\n", u8_response);
 
 		u8_response = SD_cmd_send_op_cond();
-		SD_LOG_DBG("SD_cmd_send_op_cond\r\n");
+		SD_LOG_DBG("SD_cmd_send_op_cond: %u\r\n", u8_response);
 
-	} while (SD_RESPONSE_IDLE == u8_response);
+	} while (u8_response != SD_RESPONSE_READY && --u8_retries > 0);
 
 	u8_response = SD_cmd_read_ocr();
-	SD_LOG_DBG("SD_cmd_read_ocr\r\n");
+	SD_LOG_DBG("SD_cmd_read_ocr %u\r\n", u8_response);
 
-	u8_response = SD_cmd_set_blocklen(SD_DEFAULT_BLOCKLEN);
-	SD_LOG_DBG("SD_cmd_set_blocklen\r\n");
+	u8_response = SD_cmd_set_blocklen(SD_BLOCK_SIZE);
+	SD_LOG_DBG("SD_cmd_set_blocklen %u\r\n", u8_response);
+
+	// SPI_set_baud(SPI_CHANNEL_SD_CARD, SPI_BAUD_ID_25MHZ);
+}
+
+uint8_t SD_write_block(uint32_t u32_block_address, const uint8_t * kpu8_buffer)
+{
+	uint8_t u8_response = SD_cmd_write_single_block(u32_block_address);
+	SD_LOG_DBG("SD_cmd_write_single_block %u\r\n", u8_response);
+
+	SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
+
+	// Send start token
+    SD_transfer(0xFE);
+
+	// Write the block
+	for (uint16_t i = 0; i < SD_BLOCK_SIZE; i++)
+    {
+        SD_transfer(kpu8_buffer[i]);
+    }
+
+	// Dummy CRC
+    SD_transfer(0xFF);
+    SD_transfer(0xFF);
+
+	// Check data response token
+    u8_response = SD_transfer(0xFF);
+
+    if ((u8_response & 0x1F) != 0x05) // Data accepted
+    {
+        SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
+        return u8_response;
+    }
+
+    // Wait for card to finish writing
+    while (SD_transfer(0xFF) == 0x00)
+	{
+		continue;
+	}
+
+    SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
+
+    return 0;
+}
+
+uint8_t SD_read_block(uint32_t u32_block_address, uint8_t * pu8_buffer)
+{
+	uint8_t u8_response = SD_cmd_read_single_block(u32_block_address);
+
+	SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
+
+	// Wait for start token (0xFE)
+    while (SD_transfer(0xFF) != 0xFE)
+	{
+		continue;
+	}
+
+    // Read data block
+    for (uint16_t i = 0; i < SD_BLOCK_SIZE; i++)
+    {
+        pu8_buffer[i] = SD_transfer(0xFF);
+    }
+
+    // Read and discard CRC
+    SD_transfer(0xFF);
+    SD_transfer(0xFF);
+
+    SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
+
+    return 0;
 }
 
 /****************************************************************************************************
@@ -100,7 +190,7 @@ static uint8_t SD_cmd_go_idle_state(void)
 
 	for (uint8_t i = 0; i < SD_CMD_LEN; i++)
 	{
-		SD_exchange(u8_cmd[i]);
+		SD_transfer(u8_cmd[i]);
 	}
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
@@ -124,7 +214,7 @@ static uint8_t SD_cmd_send_interface_condition(void)
 
 	for (uint8_t i = 0; i < SD_CMD_LEN; i++)
 	{
-		SD_exchange(u8_cmd[i]);
+		SD_transfer(u8_cmd[i]);
 	}
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
@@ -151,7 +241,7 @@ static uint8_t SD_cmd_app_cmd(void)
 
 	for (uint8_t i = 0; i < SD_CMD_LEN; i++)
 	{
-		SD_exchange(u8_cmd[i]);
+		SD_transfer(u8_cmd[i]);
 	}
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
@@ -174,7 +264,7 @@ static uint8_t SD_cmd_send_op_cond(void)
 
 	for (uint8_t i = 0; i < SD_CMD_LEN; i++)
 	{
-		SD_exchange(u8_acmd[i]);
+		SD_transfer(u8_acmd[i]);
 	}
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
@@ -197,7 +287,7 @@ static uint8_t SD_cmd_read_ocr(void)
 
 	for (uint8_t i = 0; i < SD_CMD_LEN; i++)
 	{
-		SD_exchange(u8_cmd[i]);
+		SD_transfer(u8_cmd[i]);
 	}
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
@@ -218,19 +308,19 @@ static uint8_t SD_cmd_set_blocklen(uint32_t u32_blocklen)
 {
 	const uint8_t u8_cmd[SD_CMD_LEN] =
 	{
-		0x50,                         		// CMD16 identifier
-		(uint8_t)(u32_blocklen >> 24),		// MSB of block length
-		(uint8_t)(u32_blocklen >> 16),		// Next byte
-		(uint8_t)(u32_blocklen >> 8), 		// Next byte
-		(uint8_t)(u32_blocklen),      		// LSB of block length
-		0xFF                          		// Dummy CRC
+		0x50,
+		(uint8_t)(u32_blocklen >> 24),
+		(uint8_t)(u32_blocklen >> 16),
+		(uint8_t)(u32_blocklen >> 8),
+		(uint8_t)(u32_blocklen),
+		0xFF
 	};
 
 	SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
 
 	for (uint8_t i = 0; i < SD_CMD_LEN; i++)
 	{
-		SD_exchange(u8_cmd[i]);
+		SD_transfer(u8_cmd[i]);
 	}
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
@@ -238,18 +328,58 @@ static uint8_t SD_cmd_set_blocklen(uint32_t u32_blocklen)
 	return SD_await_r1_response(SD_RESPONSE_READY);
 }
 
-
-static uint8_t SD_exchange(uint8_t u8_byte)
+static uint8_t SD_cmd_write_single_block(uint32_t u32_block_address)
 {
-	return SPI_exchange(SPI_CHANNEL_SD_CARD, u8_byte);
+	const uint8_t cmd[SD_CMD_LEN] =
+	{
+        0x58,
+        (u32_block_address >> 24) & 0xFF,
+        (u32_block_address >> 16) & 0xFF,
+        (u32_block_address >> 8) & 0xFF,
+        u32_block_address & 0xFF,
+        0xFF
+    };
+
+	SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
+
+	for (uint8_t i = 0; i < SD_CMD_LEN; i++)
+    {
+        SD_transfer(cmd[i]);
+    }
+
+	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
+
+	return SD_await_r1_response(SD_RESPONSE_READY);
 }
 
+static uint8_t SD_cmd_read_single_block(uint32_t u32_block_address)
+{
+	const uint8_t cmd[SD_CMD_LEN] =
+    {
+        0x51,
+        (u32_block_address >> 24) & 0xFF,
+        (u32_block_address >> 16) & 0xFF,
+        (u32_block_address >> 8) & 0xFF,
+        u32_block_address & 0xFF,
+        0xFF
+    };
 
+	SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
 
+	for (uint8_t i = 0; i < SD_CMD_LEN; i++)
+    {
+        SD_transfer(cmd[i]);
+    }
 
+	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 
+	return SD_await_r1_response(SD_RESPONSE_READY);
+}
 
-
+static uint8_t SD_transfer(uint8_t u8_byte)
+{
+	return SPI_transfer(SPI_CHANNEL_SD_CARD, u8_byte);
+}
 
 static uint8_t SD_await_r1_response(uint8_t u8_expected)
 {
@@ -259,13 +389,86 @@ static uint8_t SD_await_r1_response(uint8_t u8_expected)
 
 	for (uint8_t i = 0; i < 10; i++)
 	{
-		if (u8_expected == SPI_exchange(SPI_CHANNEL_SD_CARD, 0xFF))
+		if (u8_expected == SD_transfer(0xFF))
 		{
 			u8_response = u8_expected;
+			break;
 		}
 	}
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 
 	return u8_response;
+}
+
+/****************************************************************************************************
+ *	S H E L L   F U N C T I O N S
+ ****************************************************************************************************/
+
+uint8_t SD_shell_read(uint8_t argc, char ** argv)
+{
+	uint32_t 	u32_address;
+
+	if (argc == 1)
+	{
+		if (UTILS_string_to_u32(argv[0], &u32_address))
+		{
+			memset(SD_info.pu8_buffer, 0, SD_BLOCK_SIZE);
+
+			SD_read_block(u32_address, SD_info.pu8_buffer);
+
+			SHELL_SEPARATOR();
+
+			for (uint16_t i = 0; i < SD_BLOCK_SIZE / 32; i++)
+			{	
+				for (uint16_t j = 0; j < 32; j++)
+				{
+					SHELL_printf("%02X ", SD_info.pu8_buffer[i * 32 + j]);
+					CHRONO_delay_ms(1); // Fixme
+				}
+				SHELL_printf("\r\n");
+			}
+
+			SHELL_SEPARATOR();
+		}
+	}
+	else
+	{
+		SHELL_printf("Usage: sd read <addr>\r\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
+
+uint8_t SD_shell_wtest(uint8_t argc, char ** argv)
+{
+	uint32_t u32_address;
+
+	if (argc == 1)
+	{
+		if (UTILS_string_to_u32(argv[0], &u32_address))
+		{
+			// dummy data 0 - 255 twice, as blocksizes are 512 bytes
+			for (uint16_t i = 0; i < SD_BLOCK_SIZE; i++)
+			{
+				SD_info.pu8_buffer[i] = i & 0xFF;
+			}
+
+			SD_info.pu8_buffer[0] = 0xC0;
+			SD_info.pu8_buffer[1] = 0xFF;
+			SD_info.pu8_buffer[2] = 0xEE;
+
+			SD_write_block(u32_address, SD_info.pu8_buffer);
+
+			memset(SD_info.pu8_buffer, 0, SD_BLOCK_SIZE);
+
+			SHELL_printf("Wrote block to address 0x%08X\r\n", u32_address);
+		}
+	}
+	else
+	{
+		SHELL_printf("Usage: sd wtest <addr>\r\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
 }

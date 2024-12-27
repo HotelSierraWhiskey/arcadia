@@ -7,6 +7,7 @@
 #include "utils.h"
 #include "drive_payload.h"
 #include "spi.h"
+#include "sd.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -39,6 +40,9 @@ void DRIVE_init(void)
 
 	// Initialize SD card SPI channel
 	SPI_init(SPI_CHANNEL_SD_CARD);
+
+	// Attempt to initialize SD card
+	// SD_card_init();
 }
 
 /****************************************************************************************************
@@ -48,6 +52,8 @@ void DRIVE_init(void)
 void DRIVE_task(void * p_params)
 {
 	UNUSED(p_params);
+
+	SD_card_init();
 
 	while (1)
 	{

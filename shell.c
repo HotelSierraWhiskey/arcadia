@@ -8,13 +8,14 @@
 #include "chrono_api.h"
 #include "chrono.h"
 #include "spi.h"
+#include "sd.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
 #define SHELL_LOG_DBG(fmt, ...)   					SHELL_printf("%-10s" fmt, "[SHELL]", ##__VA_ARGS__)
-#define SHELL_LOG_WARN(fmt, ...)   				SHELL_PRINT_WARNING("%-10s" fmt, "[SHELL]", ##__VA_ARGS__)
+#define SHELL_LOG_WARN(fmt, ...)   					SHELL_PRINT_WARNING("%-10s" fmt, "[SHELL]", ##__VA_ARGS__)
 
 #define SHELL_COMMAND_BUFFER_SIZE	(128)
 #define SHELL_CRLF					"\r\n"
@@ -83,6 +84,9 @@ static const SHELL_command_t kp_sys_command_table[];
 // TIMER command tables
 static const SHELL_command_t kp_timer_command_table[];
 
+// SD command tables
+static const SHELL_command_t kp_sd_command_table[];
+
 // SPI command tables
 static const SHELL_command_t kp_spi_command_table[];
 
@@ -118,6 +122,12 @@ static const SHELL_command_t kp_command_table[] =
 		.kpc_name 			= "nvm",
 		.function 			= NULL,
 		.kp_command_table 	= kp_nvm_command_table,
+		.kpc_docstring		= NULL
+	},
+	{
+		.kpc_name 			= "sd",
+		.function 			= NULL,
+		.kp_command_table 	= kp_sd_command_table,
 		.kpc_docstring		= NULL
 	},
 	{
@@ -265,6 +275,33 @@ static const SHELL_command_t kp_nvm_command_table[] =
 		.kpc_docstring		= 	(
 									"\tWrites a page to NVM\r\n"
 									"\tUsage: nvm write <addr> <num_bytes> <...>\r\n"
+								)
+	},
+	//////////
+	SHELL_COMMAND_TABLE_END
+};
+
+/**
+ *	`sd` commands
+ */
+static const SHELL_command_t kp_sd_command_table[] =
+{
+	{
+		.kpc_name 			= "read",
+		.function 			= SD_shell_read,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tRead a block of data\r\n"
+									"\tUsage: sd read <addr>\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "wtest",
+		.function 			= SD_shell_wtest,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tWrite a block of dummy data\r\n"
+									"\tUsage: sd wtest <addr>\r\n"
 								)
 	},
 	//////////

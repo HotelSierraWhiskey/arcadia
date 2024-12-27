@@ -67,7 +67,9 @@ static SPI_channel_t p_spi_channels[SPI_CHANNEL_NUM_CHANNELS] =
  ****************************************************************************************************/
 
 /****************************************************************************************************
- *	SPI channel initialization
+ *	SPI channel initialization (Master Mode)
+ *
+ * 	Initializes to 400KHz baud by default.
  *
  * 	@param[in] channel_id The logical SPI channel to initialize
  *
@@ -126,6 +128,49 @@ void SPI_init(SPI_channel_id_t channel_id)
 	p_channel->_p_sercom_registers->SPIM.SERCOM_CTRLA = 	SERCOM_SPIM_CTRLA_MODE_SPI_MASTER |
 															SERCOM_SPIM_CTRLA_DOPO(1) |
 															SERCOM_SPIM_CTRLA_ENABLE(1);
+
+	while (p_channel->_p_sercom_registers->SPIM.SERCOM_SYNCBUSY & SERCOM_SPIM_SYNCBUSY_ENABLE(1))
+	{
+		continue;
+	}
+}
+
+void SPI_set_baud(SPI_channel_id_t channel_id, SPI_baud_id_t baud_id)
+{
+	ASSERT(baud_id < SPI_BAUD_ID_NUM_IDS);
+
+	SPI_channel_t * 	p_channel = &p_spi_channels[channel_id];
+	uint32_t 			u32_baud_val;
+
+	switch (baud_id)
+	{
+		case SPI_BAUD_ID_400KHZ:
+			u32_baud_val = 59;
+			break;
+
+		case SPI_BAUD_ID_25MHZ:
+			u32_baud_val = 0;
+			break;
+
+		default:
+			u32_baud_val = 59;
+	}
+
+	p_channel->_p_sercom_registers->SPIM.SERCOM_CTRLA &= ~SERCOM_SPIM_CTRLA_ENABLE(1);
+
+	while (p_channel->_p_sercom_registers->SPIM.SERCOM_SYNCBUSY & SERCOM_SPIM_SYNCBUSY_ENABLE(1))
+	{
+		continue;
+	}
+	
+	p_channel->_p_sercom_registers->SPIM.SERCOM_BAUD = u32_baud_val;
+	
+	p_channel->_p_sercom_registers->SPIM.SERCOM_CTRLA |= SERCOM_SPIM_CTRLA_ENABLE(1);
+	
+	while (p_channel->_p_sercom_registers->SPIM.SERCOM_SYNCBUSY & SERCOM_SPIM_SYNCBUSY_ENABLE(1))
+	{
+		continue;
+	}
 }
 
 /****************************************************************************************************
@@ -138,7 +183,7 @@ void SPI_init(SPI_channel_id_t channel_id)
  *
  * 	@return data from the addressed slave device
  ****************************************************************************************************/
-uint8_t SPI_exchange(SPI_channel_id_t channel_id, uint8_t u8_byte)
+uint8_t SPI_transfer(SPI_channel_id_t channel_id, uint8_t u8_byte)
 {
 	p_spi_channels[channel_id]._p_sercom_registers->SPIM.SERCOM_DATA = u8_byte;
 
@@ -234,7 +279,7 @@ uint8_t	SPI_shell_write(uint8_t argc, char ** argv)
 		for (uint8_t i = 0; i < u32_num_bytes; i++)
 		{
 			SPI_ss_pin_low(u32_channel_id);
-			SPI_exchange((SPI_channel_id_t)u32_channel_id, u32_data[i]);
+			SPI_transfer((SPI_channel_id_t)u32_channel_id, u32_data[i]);
 			SPI_ss_pin_high(u32_channel_id);
 		}
 	}

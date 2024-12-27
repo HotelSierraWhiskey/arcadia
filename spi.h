@@ -17,12 +17,21 @@ typedef enum _SPI_channel_id
 	SPI_CHANNEL_NUM_CHANNELS
 } SPI_channel_id_t;
 
+typedef enum _SPI_baud_id
+{
+	SPI_BAUD_ID_400KHZ = 0,
+	SPI_BAUD_ID_25MHZ,
+	//////////
+	SPI_BAUD_ID_NUM_IDS,
+} SPI_baud_id_t;
+
 /****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
 
 void		SPI_init 			(SPI_channel_id_t channel_id);
-uint8_t 	SPI_exchange		(SPI_channel_id_t channel_id, uint8_t u8_byte);
+void		SPI_set_baud 		(SPI_channel_id_t channel_id, SPI_baud_id_t baud_id);
+uint8_t 	SPI_transfer		(SPI_channel_id_t channel_id, uint8_t u8_byte);
 void 		SPI_ss_pin_high		(SPI_channel_id_t channel_id);
 void 		SPI_ss_pin_low		(SPI_channel_id_t channel_id);
 
