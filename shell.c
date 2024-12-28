@@ -287,6 +287,15 @@ static const SHELL_command_t kp_nvm_command_table[] =
 static const SHELL_command_t kp_sd_command_table[] =
 {
 	{
+		.kpc_name 			= "info",
+		.function 			= SD_shell_info,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tDisplays SD info\r\n"
+									"\tUsage: sd info\r\n"
+								)
+	},
+	{
 		.kpc_name 			= "read",
 		.function 			= SD_shell_read,
 		.kp_command_table 	= NULL,
