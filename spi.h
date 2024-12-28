@@ -20,6 +20,7 @@ typedef enum _SPI_channel_id
 typedef enum _SPI_baud_id
 {
 	SPI_BAUD_ID_400KHZ = 0,
+	SPI_BAUD_ID_4MHZ,
 	SPI_BAUD_ID_25MHZ,
 	//////////
 	SPI_BAUD_ID_NUM_IDS,

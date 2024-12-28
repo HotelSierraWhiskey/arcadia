@@ -148,6 +148,10 @@ void SPI_set_baud(SPI_channel_id_t channel_id, SPI_baud_id_t baud_id)
 			u32_baud_val = 59;
 			break;
 
+		case SPI_BAUD_ID_4MHZ:
+			u32_baud_val = 5;
+			break;
+
 		case SPI_BAUD_ID_25MHZ:
 			u32_baud_val = 0;
 			break;

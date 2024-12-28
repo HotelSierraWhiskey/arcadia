@@ -11,6 +11,7 @@
 #define NORETURN			__attribute__((noreturn))
 #define WEAKREF				__attribute__((weak))
 #define SECTION_APP_NVM		__attribute__((section(".app_nvm")))
+#define PACKED				__attribute__((packed, aligned))
 #define UNUSED(x)			(void)(x)
 
 #define ASSERT(x) do { \

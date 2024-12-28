@@ -16,10 +16,180 @@
 #define SD_RESPONSE_IDLE 				(0x01)
 #define SD_RESPONSE_READY 				(0x00)
 #define SD_INIT_RETRIES					(5)
+#define SD_CSD_REGISTER_SIZE			(16)
+
+typedef struct _SD_csdv1 {
+  // byte 0
+  unsigned reserved1 				: 6;
+  unsigned csd_ver 					: 2;
+  // byte 1
+  uint8_t taac;
+  // byte 2
+  uint8_t nsac;
+  // byte 3
+  uint8_t tran_speed;
+  // byte 4
+  uint8_t ccc_high;
+  // byte 5
+  unsigned read_bl_len 				: 4;
+  unsigned ccc_low : 4;
+  // byte 6
+  unsigned c_size_high : 2;
+  unsigned reserved2 : 2;
+  unsigned dsr_imp : 1;
+  unsigned read_blk_misalign : 1;
+  unsigned write_blk_misalign : 1;
+  unsigned read_bl_partial : 1;
+  // byte 7
+  uint8_t c_size_mid;
+  // byte 8
+  unsigned vdd_r_curr_max : 3;
+  unsigned vdd_r_curr_min : 3;
+  unsigned c_size_low : 2;
+  // byte 9
+  unsigned c_size_mult_high : 2;
+  unsigned vdd_w_cur_max : 3;
+  unsigned vdd_w_curr_min : 3;
+  // byte 10
+  unsigned sector_size_high : 6;
+  unsigned erase_blk_en : 1;
+  unsigned c_size_mult_low : 1;
+  // byte 11
+  unsigned wp_grp_size : 7;
+  unsigned sector_size_low : 1;
+  // byte 12
+  unsigned write_bl_len_high : 2;
+  unsigned r2w_factor : 3;
+  unsigned reserved3 : 2;
+  unsigned wp_grp_enable : 1;
+  // byte 13
+  unsigned reserved4 : 5;
+  unsigned write_partial : 1;
+  unsigned write_bl_len_low : 2;
+  // byte 14
+  unsigned reserved5: 2;
+  unsigned file_format : 2;
+  unsigned tmp_write_protect : 1;
+  unsigned perm_write_protect : 1;
+  unsigned copy : 1;
+  unsigned file_format_grp : 1;
+  // byte 15
+  unsigned always1 : 1;
+  unsigned crc : 7;
+} SD_csdv1_t;
+
+
+
+typedef struct _SD_csdv2 {
+  // byte 0
+  unsigned reserved1 : 6;
+  unsigned csd_ver : 2;
+  // byte 1
+  uint8_t taac;
+  // byte 2
+  uint8_t nsac;
+  // byte 3
+  uint8_t tran_speed;
+  // byte 4
+  uint8_t ccc_high;
+  // byte 5
+  unsigned read_bl_len : 4;
+  unsigned ccc_low : 4;
+  // byte 6
+  unsigned reserved2 : 4;
+  unsigned dsr_imp : 1;
+  unsigned read_blk_misalign : 1;
+  unsigned write_blk_misalign : 1;
+  unsigned read_bl_partial : 1;
+  // byte 7
+  unsigned reserved3 : 2;
+  unsigned c_size_high : 6;
+  // byte 8
+  uint8_t c_size_mid;
+  // byte 9
+  uint8_t c_size_low;
+  // byte 10
+  unsigned sector_size_high : 6;
+  unsigned erase_blk_en : 1;
+  unsigned reserved4 : 1;
+  // byte 11
+  unsigned wp_grp_size : 7;
+  unsigned sector_size_low : 1;
+  // byte 12
+  unsigned write_bl_len_high : 2;
+  unsigned r2w_factor : 3;
+  unsigned reserved5 : 2;
+  unsigned wp_grp_enable : 1;
+  // byte 13
+  unsigned reserved6 : 5;
+  unsigned write_partial : 1;
+  unsigned write_bl_len_low : 2;
+  // byte 14
+  unsigned reserved7: 2;
+  unsigned file_format : 2;
+  unsigned tmp_write_protect : 1;
+  unsigned perm_write_protect : 1;
+  unsigned copy : 1;
+  unsigned file_format_grp : 1;
+  // byte 15
+  unsigned always1 : 1;
+  unsigned crc : 7;
+} SD_csdv2_t;
+
+typedef struct _SD_csdv3
+{
+	unsigned _reserved_1 		: 6;
+	unsigned CSD_STRUCTURE 		: 2;
+	unsigned TAAC 				: 8;
+	unsigned NSAC 				: 8;
+	unsigned TRAN_SPEED 		: 8;
+	unsigned CCC 				: 12;
+	unsigned READ_BL_LEN 		: 4;
+	unsigned READ_BL_PARTIAL 	: 1;
+	unsigned WRITE_BLK_MISALIGN : 1;
+	unsigned READ_BLK_MISALIGN 	: 1;
+	unsigned DSR_IMP 			: 1;
+	unsigned C_SIZE 			: 28;
+	unsigned _reserved_2 		: 1;
+	unsigned ERASE_BLK_EN 		: 1;
+	unsigned SECTOR_SIZE 		: 7;
+	unsigned WP_GRP_SIZE 		: 7;
+	unsigned WP_GRP_ENABLE 		: 1;
+	unsigned _reserved_3 		: 2;
+	unsigned R2W_FACTOR 		: 3;
+	unsigned WRITE_BL_LEN 		: 4;
+	unsigned WRITE_BL_PARTIAL 	: 1;
+	unsigned _reserved_4 		: 5;
+	unsigned FILE_FORMAT_GRP 	: 1;
+	unsigned COPY 				: 1;
+	unsigned PERM_WRITE_PROTECT : 1;
+	unsigned TMP_WRITE_PROTECT 	: 1;
+	unsigned FILE_FORMAT 		: 2;
+	unsigned WP_UPC 			: 1;
+	unsigned _reserved_5 		: 1;
+	unsigned CRC 				: 7;
+	unsigned _always_1 			: 1;
+} PACKED SD_csdv3_t;
+
+typedef union _SD_csd
+{
+	SD_csdv1_t 	csdv1;
+	SD_csdv2_t	csdv2;
+	SD_csdv3_t	csdv3;
+} SD_csd_info_t;
+
+typedef enum _SD_csd_version
+{
+	SD_CSD_VERSION_STANDARD_CAPACITY = 0,		// SD
+	SD_CSD_VERSION_HIGH_AND_EXTENDED_CAPACITY,	// SDHC
+	SD_CSD_ULTRA_CAPACITY,						// SDHC Ultra
+} SD_csd_version_t;
 
 typedef struct _SD_info
 {
-	uint8_t	pu8_buffer[SD_BLOCK_SIZE];
+	SD_csd_version_t	csd_version;
+	SD_csd_info_t		csd_info;
+	uint8_t				pu8_buffer[SD_BLOCK_SIZE];
 } SD_info_t;
 
 /****************************************************************************************************
@@ -37,12 +207,15 @@ static uint8_t 		SD_cmd_read_ocr						(void); 						// CMD58
 static uint8_t 		SD_cmd_set_blocklen					(uint32_t u32_blocklen); 		// CMD16
 static uint8_t 		SD_cmd_write_single_block			(uint32_t u32_block_address);	// CMD24
 static uint8_t 		SD_cmd_read_single_block			(uint32_t u32_block_address);	// CMD17
+static uint8_t 		SD_cmd_send_csd						(uint8_t * pu8_csd);			// CMD9
 
 /**
  *	SD utilities
  */
 static uint8_t 		SD_transfer							(uint8_t u8_byte);
 static uint8_t 		SD_await_r1_response				(uint8_t u8_expected);
+static void 		SD_get_csd_info						(void);
+static uint32_t		SD_calculate_capacity				(void);
 
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
@@ -68,8 +241,10 @@ SD_info_t SD_info;
  ****************************************************************************************************/
 void SD_card_init(void)
 {
-	uint8_t u8_retries = SD_INIT_RETRIES;
-	uint8_t u8_response;
+	uint8_t 	u8_retries = SD_INIT_RETRIES;
+	uint8_t 	u8_response;
+	uint8_t 	pu8_csd[SD_CSD_REGISTER_SIZE];
+	uint32_t 	u32_capacity;
 
 	memset(SD_info.pu8_buffer, 0 , SD_BLOCK_SIZE);
 
@@ -82,97 +257,99 @@ void SD_card_init(void)
 	}
 
 	u8_response = SD_cmd_go_idle_state();
-	SD_LOG_DBG("SD_cmd_go_idle_state: %u\r\n", u8_response);
+	// SD_LOG_DBG("SD_cmd_go_idle_state: %u\r\n", u8_response);
 
 	u8_response = SD_cmd_send_interface_condition();
-	SD_LOG_DBG("SD_cmd_send_interface_condition: %u\r\n", u8_response);
+	// SD_LOG_DBG("SD_cmd_send_interface_condition: %u\r\n", u8_response);
 
 	do
 	{
 		CHRONO_delay_ms(500);
 
 		u8_response = SD_cmd_app_cmd();
-		SD_LOG_DBG("SD_cmd_app_cmd: %u\r\n", u8_response);
+		// SD_LOG_DBG("SD_cmd_app_cmd: %u\r\n", u8_response);
 
 		u8_response = SD_cmd_send_op_cond();
-		SD_LOG_DBG("SD_cmd_send_op_cond: %u\r\n", u8_response);
+		// SD_LOG_DBG("SD_cmd_send_op_cond: %u\r\n", u8_response);
 
 	} while (u8_response != SD_RESPONSE_READY && --u8_retries > 0);
 
 	u8_response = SD_cmd_read_ocr();
-	SD_LOG_DBG("SD_cmd_read_ocr %u\r\n", u8_response);
+	// SD_LOG_DBG("SD_cmd_read_ocr %u\r\n", u8_response);
 
 	u8_response = SD_cmd_set_blocklen(SD_BLOCK_SIZE);
-	SD_LOG_DBG("SD_cmd_set_blocklen %u\r\n", u8_response);
+	// SD_LOG_DBG("SD_cmd_set_blocklen %u\r\n", u8_response);
 
-	// SPI_set_baud(SPI_CHANNEL_SD_CARD, SPI_BAUD_ID_25MHZ);
+	SD_get_csd_info();
+
+	SHELL_printf("Total Capacity: %u\r\n", SD_calculate_capacity());
+
+	SPI_set_baud(SPI_CHANNEL_SD_CARD, SPI_BAUD_ID_4MHZ);
 }
 
 uint8_t SD_write_block(uint32_t u32_block_address, const uint8_t * kpu8_buffer)
 {
 	uint8_t u8_response = SD_cmd_write_single_block(u32_block_address);
-	SD_LOG_DBG("SD_cmd_write_single_block %u\r\n", u8_response);
 
 	SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
 
 	// Send start token
-    SD_transfer(0xFE);
+	SD_transfer(0xFE);
 
 	// Write the block
 	for (uint16_t i = 0; i < SD_BLOCK_SIZE; i++)
-    {
-        SD_transfer(kpu8_buffer[i]);
-    }
+	{
+		SD_transfer(kpu8_buffer[i]);
+	}
 
-	// Dummy CRC
-    SD_transfer(0xFF);
-    SD_transfer(0xFF);
+	SD_transfer(0xFF);
+	SD_transfer(0xFF);
 
-	// Check data response token
-    u8_response = SD_transfer(0xFF);
+	u8_response = SD_transfer(0xFF);
 
-    if ((u8_response & 0x1F) != 0x05) // Data accepted
-    {
-        SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
-        return u8_response;
-    }
+	 // Data accepted?
+	if ((u8_response & 0x1F) != 0x05)
+	{
+		SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
+		return u8_response;
+	}
 
-    // Wait for card to finish writing
-    while (SD_transfer(0xFF) == 0x00)
+	// Wait for card to finish writing
+	while (SD_transfer(0xFF) == 0x00)
 	{
 		continue;
 	}
 
-    SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
+	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 
-    return 0;
+	return 0;
 }
 
 uint8_t SD_read_block(uint32_t u32_block_address, uint8_t * pu8_buffer)
 {
-	uint8_t u8_response = SD_cmd_read_single_block(u32_block_address);
+	SD_cmd_read_single_block(u32_block_address);
 
 	SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
 
 	// Wait for start token (0xFE)
-    while (SD_transfer(0xFF) != 0xFE)
+	while (SD_transfer(0xFF) != 0xFE)
 	{
 		continue;
 	}
 
-    // Read data block
-    for (uint16_t i = 0; i < SD_BLOCK_SIZE; i++)
-    {
-        pu8_buffer[i] = SD_transfer(0xFF);
-    }
+	// Read data block
+	for (uint16_t i = 0; i < SD_BLOCK_SIZE; i++)
+	{
+		pu8_buffer[i] = SD_transfer(0xFF);
+	}
 
-    // Read and discard CRC
-    SD_transfer(0xFF);
-    SD_transfer(0xFF);
+	// Read and discard CRC
+	SD_transfer(0xFF);
+	SD_transfer(0xFF);
 
-    SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
+	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 
-    return 0;
+	return 0;
 }
 
 /****************************************************************************************************
@@ -332,20 +509,20 @@ static uint8_t SD_cmd_write_single_block(uint32_t u32_block_address)
 {
 	const uint8_t cmd[SD_CMD_LEN] =
 	{
-        0x58,
-        (u32_block_address >> 24) & 0xFF,
-        (u32_block_address >> 16) & 0xFF,
-        (u32_block_address >> 8) & 0xFF,
-        u32_block_address & 0xFF,
-        0xFF
-    };
+		0x58,
+		(u32_block_address >> 24) & 0xFF,
+		(u32_block_address >> 16) & 0xFF,
+		(u32_block_address >> 8) & 0xFF,
+		u32_block_address & 0xFF,
+		0xFF
+	};
 
 	SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
 
 	for (uint8_t i = 0; i < SD_CMD_LEN; i++)
-    {
-        SD_transfer(cmd[i]);
-    }
+	{
+		SD_transfer(cmd[i]);
+	}
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 
@@ -355,25 +532,94 @@ static uint8_t SD_cmd_write_single_block(uint32_t u32_block_address)
 static uint8_t SD_cmd_read_single_block(uint32_t u32_block_address)
 {
 	const uint8_t cmd[SD_CMD_LEN] =
-    {
-        0x51,
-        (u32_block_address >> 24) & 0xFF,
-        (u32_block_address >> 16) & 0xFF,
-        (u32_block_address >> 8) & 0xFF,
-        u32_block_address & 0xFF,
-        0xFF
-    };
+	{
+		0x51,
+		(u32_block_address >> 24) & 0xFF,
+		(u32_block_address >> 16) & 0xFF,
+		(u32_block_address >> 8) & 0xFF,
+		u32_block_address & 0xFF,
+		0xFF
+	};
 
 	SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
 
 	for (uint8_t i = 0; i < SD_CMD_LEN; i++)
-    {
-        SD_transfer(cmd[i]);
-    }
+	{
+		SD_transfer(cmd[i]);
+	}
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 
 	return SD_await_r1_response(SD_RESPONSE_READY);
+}
+
+static uint8_t SD_cmd_send_csd(uint8_t *pu8_csd)
+{
+	const uint8_t u8_cmd[SD_CMD_LEN] = {0x49, 0x00, 0x00, 0x00, 0x00, 0x95};
+
+	SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
+
+	for (uint8_t i = 0; i < SD_CMD_LEN; i++)
+	{
+		SD_transfer(u8_cmd[i]);
+	}
+
+	// Wait for start token (0xFE)
+	while (SD_transfer(0xFF) != 0xFE)
+	{
+		continue;
+	}
+
+	// Read the 16-byte CSD register
+	for (uint8_t i = 0; i < SD_CSD_REGISTER_SIZE; i++)
+	{
+		pu8_csd[i] = SD_transfer(0xFF);
+	}
+
+	// Read and discard CRC
+	SD_transfer(0xFF);
+	SD_transfer(0xFF);
+
+	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
+
+	return 0;
+}
+
+static void SD_get_csd_info(void)
+{
+	uint8_t 	pu8_csd[SD_CSD_REGISTER_SIZE];
+	
+	SD_cmd_send_csd(pu8_csd);
+
+	memcpy(&SD_info.csd_info, pu8_csd, sizeof(SD_csd_info_t));
+}
+
+static uint32_t SD_calculate_capacity(void)
+{
+	// This is okay because the structure member comes first in each spec
+	SD_csd_version_t 	version = SD_info.csd_info.csdv1.csd_ver;
+	uint32_t 			u32_c_size;
+	uint32_t			u32_capacity = 0;
+
+	switch (version)
+	{
+		case SD_CSD_VERSION_STANDARD_CAPACITY:
+			// Implement me
+			break;
+
+		case SD_CSD_VERSION_HIGH_AND_EXTENDED_CAPACITY:
+			u32_c_size = 	((uint32_t)(SD_info.csd_info.csdv2.c_size_high) << 16) |
+             				((uint32_t)(SD_info.csd_info.csdv2.c_size_mid) << 8) |
+             				((uint32_t)(SD_info.csd_info.csdv2.c_size_low));
+			u32_capacity = (u32_c_size + 1) * SD_BLOCK_SIZE;
+			break;
+
+		case SD_CSD_ULTRA_CAPACITY:
+			// Implement me
+			break;
+	}
+
+	return u32_capacity;
 }
 
 static uint8_t SD_transfer(uint8_t u8_byte)
@@ -448,12 +694,10 @@ uint8_t SD_shell_wtest(uint8_t argc, char ** argv)
 	{
 		if (UTILS_string_to_u32(argv[0], &u32_address))
 		{
-			// dummy data 0 - 255 twice, as blocksizes are 512 bytes
-			for (uint16_t i = 0; i < SD_BLOCK_SIZE; i++)
-			{
-				SD_info.pu8_buffer[i] = i & 0xFF;
-			}
 
+			memset(SD_info.pu8_buffer, 0, SD_BLOCK_SIZE);
+
+			// Add some 0xCOFFEE
 			SD_info.pu8_buffer[0] = 0xC0;
 			SD_info.pu8_buffer[1] = 0xFF;
 			SD_info.pu8_buffer[2] = 0xEE;
