@@ -5,6 +5,7 @@
 #include "shell.h"
 #include "utils.h"
 #include "nvmctrl.h"
+#include "fsif.h"
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -301,6 +302,91 @@ uint8_t DRIVE_API_shell_write_nvm(uint8_t argc, char ** argv)
 	else
 	{
 		SHELL_printf("Usage: drive nvm write <row_id> <num_bytes> <...>\r\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
+
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Runs the interface wrapper for FatFs f_mkfs
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
+uint8_t DRIVE_API_shell_mkfs(uint8_t argc, char ** argv)
+{
+	if (argc == 0)
+	{
+		FSIF_f_mkfs();
+	}
+	else
+	{
+		SHELL_printf("Usage: drive fs format\r\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
+
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Runs the interface wrapper for FatFs f_mount
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
+uint8_t DRIVE_API_shell_mount(uint8_t argc, char ** argv)
+{
+	if (argc == 0)
+	{
+		FSIF_f_mount();
+	}
+	else
+	{
+		SHELL_printf("Usage: drive fs mount\r\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
+
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Runs the interface wrapper for FatFs f_open
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
+uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
+{
+	if (argc == 0)
+	{
+		char buf[32];
+		memset(buf, 0, 32);
+		uint32_t bw = 0;
+		uint32_t br = 0;
+
+		FRESULT res = FSIF_f_open("hello.txt", buf, &bw, &br);
+
+		SHELL_printf("res: %u, bw: %u, br: %u\r\n", res, bw, br);
+
+		if (res == FR_OK)
+		{
+			SHELL_printf("buffer: %s\r\n", buf);
+		}
+
+	}
+	else
+	{
+		SHELL_printf("Usage: drive fs open\r\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;

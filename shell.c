@@ -73,6 +73,7 @@ static const SHELL_command_t kp_chrono_command_table[];
 
 // DRIVE command tables
 static const SHELL_command_t kp_drive_command_table[];
+static const SHELL_command_t kp_drive_fs_command_table[];
 static const SHELL_command_t kp_drive_nvm_command_table[];
 
 // NVM command tables
@@ -200,10 +201,52 @@ static const SHELL_command_t kp_chrono_command_table[] =
 static const SHELL_command_t kp_drive_command_table[] =
 {
 	{
+		.kpc_name 			= "fs",
+		.function 			= NULL,
+		.kp_command_table 	= kp_drive_fs_command_table,
+		.kpc_docstring		= NULL
+	},
+	{
 		.kpc_name 			= "nvm",
 		.function 			= NULL,
 		.kp_command_table 	= kp_drive_nvm_command_table,
 		.kpc_docstring		= NULL
+	},
+	//////////
+	SHELL_COMMAND_TABLE_END
+};
+
+/**
+ *	`drive fs` commands
+ */
+static const SHELL_command_t kp_drive_fs_command_table[] =
+{
+	{
+		.kpc_name 			= "format",
+		.function 			= DRIVE_API_shell_mkfs,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tRuns FatFs f_mkfs, creates the file system\r\n"
+									"\tUsage: drive format\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "mount",
+		.function 			= DRIVE_API_shell_mount,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tRuns FatFs f_mount, mounts the file system\r\n"
+									"\tUsage: drive mount\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "open",
+		.function 			= DRIVE_API_shell_open,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tRuns FatFs f_mount, mounts the file system\r\n"
+									"\tUsage: drive mount\r\n"
+								)
 	},
 	//////////
 	SHELL_COMMAND_TABLE_END
@@ -286,6 +329,15 @@ static const SHELL_command_t kp_nvm_command_table[] =
  */
 static const SHELL_command_t kp_sd_command_table[] =
 {
+	{
+		.kpc_name 			= "erase",
+		.function 			= SD_shell_erase,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tErases a block of memory\r\n"
+									"\tUsage: sd erase <addr>\r\n"
+								)
+	},
 	{
 		.kpc_name 			= "info",
 		.function 			= SD_shell_info,

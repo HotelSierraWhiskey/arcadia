@@ -17,8 +17,14 @@ ARCADIA_status_t	DRIVE_API_erase_nvm			(const NVMCTRL_app_nvm_row_id_t row_id);
  *	S H E L L   F U N C T I O N S
  ****************************************************************************************************/
 
+// NVM shell commands
 uint8_t				DRIVE_API_shell_erase_nvm	(uint8_t argc, char ** argv);
 uint8_t				DRIVE_API_shell_read_nvm	(uint8_t argc, char ** argv);
 uint8_t				DRIVE_API_shell_write_nvm	(uint8_t argc, char ** argv);
+
+// FS shell commands
+uint8_t 			DRIVE_API_shell_mkfs		(uint8_t argc, char ** argv);
+uint8_t 			DRIVE_API_shell_mount		(uint8_t argc, char ** argv);
+uint8_t 			DRIVE_API_shell_open		(uint8_t argc, char ** argv);
 
 #endif // DRIVE_API_H

@@ -12,7 +12,6 @@
 #define SD_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("%-10s" fmt, "[SD]", ##__VA_ARGS__)
 
 #define SD_CMD_LEN						(6)
-#define SD_BLOCK_SIZE 					(512U)
 #define SD_RESPONSE_IDLE 				(0x01)
 #define SD_RESPONSE_READY 				(0x00)
 #define SD_INIT_RETRIES					(5)
@@ -168,6 +167,7 @@ typedef struct _SD_info
 {
 	SD_csd_info_t		csd_info;
 	uint8_t				pu8_buffer[SD_BLOCK_SIZE];
+	bool				b_initialized;
 } SD_info_t;
 
 /****************************************************************************************************
@@ -192,7 +192,8 @@ static uint8_t 		SD_cmd_send_csd						(uint8_t * pu8_csd);			// CMD9
  */
 static uint8_t 		SD_transfer							(uint8_t u8_byte);
 static uint8_t 		SD_await_r1_response				(uint8_t u8_expected);
-static uint32_t		SD_get_capacity						(void);
+static void 		SD_display_info						(void);
+
 
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
@@ -227,6 +228,8 @@ void SD_card_init(void)
 {
 	uint8_t 	u8_retries = SD_INIT_RETRIES;
 	uint8_t 	u8_response;
+
+	SD_info.b_initialized = false;
 
 	memset(SD_info.pu8_buffer, 0 , SD_BLOCK_SIZE);
 
@@ -265,10 +268,21 @@ void SD_card_init(void)
 	SD_cmd_send_csd((uint8_t *)&SD_info.csd_info);
 
 	SPI_set_baud(SPI_CHANNEL_SD_CARD, SPI_BAUD_ID_4MHZ);
+
+	SD_info.b_initialized = true;
+
+	SD_LOG_DBG("Initialized %s card (%u bytes)\r\n",
+		kpc_version_descriptors[SD_info.csd_info.csdv1.csd_ver], SD_get_capacity());
 }
+
+// static uint32_t c = 0;
 
 uint8_t SD_write_block(uint32_t u32_block_address, const uint8_t * kpu8_buffer)
 {
+	// SD_LOG_DBG("Writing block to 0x%08X\r\n", u32_block_address);
+	// SD_LOG_DBG("count: %u\r\n", c++);
+	// CHRONO_delay_ms(1);
+
 	uint8_t u8_response = SD_cmd_write_single_block(u32_block_address);
 
 	SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
@@ -307,6 +321,8 @@ uint8_t SD_write_block(uint32_t u32_block_address, const uint8_t * kpu8_buffer)
 
 uint8_t SD_read_block(uint32_t u32_block_address, uint8_t * pu8_buffer)
 {
+	// SD_LOG_DBG("Reading block from 0x%08X\r\n", u32_block_address);
+
 	SD_cmd_read_single_block(u32_block_address);
 
 	SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
@@ -330,6 +346,47 @@ uint8_t SD_read_block(uint32_t u32_block_address, uint8_t * pu8_buffer)
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 
 	return 0;
+}
+
+bool SD_is_initialized(void)
+{
+	return SD_info.b_initialized;
+}
+
+/****************************************************************************************************
+ *	Retrieves the memory capacity of the SD card
+ *
+ * 	@note
+ * 	The card must be initialized and its CSD data loaded into `SD_info`
+ *
+ * 	@return The capacity of the SD card in bytes
+ ****************************************************************************************************/
+uint32_t SD_get_capacity(void)
+{
+	// This is okay because the structure member comes first in each spec
+	SD_csd_version_t 	version = SD_info.csd_info.csdv1.csd_ver;
+	uint32_t 			u32_c_size;
+	uint32_t			u32_capacity = 0;
+
+	switch (version)
+	{
+		case SD_CSD_VERSION_STANDARD_CAPACITY:
+			// Implement me
+			break;
+
+		case SD_CSD_VERSION_HIGH_AND_EXTENDED_CAPACITY:
+			u32_c_size = 	((uint32_t)(SD_info.csd_info.csdv2.c_size_high) << 16) |
+             				((uint32_t)(SD_info.csd_info.csdv2.c_size_mid) << 8) |
+             				((uint32_t)(SD_info.csd_info.csdv2.c_size_low));
+			u32_capacity = (u32_c_size + 1) * SD_BLOCK_SIZE;
+			break;
+
+		case SD_CSD_VERSION_ULTRA_CAPACITY:
+			// Implement me
+			break;
+	}
+
+	return u32_capacity;
 }
 
 /****************************************************************************************************
@@ -599,42 +656,6 @@ static uint8_t SD_cmd_send_csd(uint8_t * pu8_csd)
 }
 
 /****************************************************************************************************
- *	Retrieves the memory capacity of the SD card
- *
- * 	@note
- * 	The card must be initialized and its CSD data loaded into `SD_info`
- *
- * 	@return The capacity of the SD card in bytes
- ****************************************************************************************************/
-static uint32_t SD_get_capacity(void)
-{
-	// This is okay because the structure member comes first in each spec
-	SD_csd_version_t 	version = SD_info.csd_info.csdv1.csd_ver;
-	uint32_t 			u32_c_size;
-	uint32_t			u32_capacity = 0;
-
-	switch (version)
-	{
-		case SD_CSD_VERSION_STANDARD_CAPACITY:
-			// Implement me
-			break;
-
-		case SD_CSD_VERSION_HIGH_AND_EXTENDED_CAPACITY:
-			u32_c_size = 	((uint32_t)(SD_info.csd_info.csdv2.c_size_high) << 16) |
-             				((uint32_t)(SD_info.csd_info.csdv2.c_size_mid) << 8) |
-             				((uint32_t)(SD_info.csd_info.csdv2.c_size_low));
-			u32_capacity = (u32_c_size + 1) * SD_BLOCK_SIZE;
-			break;
-
-		case SD_CSD_VERSION_ULTRA_CAPACITY:
-			// Implement me
-			break;
-	}
-
-	return u32_capacity;
-}
-
-/****************************************************************************************************
  *	Sends and receives a byte of data over the SD card's logical SPI channel.
  *
  * 	@note
@@ -773,6 +794,42 @@ uint8_t SD_shell_wtest(uint8_t argc, char ** argv)
 	else
 	{
 		SHELL_printf("Usage: sd wtest <addr>\r\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
+
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Zeros out the addressed block of memory
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
+uint8_t SD_shell_erase(uint8_t argc, char ** argv)
+{
+	uint32_t u32_address;
+
+	if (argc == 1)
+	{
+		if (UTILS_string_to_u32(argv[0], &u32_address))
+		{
+
+			memset(SD_info.pu8_buffer, 0, SD_BLOCK_SIZE);
+
+			SD_write_block(u32_address, SD_info.pu8_buffer);
+
+			memset(SD_info.pu8_buffer, 0, SD_BLOCK_SIZE);
+
+			SHELL_printf("Erased block at address 0x%08X\r\n", u32_address);
+		}
+	}
+	else
+	{
+		SHELL_printf("Usage: sd erase <addr>\r\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;

@@ -34,7 +34,8 @@ APP_INC = 	-I./ \
 			-Ilib/CMSIS_5/CMSIS/Core/Include \
 			-Ilib/samc21/include \
 			-I/usr/local/arm-gnu-toolchain-13.2.Rel1-x86_64-arm-none-eabi/include \
-			$(FREERTOS_INC)
+			$(FREERTOS_INC) \
+			$(FATFS_INC)
 
 # App C files
 APP_VPATH = 	main.c  \
@@ -54,9 +55,12 @@ APP_VPATH = 	main.c  \
 				chrono_api.c \
 				spi.c \
 				sd.c \
+				fsif.c
 
-# Matching .o files from APP_VPATH
-APP_OBJECTS = 	$(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(wildcard $(APP_VPATH)))) $(FREERTOS_OBJECTS)
+# Matching .o files from APP_VPATH, and .o files from FreeRTOS and FatFs
+APP_OBJECTS = 	$(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(wildcard $(APP_VPATH)))) $(FREERTOS_OBJECTS) $(FATFS_OBJECTS)
+
+# **************************************************************************** #
 
 # FreeRTOS Includes
 FREERTOS_INC = 	-IFreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel \
@@ -71,12 +75,8 @@ FREERTOS_VPATH = 	FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/list.c \
 					FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/portasm.c \
 					FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/mpu_wrappers_v2_asm.c \
 
-# FreeRTOS .o object names
+# Matching .o files from FREERTOS_VPATH
 FREERTOS_OBJECTS = $(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(FREERTOS_VPATH)))
-
-# Rule for app/build
-$(APP_BUILD_DIR):
-	mkdir -p $(APP_BUILD_DIR)
 
 # Build rule for FreeRTOS kernel files
 $(APP_BUILD_DIR)/%.o: FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/%.c
@@ -92,6 +92,27 @@ $(APP_BUILD_DIR)/%.o: FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0
 $(APP_BUILD_DIR)/%.o: FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/MemMang/%.c
 	@echo $@
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
+
+# **************************************************************************** #
+
+# FatFs Includes
+FATFS_INC = 	-Iff15a/source
+# FatFs C files
+FATFS_VPATH = 	ff15a/source/ff.c
+
+# Matching .o files from FATFS_VPATH
+FATFS_OBJECTS = $(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(FATFS_VPATH)))
+
+# Build rule for FatFs implementation files
+$(APP_BUILD_DIR)/%.o: ff15a/source/%.c
+	@echo $@
+	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
+
+# **************************************************************************** #
+
+# Rule for app/build
+$(APP_BUILD_DIR):
+	mkdir -p $(APP_BUILD_DIR)
 
 # .c files in app for app/build
 $(APP_BUILD_DIR)/%.o: %.c | $(APP_BUILD_DIR)
