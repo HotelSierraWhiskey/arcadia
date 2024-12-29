@@ -14,8 +14,8 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define DRIVE_LOG_DBG(fmt, ...)   		SHELL_printf("%-10s" fmt, "[DRIVE]", ##__VA_ARGS__)
-#define DRIVE_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("%-10s" fmt, "[DRIVE]", ##__VA_ARGS__)
+#define DRIVE_LOG_DBG(fmt, ...)   		SHELL_printf("\r%-10s" fmt, "[DRIVE]", ##__VA_ARGS__)
+#define DRIVE_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-10s" fmt, "[DRIVE]", ##__VA_ARGS__)
 
 /****************************************************************************************************
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
@@ -51,7 +51,7 @@ void DRIVE_task(void * p_params)
 {
 	UNUSED(p_params);
 
-	SD_card_init();
+	FSIF_fs_init();
 
 	while (1)
 	{

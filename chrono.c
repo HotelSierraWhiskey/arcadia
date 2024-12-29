@@ -10,8 +10,8 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define CHRONO_LOG_DBG(fmt, ...)   					SHELL_printf("%-10s" fmt, "[CHRONO]", ##__VA_ARGS__)
-#define CHRONO_LOG_WARN(fmt, ...)   				SHELL_PRINT_WARNING("%-10s" fmt, "[CHRONO]", ##__VA_ARGS__)
+#define CHRONO_LOG_DBG(fmt, ...)   					SHELL_printf("\r%-10s" fmt, "[CHRONO]", ##__VA_ARGS__)
+#define CHRONO_LOG_WARN(fmt, ...)   				SHELL_PRINT_WARNING("\r%-10s" fmt, "[CHRONO]", ##__VA_ARGS__)
 
 #define CHRONO_SYS_TICK_FREQ_1MS(source_clock_freq) ((source_clock_freq) / (1000U))
 
@@ -129,20 +129,23 @@ static void	CHRONO_handle_msg_timer_elapsed(ARCADIA_msg_t * p_msg)
 	ARCADIA_msg_t * 		p_scheduled_msg = &p_msg_schedule[timer_id].msg;
 	const TIMER_info_t * 	kp_timer_info = TIMER_get_timer_info(timer_id);
 
-	CHRONO_LOG_DBG("Timer %u Elapsed. Relaying msg %s to task %s\r\n", 
-		timer_id, ARCADIA_get_msg_type(p_msg_schedule[timer_id].msg.id), ARCADIA_get_task_name(task_id));
-	
-	ARCADIA_send(task_id, p_scheduled_msg);
-
-	// This semaphore was allocated when the message was copied into the schedule
-	ARCADIA_semaphore_take(p_msg_schedule[timer_id].msg.semaphore);
-	ARCADIA_semaphore_free(p_msg_schedule[timer_id].msg.semaphore);
-
-	// Clean up the schedule slot that was used, if applicable
-	if (TIMER_MODE_SINGLE_SHOT == kp_timer_info->mode)
+	if (task_id != ARCADIA_INVALID_TASK)
 	{
-		memset(&p_msg_schedule[timer_id].msg, 0, sizeof(ARCADIA_msg_t));
-		p_msg_schedule[timer_id].task_id = ARCADIA_INVALID_TASK;
+		CHRONO_LOG_DBG("Timer %u Elapsed. Relaying msg %s to task %s\r\n", 
+			timer_id, ARCADIA_get_msg_type(p_msg_schedule[timer_id].msg.id), ARCADIA_get_task_name(task_id));
+		
+		ARCADIA_send(task_id, p_scheduled_msg);
+
+		// This semaphore was allocated when the message was copied into the schedule
+		ARCADIA_semaphore_take(p_msg_schedule[timer_id].msg.semaphore);
+		ARCADIA_semaphore_free(p_msg_schedule[timer_id].msg.semaphore);
+
+		// Clean up the schedule slot that was used, if applicable
+		if (TIMER_MODE_SINGLE_SHOT == kp_timer_info->mode)
+		{
+			memset(&p_msg_schedule[timer_id].msg, 0, sizeof(ARCADIA_msg_t));
+			p_msg_schedule[timer_id].task_id = ARCADIA_INVALID_TASK;
+		}
 	}
 
 	CHRONO_LOG_DBG("Handled msg %s\r\n", ARCADIA_get_msg_type(p_msg->id));

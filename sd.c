@@ -8,8 +8,8 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define SD_LOG_DBG(fmt, ...)   			SHELL_printf("%-10s" fmt, "[SD]", ##__VA_ARGS__)
-#define SD_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("%-10s" fmt, "[SD]", ##__VA_ARGS__)
+#define SD_LOG_DBG(fmt, ...)   			SHELL_printf("\r%-10s" fmt, "[SD]", ##__VA_ARGS__)
+#define SD_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-10s" fmt, "[SD]", ##__VA_ARGS__)
 
 #define SD_CMD_LEN						(6)
 #define SD_RESPONSE_IDLE 				(0x01)
@@ -224,7 +224,7 @@ static const char * const kpc_version_descriptors[SD_CSD_VERSION_NUM_VERSIONS] =
  *		CMD58	(READ_OCR)
  *		CMD16	(SET_BLOCKLEN)
  ****************************************************************************************************/
-void SD_card_init(void)
+bool SD_card_init(void)
 {
 	uint8_t 	u8_retries = SD_INIT_RETRIES;
 	uint8_t 	u8_response;
@@ -241,38 +241,35 @@ void SD_card_init(void)
 		SPI_transfer(SPI_CHANNEL_SD_CARD, 0xFF);
 	}
 
-	u8_response = SD_cmd_go_idle_state();
-	// SD_LOG_DBG("SD_cmd_go_idle_state: %u\r\n", u8_response);
+	SD_cmd_go_idle_state();
 
-	u8_response = SD_cmd_send_interface_condition();
-	// SD_LOG_DBG("SD_cmd_send_interface_condition: %u\r\n", u8_response);
+	SD_cmd_send_interface_condition();
 
 	do
 	{
 		CHRONO_delay_ms(500);
-
-		u8_response = SD_cmd_app_cmd();
-		// SD_LOG_DBG("SD_cmd_app_cmd: %u\r\n", u8_response);
-
+		SD_cmd_app_cmd();
 		u8_response = SD_cmd_send_op_cond();
-		// SD_LOG_DBG("SD_cmd_send_op_cond: %u\r\n", u8_response);
 
 	} while (u8_response != SD_RESPONSE_READY && --u8_retries > 0);
 
-	u8_response = SD_cmd_read_ocr();
-	// SD_LOG_DBG("SD_cmd_read_ocr %u\r\n", u8_response);
+	if (SD_RESPONSE_READY == u8_response && SD_RESPONSE_READY == SD_cmd_send_csd((uint8_t *)&SD_info.csd_info))
+	{
+		// u8_response = SD_cmd_read_ocr();
+		// SD_LOG_DBG("SD_cmd_read_ocr %u\r\n", u8_response);
 
-	u8_response = SD_cmd_set_blocklen(SD_BLOCK_SIZE);
-	// SD_LOG_DBG("SD_cmd_set_blocklen %u\r\n", u8_response);
+		// u8_response = SD_cmd_set_blocklen(SD_BLOCK_SIZE);
+		// SD_LOG_DBG("SD_cmd_set_blocklen %u\r\n", u8_response);
 
-	SD_cmd_send_csd((uint8_t *)&SD_info.csd_info);
+		SPI_set_baud(SPI_CHANNEL_SD_CARD, SPI_BAUD_ID_4MHZ);
 
-	SPI_set_baud(SPI_CHANNEL_SD_CARD, SPI_BAUD_ID_4MHZ);
+		SD_info.b_initialized = true;
 
-	SD_info.b_initialized = true;
+		SD_LOG_DBG("Initialized %s card (%u bytes)\r\n",
+			kpc_version_descriptors[SD_info.csd_info.csdv1.csd_ver], SD_get_capacity());
+	}
 
-	SD_LOG_DBG("Initialized %s card (%u bytes)\r\n",
-		kpc_version_descriptors[SD_info.csd_info.csdv1.csd_ver], SD_get_capacity());
+	return SD_info.b_initialized;
 }
 
 // static uint32_t c = 0;

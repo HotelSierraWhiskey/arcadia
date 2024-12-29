@@ -12,7 +12,7 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define SYS_LOG_DBG(fmt, ...)   			SHELL_printf("%-10s" fmt, "[SYS]", ##__VA_ARGS__)
+#define SYS_LOG_DBG(fmt, ...)   			SHELL_printf("\r%-10s" fmt, "[SYS]", ##__VA_ARGS__)
 
 #define SYS_OTP5_OSC32K_CALIBRATION_MASK	(0x0007F000)
 

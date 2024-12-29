@@ -14,8 +14,8 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define SHELL_LOG_DBG(fmt, ...)   					SHELL_printf("%-10s" fmt, "[SHELL]", ##__VA_ARGS__)
-#define SHELL_LOG_WARN(fmt, ...)   					SHELL_PRINT_WARNING("%-10s" fmt, "[SHELL]", ##__VA_ARGS__)
+#define SHELL_LOG_DBG(fmt, ...)   					SHELL_printf("\r%-10s" fmt, "[SHELL]", ##__VA_ARGS__)
+#define SHELL_LOG_WARN(fmt, ...)   					SHELL_PRINT_WARNING("\r%-10s" fmt, "[SHELL]", ##__VA_ARGS__)
 
 #define SHELL_COMMAND_BUFFER_SIZE	(128)
 #define SHELL_CRLF					"\r\n"

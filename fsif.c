@@ -10,8 +10,8 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define FSIF_LOG_DBG(fmt, ...)   			SHELL_printf("%-10s" fmt, "[FSIF]", ##__VA_ARGS__)
-#define FSIF_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("%-10s" fmt, "[FSIF]", ##__VA_ARGS__)
+#define FSIF_LOG_DBG(fmt, ...)   			SHELL_printf("\r%-10s" fmt, "[FSIF]", ##__VA_ARGS__)
+#define FSIF_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-10s" fmt, "[FSIF]", ##__VA_ARGS__)
 
 typedef struct _FSIF_info
 {
@@ -33,8 +33,6 @@ static FSIF_info_t fsif_info;
 DSTATUS disk_initialize(BYTE pdrv)
 {
 	UNUSED(pdrv);
-
-	// SD_card_init();
 
 	return 0;
 }
@@ -193,13 +191,32 @@ FRESULT FSIF_f_mkfs(void)
 
 }
 
+void FSIF_fs_init(void)
+{
+	FRESULT result;
+
+	if (SD_card_init())
+	{
+		result = FSIF_f_mount();
+
+		if (FR_OK == result)
+		{
+			FSIF_LOG_DBG("File system mounted\r\n");
+		}
+		else
+		{
+			FSIF_LOG_WARN("Failed to mount file system (status: %u)\r\n", result);
+		}
+	}
+	else
+	{
+		FSIF_LOG_WARN("Failed to initialize SD card\r\n");
+	}
+}
+
 FRESULT FSIF_f_mount(void)
 {
-	FRESULT result = f_mount(&fsif_info.fs, "", 0);
-
-	FSIF_LOG_DBG("f_mount returned: %u\r\n", result);
-
-	return result;
+	return f_mount(&fsif_info.fs, "", 0);
 }
 
 FRESULT FSIF_f_open(const char * kpc_fname, char * buf, uint32_t * bw, uint32_t * br)
