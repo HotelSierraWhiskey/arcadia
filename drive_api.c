@@ -453,21 +453,21 @@ uint8_t DRIVE_API_shell_ls(uint8_t argc, char ** argv)
 
 		f_closedir(&dir_obj);
 
-		// SHELL_printf("\r\nTotal: %u\r\n", u8_num_files);
+		SHELL_printf("\r\nTotal: %u\r\n", u8_num_files);
 
-		// f_result = f_getfree("", &free_clusters, &fs);
+		f_result = f_getfree("", &free_clusters, &fs);
 
-		// SHELL_SEPARATOR();
-		// SHELL_printf("Number of FAT entries: %u\r\n", fs->n_fatent);
-		// SHELL_printf("Cluster Size: %u sectors\r\n", fs->csize);
-		// SHELL_printf("Free Clusters: %u\r\n", free_clusters);
+		SHELL_SEPARATOR();
+		SHELL_printf("Number of FAT entries: %u\r\n", fs->n_fatent);
+		SHELL_printf("Cluster Size: %u sectors\r\n", fs->csize);
+		SHELL_printf("Free Clusters: %u\r\n", free_clusters);
 
-		// total_sectors = (fs->n_fatent - 2) * fs->csize;
-    	// free_sectors = free_clusters * fs->csize;
+		total_sectors = (fs->n_fatent - 2) * fs->csize;
+    	free_sectors = free_clusters * fs->csize;
 
-		// /* Print the free space (assuming 512 bytes/sector) */
-		// SHELL_printf("Total drive space: %10lu KiB\r\n");
-		// SHELL_printf("Available space: %10lu KiB\r\n", total_sectors / 2, free_sectors / 2);
+		/* Print the free space (assuming 512 bytes/sector) */
+		SHELL_printf("Total drive space: %10lu KiB\r\n");
+		SHELL_printf("Available space: %10lu KiB\r\n", total_sectors / 2, free_sectors / 2);
 		SHELL_SEPARATOR();
 	}
 	else

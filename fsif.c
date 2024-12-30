@@ -274,41 +274,6 @@ void ff_mutex_give(int vol)
 	ARCADIA_semaphore_give(fsif_info.semaphore);
 }
 
-/****************************************************************************************************
- *	Formats the drive
- *
- * 	@reference:
- * 	http://elm-chan.org/fsw/ff/doc/mkfs.html
- *
- *	@return `FR_OK` if everything went well. See `f_mkfs` for all possible return values
- ****************************************************************************************************/
-FRESULT FSIF_f_mkfs(void)
-{
-    FRESULT 	f_result;
-    BYTE 		workspace[FF_MAX_SS];
-	MKFS_PARM 	fmt_opt =
-	{
-		.fmt 		= FM_FAT32 | FM_SFD,			// FAT32 format (superfloppy)
-		.n_fat 		= 1,				// one FAT copy
-		.align 		= 1,				// alignment of of the volume data in unit of sector
-		.n_root 	= 1,				// Specifies number of root directory entries on the FAT volume (no effect in FAT32)
-		.au_size 	= SD_BLOCK_SIZE * 2 * 32		// Specifies size of the cluster (allocation unit) in unit of byte
-	};
-
-	f_unmount("");
-
-
-	/*
-	 *	FIXME: 	When initializing with these custom params, f_open hangs
-	 *			in `SD_read_block` on 0xFE start token reception.
-	 */
-	UNUSED(fmt_opt);
-    f_result = f_mkfs("", &fmt_opt, workspace, sizeof(workspace));
-    // f_result = f_mkfs("", 0, workspace, sizeof(workspace)); // default settings
-
-	return f_result;
-}
-
 bool FSIF_fs_init(void)
 {
 	FRESULT 	f_result;
@@ -351,11 +316,43 @@ bool FSIF_fs_init(void)
 	return b_result;
 }
 
+/****************************************************************************************************
+ *	Formats the drive
+ *
+ * 	@reference:
+ * 	http://elm-chan.org/fsw/ff/doc/mkfs.html
+ *
+ *	@return `FR_OK` if everything went well. See `f_mkfs` for all possible return values
+ ****************************************************************************************************/
+FRESULT FSIF_f_mkfs(void)
+{
+    FRESULT 	f_result;
+    BYTE 		workspace[FF_MAX_SS];
+	MKFS_PARM 	fmt_opt =
+	{
+		.fmt 		= FM_FAT32 | FM_SFD,		// FAT32 format
+		.n_fat 		= 1,						// one FAT copy
+		.align 		= 1,						// alignment of of the volume data in unit of sector
+		.n_root 	= 1,						// Specifies number of root directory entries on the FAT volume (no effect in FAT32)
+		.au_size 	= SD_BLOCK_SIZE * 2 * 32	// Specifies size of the cluster (allocation unit) in unit of byte
+	};
+
+	UNUSED(fmt_opt);
+    f_result = f_mkfs("", &fmt_opt, workspace, sizeof(workspace));
+    // f_result = f_mkfs("", 0, workspace, sizeof(workspace)); // default settings
+
+	return f_result;
+}
+
 FRESULT FSIF_f_mount(void)
 {
 	FRESULT f_result = f_mount(&fsif_info.fs, "", 1);
 
-	if (f_result != FR_OK)
+	if (FR_OK == f_result)
+	{
+		f_result = f_setlabel("ARCDRIVE");
+	}
+	else
 	{
 		FSIF_LOG_WARN("Failed to mount file system (status: %u)", f_result);
 	}
@@ -375,22 +372,23 @@ FRESULT FSIF_f_open(const char * kpc_fname, char * buf, uint32_t * bw, uint32_t 
         return f_result;
     }
 
+	char * pc = "OH well hello there!";
+
     // Write to the file
-    // f_result = f_write(&file, "This is a ssstickup\0", strlen("This is a ssstickup\0"), &bytes_written);
-    // *bw = bytes_written;
+    f_result = f_write(&file, pc, strlen(pc), &bytes_written);
+    *bw = bytes_written;
 
     if (FR_OK == f_result)
     {
-        // Reset file pointer to the beginning
-        // f_result = f_lseek(&file, 0);
-        // if (FR_OK != f_result)
-        // {
-        //     f_close(&file);
-        //     return f_result;
-        // }
+        f_result = f_lseek(&file, 0);
+        if (FR_OK != f_result)
+        {
+            f_close(&file);
+            return f_result;
+        }
 
         // Read from the file
-        f_result = f_read(&file, buf, 9, &bytes_read);
+        f_result = f_read(&file, buf, strlen(pc), &bytes_read);
         *br = bytes_read;
     }
 
@@ -429,10 +427,10 @@ const char * FSIF_get_fat_subtype(void)
 
 void FSIF_get_volume_label(void)
 {
-	    char str[12];
+	char pc_label[12];
 
     /* Get volume label of the default drive */
-    f_getlabel("", str, 0);
+    f_getlabel("", pc_label, 0);
 
-	FSIF_LOG_DBG("Volume label: %s", str);
+	FSIF_LOG_DBG("Volume label: %s", pc_label);
 }
