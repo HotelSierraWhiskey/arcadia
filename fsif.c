@@ -283,8 +283,8 @@ FRESULT FSIF_f_mkfs(void)
 	 *			in `SD_read_block` on 0xFE start token reception.
 	 */
 	UNUSED(fmt_opt);
-    // f_result = f_mkfs("", &fmt_opt, workspace, sizeof(workspace));
-    f_result = f_mkfs("", 0, workspace, sizeof(workspace)); // default settings
+    f_result = f_mkfs("", &fmt_opt, workspace, sizeof(workspace));
+    // f_result = f_mkfs("", 0, workspace, sizeof(workspace)); // default settings
 
 	return f_result;
 }
@@ -334,6 +334,8 @@ bool FSIF_fs_init(void)
 FRESULT FSIF_f_mount(void)
 {
 	FRESULT f_result = f_mount(&fsif_info.fs, "", 0);
+
+	FSIF_LOG_DBG("fsif_info.fs.fs_type: %u\r\n", fsif_info.fs.fs_type);
 
 	if (f_result != FR_OK)
 	{
