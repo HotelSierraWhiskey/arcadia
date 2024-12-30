@@ -262,8 +262,7 @@ bool SD_card_init(void)
 
 		SD_info.b_initialized = true;
 
-		SD_LOG_DBG("Initialized %s card (%u bytes)\r\n",
-			kpc_version_descriptors[SD_info.csd_info.csdv1.csd_ver], SD_get_capacity());
+		SD_LOG_DBG("Initialized %s card\r\n", kpc_version_descriptors[SD_info.csd_info.csdv1.csd_ver]);
 	}
 
 	return SD_info.b_initialized;
@@ -351,12 +350,12 @@ bool SD_is_initialized(void)
  *
  * 	@return The capacity of the SD card in bytes
  ****************************************************************************************************/
-uint32_t SD_get_capacity(void)
+uint64_t SD_get_capacity(void)
 {
 	// This is okay because the structure member comes first in each spec
 	SD_csd_version_t 	version = SD_info.csd_info.csdv1.csd_ver;
-	uint32_t 			u32_c_size;
-	uint32_t			u32_capacity = 0;
+	uint64_t 			u32_c_size;
+	uint64_t			u64_capacity = 0;
 
 	switch (version)
 	{
@@ -365,10 +364,12 @@ uint32_t SD_get_capacity(void)
 			break;
 
 		case SD_CSD_VERSION_HIGH_AND_EXTENDED_CAPACITY:
-			u32_c_size = 	((uint32_t)(SD_info.csd_info.csdv2.c_size_high) << 16) |
-             				((uint32_t)(SD_info.csd_info.csdv2.c_size_mid) << 8) |
-             				((uint32_t)(SD_info.csd_info.csdv2.c_size_low));
-			u32_capacity = (u32_c_size + 1) * SD_BLOCK_SIZE * 1000;
+			u32_c_size = 	((uint32_t)(SD_info.csd_info.csdv2.c_size_high & 0x3F) << 16) |
+                 			((uint32_t)(SD_info.csd_info.csdv2.c_size_mid) << 8) |
+                 			((uint32_t)(SD_info.csd_info.csdv2.c_size_low));
+
+			// Calculate capacity (C_SIZE + 1) * 512KB
+			u64_capacity = (u32_c_size + 1) * SD_BLOCK_SIZE * 1024;
 			break;
 
 		case SD_CSD_VERSION_ULTRA_CAPACITY:
@@ -376,7 +377,7 @@ uint32_t SD_get_capacity(void)
 			break;
 	}
 
-	return u32_capacity;
+	return u64_capacity;
 }
 
 /****************************************************************************************************
@@ -696,7 +697,7 @@ static uint8_t SD_await_r1_response(uint8_t u8_expected)
 static void SD_display_info(void)
 {
 	SHELL_printf("%-20s: %s\r\n", "Version", kpc_version_descriptors[SD_info.csd_info.csdv1.csd_ver]);
-	SHELL_printf("%-20s: %u bytes\r\n", "Capacity", SD_get_capacity());
+	SHELL_printf("%-20s: %llu bytes\r\n", "Capacity", SD_get_capacity());
 }
 
 /****************************************************************************************************
