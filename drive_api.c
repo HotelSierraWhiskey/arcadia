@@ -361,8 +361,6 @@ uint8_t DRIVE_API_shell_mkfs(uint8_t argc, char ** argv)
 uint8_t DRIVE_API_shell_mount(uint8_t argc, char ** argv)
 {
 	FRESULT f_result;
-	DWORD 		fre_clust, fre_sect, tot_sect;
-	FATFS *		fs;
 
 	if (argc == 0)
 	{
@@ -371,12 +369,6 @@ uint8_t DRIVE_API_shell_mount(uint8_t argc, char ** argv)
 		if (FR_OK == f_result)
 		{
 			SHELL_printf("File system mounted\r\n");
-
-			// f_result = f_getfree("", &fre_clust, &fs);
-
-			// SHELL_printf("n_fatent: %u\r\n", fs->n_fatent);
-			// SHELL_printf("csize: %u\r\n", fs->csize);
-			// SHELL_printf("fre_clust: %u\r\n", fre_clust);
 		}
 	}
 	else
@@ -407,7 +399,7 @@ uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
 
 	if (argc == 0)
 	{
-		res = FSIF_f_open("foo.txt", buf, &bw, &br);
+		res = FSIF_f_open("beep.txt", buf, &bw, &br);
 
 		SHELL_printf("res: %u, bw: %u, br: %u\r\n", res, bw, br);
 
@@ -437,31 +429,45 @@ uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
  ****************************************************************************************************/
 uint8_t DRIVE_API_shell_ls(uint8_t argc, char ** argv)
 {
-	FRESULT		fr;
-	DIR			dj;
-	FILINFO 	fno;
+	FRESULT		f_result;
+	DIR			dir_obj;
+	FILINFO 	f_info;
 	uint8_t		u8_num_files = 0;
+	FATFS *		fs;
+	DWORD 		free_clusters, free_sectors, total_sectors;
 
 	if (argc == 0)
 	{
-
-		fr = f_findfirst(&dj, &fno, "", "*.*");
+		f_result = f_findfirst(&dir_obj, &f_info, "", "*.*");
 
 		SHELL_SEPARATOR();
 		SHELL_printf("%-20s %s\r\n", "file", "size");
 		SHELL_SEPARATOR();
 
-		while (fr == FR_OK && fno.fname[0])
+		while (f_result == FR_OK && f_info.fname[0])
 		{
 			u8_num_files++;
-			SHELL_printf("%-20s %u\r\n", fno.fname, fno.fsize);
-			fr = f_findnext(&dj, &fno);
+			SHELL_printf("%-20s %u\r\n", f_info.fname, f_info.fsize);
+			f_result = f_findnext(&dir_obj, &f_info);
 		}
 
-		f_closedir(&dj);
+		f_closedir(&dir_obj);
 
-		SHELL_printf("\r\nTotal: %u\r\n", u8_num_files);
+		// SHELL_printf("\r\nTotal: %u\r\n", u8_num_files);
 
+		// f_result = f_getfree("", &free_clusters, &fs);
+
+		// SHELL_SEPARATOR();
+		// SHELL_printf("Number of FAT entries: %u\r\n", fs->n_fatent);
+		// SHELL_printf("Cluster Size: %u sectors\r\n", fs->csize);
+		// SHELL_printf("Free Clusters: %u\r\n", free_clusters);
+
+		// total_sectors = (fs->n_fatent - 2) * fs->csize;
+    	// free_sectors = free_clusters * fs->csize;
+
+		// /* Print the free space (assuming 512 bytes/sector) */
+		// SHELL_printf("Total drive space: %10lu KiB\r\n");
+		// SHELL_printf("Available space: %10lu KiB\r\n", total_sectors / 2, free_sectors / 2);
 		SHELL_SEPARATOR();
 	}
 	else

@@ -13,6 +13,17 @@
 #define FSIF_LOG_DBG(fmt, ...)   		SHELL_printf("\r%-10s" fmt, "[FSIF]", ##__VA_ARGS__)
 #define FSIF_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-10s" fmt, "[FSIF]", ##__VA_ARGS__)
 
+typedef enum _FSIF_fs_type_id
+{
+	FSIF_FS_TYPE_ID_INVALID = 0,
+	FSIF_FS_TYPE_ID_FAT12,
+	FSIF_FS_TYPE_ID_FAT16,
+	FSIF_FS_TYPE_ID_FAT32,
+	FSIF_FS_TYPE_ID_EXFAT,
+	//////////
+	FSIF_FS_TYPE_ID_NUM_IDS
+} FSIF_fs_type_id_t;
+
 typedef struct _FSIF_info
 {
 	FATFS				fs;
@@ -23,6 +34,15 @@ typedef struct _FSIF_info
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
+
+static const char * const kpc_fat_subtype[] =
+{
+	[FSIF_FS_TYPE_ID_INVALID] 	= "Invalid",
+	[FSIF_FS_TYPE_ID_FAT12] 	= "FAT12",
+	[FSIF_FS_TYPE_ID_FAT16] 	= "FAT16",
+	[FSIF_FS_TYPE_ID_FAT32] 	= "FAT32",
+	[FSIF_FS_TYPE_ID_EXFAT] 	= "EXFAT"
+};
 
 static FSIF_info_t fsif_info;
 
@@ -268,11 +288,11 @@ FRESULT FSIF_f_mkfs(void)
     BYTE 		workspace[FF_MAX_SS];
 	MKFS_PARM 	fmt_opt =
 	{
-		.fmt 		= FM_FAT32,			// FAT32 format
+		.fmt 		= FM_FAT32 | FM_SFD,			// FAT32 format (superfloppy)
 		.n_fat 		= 1,				// one FAT copy
 		.align 		= 1,				// alignment of of the volume data in unit of sector
 		.n_root 	= 1,				// Specifies number of root directory entries on the FAT volume (no effect in FAT32)
-		.au_size 	= SD_BLOCK_SIZE		// Specifies size of the cluster (allocation unit) in unit of byte
+		.au_size 	= SD_BLOCK_SIZE * 2 * 32		// Specifies size of the cluster (allocation unit) in unit of byte
 	};
 
 	f_unmount("");
@@ -333,9 +353,7 @@ bool FSIF_fs_init(void)
 
 FRESULT FSIF_f_mount(void)
 {
-	FRESULT f_result = f_mount(&fsif_info.fs, "", 0);
-
-	FSIF_LOG_DBG("fsif_info.fs.fs_type: %u\r\n", fsif_info.fs.fs_type);
+	FRESULT f_result = f_mount(&fsif_info.fs, "", 1);
 
 	if (f_result != FR_OK)
 	{
@@ -358,21 +376,21 @@ FRESULT FSIF_f_open(const char * kpc_fname, char * buf, uint32_t * bw, uint32_t 
     }
 
     // Write to the file
-    f_result = f_write(&file, "This is a stickup\0", strlen("This is a stickup\0"), &bytes_written);
-    *bw = bytes_written;
+    // f_result = f_write(&file, "This is a ssstickup\0", strlen("This is a ssstickup\0"), &bytes_written);
+    // *bw = bytes_written;
 
     if (FR_OK == f_result)
     {
         // Reset file pointer to the beginning
-        f_result = f_lseek(&file, 0);
-        if (FR_OK != f_result)
-        {
-            f_close(&file);
-            return f_result;
-        }
+        // f_result = f_lseek(&file, 0);
+        // if (FR_OK != f_result)
+        // {
+        //     f_close(&file);
+        //     return f_result;
+        // }
 
         // Read from the file
-        f_result = f_read(&file, buf, 17, &bytes_read);
+        f_result = f_read(&file, buf, 9, &bytes_read);
         *br = bytes_read;
     }
 
@@ -401,4 +419,20 @@ void FSIF_f_ls(void)
 FATFS * FSIF_f_get_fs(void)
 {
 	return &fsif_info.fs;
+}
+
+const char * FSIF_get_fat_subtype(void)
+{
+	ASSERT(fsif_info.fs.fs_type < FSIF_FS_TYPE_ID_NUM_IDS);
+	return kpc_fat_subtype[fsif_info.fs.fs_type];
+}
+
+void FSIF_get_volume_label(void)
+{
+	    char str[12];
+
+    /* Get volume label of the default drive */
+    f_getlabel("", str, 0);
+
+	FSIF_LOG_DBG("Volume label: %s", str);
 }
