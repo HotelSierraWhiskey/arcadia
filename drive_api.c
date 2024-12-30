@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "nvmctrl.h"
 #include "fsif.h"
+#include "chrono.h"
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -319,9 +320,25 @@ uint8_t DRIVE_API_shell_write_nvm(uint8_t argc, char ** argv)
  ****************************************************************************************************/
 uint8_t DRIVE_API_shell_mkfs(uint8_t argc, char ** argv)
 {
+	uint32_t 	u32_start_ticks = CHRONO_get_ticks();
+	uint32_t 	u32_ticks_elapsed;
+	FRESULT 	f_result;
+
 	if (argc == 0)
 	{
-		FSIF_f_mkfs();
+		f_result = FSIF_f_mkfs();
+
+		if (FR_OK == f_result)
+		{
+			u32_ticks_elapsed = CHRONO_ticks_since(u32_start_ticks);
+			SHELL_printf("Formatted volume\r\n");
+			SHELL_printf("Time elapsed: %u.%u seconds\r\n",
+				u32_ticks_elapsed / 1000, u32_ticks_elapsed % 1000);
+		}
+		else
+		{
+			SHELL_printf("FSIF_f_mkfs returned status %u\r\n", f_result);
+		}
 	}
 	else
 	{
@@ -343,9 +360,24 @@ uint8_t DRIVE_API_shell_mkfs(uint8_t argc, char ** argv)
  ****************************************************************************************************/
 uint8_t DRIVE_API_shell_mount(uint8_t argc, char ** argv)
 {
+	FRESULT f_result;
+	DWORD 		fre_clust, fre_sect, tot_sect;
+	FATFS *		fs;
+
 	if (argc == 0)
 	{
-		FSIF_f_mount();
+		f_result = FSIF_f_mount();
+
+		if (FR_OK == f_result)
+		{
+			SHELL_printf("File system mounted\r\n");
+
+			// f_result = f_getfree("", &fre_clust, &fs);
+
+			// SHELL_printf("n_fatent: %u\r\n", fs->n_fatent);
+			// SHELL_printf("csize: %u\r\n", fs->csize);
+			// SHELL_printf("fre_clust: %u\r\n", fre_clust);
+		}
 	}
 	else
 	{
@@ -367,14 +399,15 @@ uint8_t DRIVE_API_shell_mount(uint8_t argc, char ** argv)
  ****************************************************************************************************/
 uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
 {
+	char buf[32];
+	memset(buf, 0, 32);
+	uint32_t bw = 0;
+	uint32_t br = 0;
+	FRESULT res;
+
 	if (argc == 0)
 	{
-		char buf[32];
-		memset(buf, 0, 32);
-		uint32_t bw = 0;
-		uint32_t br = 0;
-
-		FRESULT res = FSIF_f_open("hello.txt", buf, &bw, &br);
+		res = FSIF_f_open("foo.txt", buf, &bw, &br);
 
 		SHELL_printf("res: %u, bw: %u, br: %u\r\n", res, bw, br);
 
@@ -387,6 +420,53 @@ uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
 	else
 	{
 		SHELL_printf("Usage: drive fs open\r\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
+
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Lists file system contents
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
+uint8_t DRIVE_API_shell_ls(uint8_t argc, char ** argv)
+{
+	FRESULT		fr;
+	DIR			dj;
+	FILINFO 	fno;
+	uint8_t		u8_num_files = 0;
+
+	if (argc == 0)
+	{
+
+		fr = f_findfirst(&dj, &fno, "", "*.*");
+
+		SHELL_SEPARATOR();
+		SHELL_printf("%-20s %s\r\n", "file", "size");
+		SHELL_SEPARATOR();
+
+		while (fr == FR_OK && fno.fname[0])
+		{
+			u8_num_files++;
+			SHELL_printf("%-20s %u\r\n", fno.fname, fno.fsize);
+			fr = f_findnext(&dj, &fno);
+		}
+
+		f_closedir(&dj);
+
+		SHELL_printf("\r\nTotal: %u\r\n", u8_num_files);
+
+		SHELL_SEPARATOR();
+	}
+	else
+	{
+		SHELL_printf("Usage: ls\r\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;

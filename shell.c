@@ -120,6 +120,14 @@ static const SHELL_command_t kp_command_table[] =
 								)
 	},
 	{
+		.kpc_name 			= "ls",
+		.function 			= DRIVE_API_shell_ls,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tList file system contents\r\n"
+								)
+	},
+	{
 		.kpc_name 			= "nvm",
 		.function 			= NULL,
 		.kp_command_table 	= kp_nvm_command_table,

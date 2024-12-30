@@ -51,7 +51,10 @@ void DRIVE_task(void * p_params)
 {
 	UNUSED(p_params);
 
-	FSIF_fs_init();
+	if (FSIF_fs_init())
+	{
+		DRIVE_LOG_DBG("File system mounted\r\n");
+	}
 
 	while (1)
 	{

@@ -255,11 +255,8 @@ bool SD_card_init(void)
 
 	if (SD_RESPONSE_READY == u8_response && SD_RESPONSE_READY == SD_cmd_send_csd((uint8_t *)&SD_info.csd_info))
 	{
-		// u8_response = SD_cmd_read_ocr();
-		// SD_LOG_DBG("SD_cmd_read_ocr %u\r\n", u8_response);
-
-		// u8_response = SD_cmd_set_blocklen(SD_BLOCK_SIZE);
-		// SD_LOG_DBG("SD_cmd_set_blocklen %u\r\n", u8_response);
+		UNUSED(SD_cmd_read_ocr);
+		UNUSED(SD_cmd_set_blocklen);
 
 		SPI_set_baud(SPI_CHANNEL_SD_CARD, SPI_BAUD_ID_4MHZ);
 
@@ -276,10 +273,6 @@ bool SD_card_init(void)
 
 uint8_t SD_write_block(uint32_t u32_block_address, const uint8_t * kpu8_buffer)
 {
-	// SD_LOG_DBG("Writing block to 0x%08X\r\n", u32_block_address);
-	// SD_LOG_DBG("count: %u\r\n", c++);
-	// CHRONO_delay_ms(1);
-
 	uint8_t u8_response = SD_cmd_write_single_block(u32_block_address);
 
 	SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
@@ -375,7 +368,7 @@ uint32_t SD_get_capacity(void)
 			u32_c_size = 	((uint32_t)(SD_info.csd_info.csdv2.c_size_high) << 16) |
              				((uint32_t)(SD_info.csd_info.csdv2.c_size_mid) << 8) |
              				((uint32_t)(SD_info.csd_info.csdv2.c_size_low));
-			u32_capacity = (u32_c_size + 1) * SD_BLOCK_SIZE;
+			u32_capacity = (u32_c_size + 1) * SD_BLOCK_SIZE * 1000;
 			break;
 
 		case SD_CSD_VERSION_ULTRA_CAPACITY:

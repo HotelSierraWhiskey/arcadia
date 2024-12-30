@@ -10,7 +10,7 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define FSIF_LOG_DBG(fmt, ...)   			SHELL_printf("\r%-10s" fmt, "[FSIF]", ##__VA_ARGS__)
+#define FSIF_LOG_DBG(fmt, ...)   		SHELL_printf("\r%-10s" fmt, "[FSIF]", ##__VA_ARGS__)
 #define FSIF_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-10s" fmt, "[FSIF]", ##__VA_ARGS__)
 
 typedef struct _FSIF_info
@@ -30,6 +30,18 @@ static FSIF_info_t fsif_info;
  *	F U N C T I O N S
  ****************************************************************************************************/
 
+/****************************************************************************************************
+ *	Internal FatFs Interface Function
+ *
+ * 	@warning Don't call this directly
+ *	
+ *	Basically a stub to make FatFs happy. We perform hardware initialization independently.
+ *
+ * 	@param[in] pdrv The drive index (unused)
+ * 
+ * 	@return 0 always
+ * 
+ ****************************************************************************************************/
 DSTATUS disk_initialize(BYTE pdrv)
 {
 	UNUSED(pdrv);
@@ -37,6 +49,18 @@ DSTATUS disk_initialize(BYTE pdrv)
 	return 0;
 }
 
+/****************************************************************************************************
+ *	Internal FatFs Interface Function
+ *
+ * 	@warning Don't call this directly
+ *
+ * 	Returns the initialization state of the SD hardware
+ *
+ * 	@param[in] pdrv The drive index (unused)
+ * 
+ * 	@return 0 always
+ * 
+ ****************************************************************************************************/
 DSTATUS disk_status(BYTE pdrv)
 {
 	UNUSED(pdrv);
@@ -49,6 +73,21 @@ DSTATUS disk_status(BYTE pdrv)
 	return STA_NOINIT;
 }
 
+/****************************************************************************************************
+ *	Internal FatFs Interface Function
+ *
+ * 	@warning Don't call this directly
+ *
+ * 	Wrapper for SD block reads
+ *
+ * 	@param[in] 	pdrv The drive index (unused)
+ * 	@param[out] buff A buffer to store the data to be read
+ * 	@param[in] 	sector The sector index
+ * 	@param[in] 	count The number of sectors to read
+ * 
+ * 	@return RES_OK always
+ * 
+ ****************************************************************************************************/
 DRESULT disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
 {
 	UNUSED(pdrv);
@@ -61,6 +100,21 @@ DRESULT disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
 	return RES_OK;
 }
 
+/****************************************************************************************************
+ *	Internal FatFs Interface Function
+ *
+ * 	@warning Don't call this directly
+ *
+ * 	Wrapper for SD block writes
+ *
+ * 	@param[in] 	pdrv The drive index (unused)
+ * 	@param[in] 	buff The data to write
+ * 	@param[in] 	sector The sector index
+ * 	@param[in] 	count The number of sectors to write to
+ * 
+ * 	@return RES_OK always
+ * 
+ ****************************************************************************************************/
 DRESULT disk_write(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count)
 {
 	UNUSED(pdrv);
@@ -73,6 +127,20 @@ DRESULT disk_write(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count)
 	return RES_OK;
 }
 
+/****************************************************************************************************
+ *	Internal FatFs Interface Function
+ *
+ * 	@warning Don't call this directly
+ *
+ * 	Command and control interface function for FatFs
+ *
+ * 	@param[in] 		pdrv The drive index (unused)
+ * 	@param[in] 		cmd The command to issue
+ * 	@param[in, out]	buff generic buffer for command params and data
+ * 
+ * 	@return RES_OK if all's well, else RES_ERROR
+ * 
+ ****************************************************************************************************/
 DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 {
 	UNUSED(pdrv);
@@ -90,8 +158,7 @@ DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 		}
 		case GET_SECTOR_COUNT:
 		{
-			ptr[0] = SD_get_capacity() / SD_BLOCK_SIZE;
-			// ptr[0] = 128;
+			ptr[0] = (SD_get_capacity() / SD_BLOCK_SIZE);
 			result = RES_OK;
 			break;
 		}
@@ -104,7 +171,7 @@ DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 		}
 		case GET_BLOCK_SIZE:
 		{
-			// ptr[0] = 256;
+			// Erase block size in units of sector
 			ptr[0] = 1;
 			result = RES_OK;
 			break;
@@ -120,6 +187,18 @@ DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 	return result;
 }
 
+/****************************************************************************************************
+ *	Internal FatFs Interface Function
+ *
+ * 	@warning Don't call this directly
+ * 
+ * 	Creates a FreeRTOS mutex for FatFs to use in thread-safe mode
+ *
+ * 	@param[in] vol Unused
+ * 
+ * 	@return 1 if the mutex was created, else 0
+ * 
+ ****************************************************************************************************/
 int ff_mutex_create(int vol)
 {
 	UNUSED(vol);
@@ -127,136 +206,197 @@ int ff_mutex_create(int vol)
 	return (int)(fsif_info.semaphore != NULL);
 }
 
+/****************************************************************************************************
+ *	Internal FatFs Interface Function
+ *
+ * 	@warning Don't call this directly
+ * 
+ * 	Deletes the created FreeRTOS mutex
+ *
+ * 	@param[in] vol Unused
+ *
+ ****************************************************************************************************/
 void ff_mutex_delete(int vol)
 {
 	UNUSED(vol);
 	ARCADIA_semaphore_free(fsif_info.semaphore);
 }
 
+/****************************************************************************************************
+ *	Internal FatFs Interface Function
+ *
+ * 	@warning Don't call this directly
+ * 
+ * 	Obtains the created FreeRTOS mutex
+ *
+ * 	@param[in] vol Unused
+ *
+ ****************************************************************************************************/
 int ff_mutex_take(int vol)
 {
 	UNUSED(vol);
 	return (int)(ARCADIA_semaphore_take(fsif_info.semaphore) == pdTRUE);
 }
 
+/****************************************************************************************************
+ *	Internal FatFs Interface Function
+ *
+ * 	@warning Don't call this directly
+ * 
+ * 	Released the created FreeRTOS mutex
+ *
+ * 	@param[in] vol Unused
+ *
+ ****************************************************************************************************/
 void ff_mutex_give(int vol)
 {
 	UNUSED(vol);
 	ARCADIA_semaphore_give(fsif_info.semaphore);
 }
 
+/****************************************************************************************************
+ *	Formats the drive
+ *
+ * 	@reference:
+ * 	http://elm-chan.org/fsw/ff/doc/mkfs.html
+ *
+ *	@return `FR_OK` if everything went well. See `f_mkfs` for all possible return values
+ ****************************************************************************************************/
 FRESULT FSIF_f_mkfs(void)
 {
-	FATFS fs;           /* Filesystem object */
-    FIL fil;            /* File object */
-    FRESULT res;        /* API result code */
-    UINT bw;            /* Bytes written */
-    BYTE work[FF_MAX_SS]; /* Work area (larger is better for processing time) */
+    FRESULT 	f_result;
+    BYTE 		workspace[FF_MAX_SS];
+	MKFS_PARM 	fmt_opt =
+	{
+		.fmt 		= FM_FAT32,			// FAT32 format
+		.n_fat 		= 1,				// one FAT copy
+		.align 		= 1,				// alignment of of the volume data in unit of sector
+		.n_root 	= 1,				// Specifies number of root directory entries on the FAT volume (no effect in FAT32)
+		.au_size 	= SD_BLOCK_SIZE		// Specifies size of the cluster (allocation unit) in unit of byte
+	};
+
+	f_unmount("");
 
 
-    /* Format the default drive with default parameters */
-    res = f_mkfs("", 0, work, sizeof(work));
+	/*
+	 *	FIXME: 	When initializing with these custom params, f_open hangs
+	 *			in `SD_read_block` on 0xFE start token reception.
+	 */
+	UNUSED(fmt_opt);
+    // f_result = f_mkfs("", &fmt_opt, workspace, sizeof(workspace));
+    f_result = f_mkfs("", 0, workspace, sizeof(workspace)); // default settings
 
-	FSIF_LOG_DBG("f_mkfs: %u\r\n", res);
-	
-
-    // /* Give a work area to the default drive */
-    // f_mount(&fs, "", 0);
-
-	// FSIF_LOG_DBG("opening\r\n");
-    // /* Create a file as new */
-    // res = f_open(&fil, "hello.txt", FA_CREATE_NEW | FA_WRITE);
-    // if (res)
-	// {
-	// 	FSIF_LOG_DBG("f_open: %u\r\n", res);
-	// }
-
-	// FSIF_LOG_DBG("writing\r\n");
-    // /* Write a message */
-    // f_write(&fil, "Hello, World!\r\n", 15, &bw);
-    // if (bw != 15)
-	// {
-	// 	FSIF_LOG_DBG("f_write: %u\r\n", res);		
-	// }
-
-	// FSIF_LOG_DBG("closing\r\n");
-    // /* Close the file */
-    // f_close(&fil);
-
-	// FSIF_LOG_DBG("unmounting\r\n");
-    // /* Unregister work area */
-    // f_mount(0, "", 0);
-
-	return res;
-
+	return f_result;
 }
 
-void FSIF_fs_init(void)
+bool FSIF_fs_init(void)
 {
-	FRESULT result;
+	FRESULT 	f_result;
+	bool		b_result = false;
 
 	if (SD_card_init())
 	{
-		result = FSIF_f_mount();
+		f_result = FSIF_f_mount();
 
-		if (FR_OK == result)
+		if (FR_OK == f_result)
 		{
-			FSIF_LOG_DBG("File system mounted\r\n");
+			b_result = true;
+		}
+		else if (FR_NO_FILESYSTEM == f_result)
+		{
+			FSIF_LOG_DBG("Unable to locate FAT volume. Reformatting...\r\n");
+
+			f_result = FSIF_f_mkfs();
+
+			if (FR_OK == f_result)
+			{
+				FSIF_LOG_DBG("Done\r\n");
+				b_result = true;
+			}
+			else
+			{
+				FSIF_LOG_WARN("Reformatting failed (status: %u)\r\n");
+			}
 		}
 		else
 		{
-			FSIF_LOG_WARN("Failed to mount file system (status: %u)\r\n", result);
+			FSIF_LOG_WARN("Failed to mount file system (status: %u)\r\n", f_result);
 		}
 	}
 	else
 	{
 		FSIF_LOG_WARN("Failed to initialize SD card\r\n");
 	}
+
+	return b_result;
 }
 
 FRESULT FSIF_f_mount(void)
 {
-	return f_mount(&fsif_info.fs, "", 0);
+	FRESULT f_result = f_mount(&fsif_info.fs, "", 0);
+
+	if (f_result != FR_OK)
+	{
+		FSIF_LOG_WARN("Failed to mount file system (status: %u)", f_result);
+	}
+
+	return f_result;
 }
 
 FRESULT FSIF_f_open(const char * kpc_fname, char * buf, uint32_t * bw, uint32_t * br)
 {
-    FIL file;
-    FRESULT result = f_open(&file, kpc_fname, FA_READ | FA_WRITE | FA_OPEN_ALWAYS);
-    UINT bytes_written;
-    UINT bytes_read;
+    FIL 		file;
+    FRESULT 	f_result = f_open(&file, kpc_fname, FA_READ | FA_WRITE | FA_OPEN_ALWAYS);
+    UINT 		bytes_written;
+    UINT 		bytes_read;
 
-    if (FR_OK != result)
+    if (FR_OK != f_result)
     {
-        return result;
+        return f_result;
     }
 
     // Write to the file
-    // result = f_write(&file, "This is a test\0", strlen("This is a test\0"), &bytes_written);
-    // *bw = bytes_written;
+    f_result = f_write(&file, "This is a stickup\0", strlen("This is a stickup\0"), &bytes_written);
+    *bw = bytes_written;
 
-    if (FR_OK == result)
+    if (FR_OK == f_result)
     {
         // Reset file pointer to the beginning
-        result = f_lseek(&file, 0);
-        if (FR_OK != result)
+        f_result = f_lseek(&file, 0);
+        if (FR_OK != f_result)
         {
             f_close(&file);
-            return result;
+            return f_result;
         }
 
         // Read from the file
-        result = f_read(&file, buf, 14, &bytes_read);
+        f_result = f_read(&file, buf, 17, &bytes_read);
         *br = bytes_read;
     }
 
     f_close(&file);
 
-    return result;
+    return f_result;
 }
 
-// FRESULT FSIF_f_read(void)
-// {
+void FSIF_f_ls(void)
+{
+    FRESULT		fr;
+    DIR			dj;
+    FILINFO 	fno;
 
-// }
+    fr = f_findfirst(&dj, &fno, "", "*.*");
 
+    while (fr == FR_OK && fno.fname[0])
+	{
+        SHELL_printf("%-20s %u\r\n", fno.fname, fno.fsize);
+        fr = f_findnext(&dj, &fno);
+    }
+
+    f_closedir(&dj);
+}
+
+FATFS * FSIF_f_get_fs(void)
+{
+	return &fsif_info.fs;
+}
