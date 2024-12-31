@@ -330,16 +330,14 @@ FRESULT FSIF_f_mkfs(void)
     BYTE 		workspace[FF_MAX_SS];
 	MKFS_PARM 	fmt_opt =
 	{
-		.fmt 		= FM_FAT32 | FM_SFD,		// FAT32 format
+		.fmt 		= FM_ANY,
 		.n_fat 		= 1,						// one FAT copy
 		.align 		= 1,						// alignment of of the volume data in unit of sector
 		.n_root 	= 1,						// Specifies number of root directory entries on the FAT volume (no effect in FAT32)
 		.au_size 	= SD_BLOCK_SIZE * 2 * 32	// Specifies size of the cluster (allocation unit) in unit of byte
 	};
 
-	UNUSED(fmt_opt);
-    f_result = f_mkfs("", &fmt_opt, workspace, sizeof(workspace));
-    // f_result = f_mkfs("", 0, workspace, sizeof(workspace)); // default settings
+	f_result = f_mkfs("", &fmt_opt, workspace, sizeof(workspace));
 
 	return f_result;
 }
@@ -372,7 +370,7 @@ FRESULT FSIF_f_open(const char * kpc_fname, char * buf, uint32_t * bw, uint32_t 
         return f_result;
     }
 
-	char * pc = "OH well hello there!";
+	char * pc = "Bing bong testaroo";
 
     // Write to the file
     f_result = f_write(&file, pc, strlen(pc), &bytes_written);

@@ -466,8 +466,8 @@ uint8_t DRIVE_API_shell_ls(uint8_t argc, char ** argv)
     	free_sectors = free_clusters * fs->csize;
 
 		/* Print the free space (assuming 512 bytes/sector) */
-		SHELL_printf("Total drive space: %10lu KiB\r\n");
-		SHELL_printf("Available space: %10lu KiB\r\n", total_sectors / 2, free_sectors / 2);
+		SHELL_printf("Total drive space: %10lu KiB\r\n", total_sectors / 2);
+		SHELL_printf("Available space: %10lu KiB\r\n", free_sectors / 2);
 		SHELL_SEPARATOR();
 	}
 	else
