@@ -14,7 +14,7 @@
 #define SD_CMD_LEN						(6)
 #define SD_RESPONSE_IDLE 				(0x01)
 #define SD_RESPONSE_READY 				(0x00)
-#define SD_INIT_RETRIES					(5)
+#define SD_INIT_RETRIES					(8)
 #define SD_CSD_REGISTER_SIZE			(16)
 
 /**
@@ -174,9 +174,6 @@ typedef struct _SD_info
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
-/**
- *	SD CMDs
- */
 static uint8_t 		SD_cmd_go_idle_state				(void);							// CMD0
 static uint8_t 		SD_cmd_send_interface_condition		(void);							// CMD8
 static uint8_t 		SD_cmd_app_cmd						(void);							// CMD55
@@ -187,13 +184,9 @@ static uint8_t 		SD_cmd_write_single_block			(uint32_t u32_block_address);	// CM
 static uint8_t 		SD_cmd_read_single_block			(uint32_t u32_block_address);	// CMD17
 static uint8_t 		SD_cmd_send_csd						(uint8_t * pu8_csd);			// CMD9
 
-/**
- *	SD utilities
- */
 static uint8_t 		SD_transfer							(uint8_t u8_byte);
 static uint8_t 		SD_await_r1_response				(uint8_t u8_expected);
 static void 		SD_display_info						(void);
-
 
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
@@ -227,7 +220,7 @@ static const char * const kpc_version_descriptors[SD_CSD_VERSION_NUM_VERSIONS] =
 bool SD_card_init(void)
 {
 	uint8_t 	u8_retries = SD_INIT_RETRIES;
-	uint8_t 	u8_response;
+	uint8_t 	u8_response = 0xFF;
 
 	SD_info.b_initialized = false;
 
@@ -241,14 +234,27 @@ bool SD_card_init(void)
 		SPI_transfer(SPI_CHANNEL_SD_CARD, 0xFF);
 	}
 
-	SD_cmd_go_idle_state();
+	do
+	{
+		u8_response = SD_cmd_go_idle_state();
+	} while (u8_response != SD_RESPONSE_IDLE && --u8_retries > 0);
+
+	if (SD_RESPONSE_IDLE == u8_response)
+	{
+		u8_retries = SD_INIT_RETRIES;
+	}
+	else
+	{
+		return false;
+	}
 
 	SD_cmd_send_interface_condition();
 
 	do
 	{
-		CHRONO_delay_ms(600);
-		SD_cmd_app_cmd();
+		CHRONO_delay_ms(700);
+		u8_response =  SD_cmd_app_cmd();
+
 		u8_response = SD_cmd_send_op_cond();
 
 	} while (u8_response != SD_RESPONSE_READY && --u8_retries > 0);
@@ -268,73 +274,100 @@ bool SD_card_init(void)
 	return SD_info.b_initialized;
 }
 
-// static uint32_t c = 0;
 
+/*
+
+
+In SPI mode, after transmitting a data block, the SD card sends a Data Response Token:
+
+    The response is a single byte with the following structure:
+
+0 0 0  | x x x  | 1 0 1
+
+The first three bits are always 0.
+The next three bits (xxx) provide the status:
+
+    010: Data accepted (0x05)
+    101: Data rejected due to a CRC error
+    110: Data rejected due to a write error
+
+
+*/
 uint8_t SD_write_block(uint32_t u32_block_address, const uint8_t * kpu8_buffer)
 {
 	uint8_t u8_response = SD_cmd_write_single_block(u32_block_address);
 
-	SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
-
-	// Send start token
-	SD_transfer(0xFE);
-
-	// Write the block
-	for (uint16_t i = 0; i < SD_BLOCK_SIZE; i++)
+	if (SD_RESPONSE_READY == u8_response)
 	{
-		SD_transfer(kpu8_buffer[i]);
-	}
+		SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
 
-	SD_transfer(0xFF);
-	SD_transfer(0xFF);
+		// Send start token
+		SD_transfer(0xFE);
 
-	u8_response = SD_transfer(0xFF);
+		// Write the block
+		for (uint16_t i = 0; i < SD_BLOCK_SIZE; i++)
+		{
+			SD_transfer(kpu8_buffer[i]);
+		}
 
-	 // Data accepted?
-	if ((u8_response & 0x1F) != 0x05)
-	{
+		SD_transfer(0xFF);
+		SD_transfer(0xFF);
+
+		u8_response = SD_transfer(0xFF);
+
+		// Data accepted?
+		if ((u8_response & 0x1F) != 0x05)
+		{
+			SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
+			return u8_response;
+		}
+
+		// Wait for card to finish writing
+		while (SD_transfer(0xFF) == 0x00)
+		{
+			continue;
+		}
+
 		SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
-		return u8_response;
 	}
-
-	// Wait for card to finish writing
-	while (SD_transfer(0xFF) == 0x00)
-	{
-		continue;
-	}
-
-	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 
 	return 0;
 }
 
 uint8_t SD_read_block(uint32_t u32_block_address, uint8_t * pu8_buffer)
 {
-	// SD_LOG_DBG("Reading block from 0x%08X\r\n", u32_block_address);
-
-	SD_cmd_read_single_block(u32_block_address);
-
-	SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
-
-	// Wait for start token (0xFE)
-	while (SD_transfer(0xFF) != 0xFE)
+	uint8_t u8_response;
+	uint8_t u8_retries = 10;
+	
+	do
 	{
-		continue;
+		u8_response = SD_cmd_read_single_block(u32_block_address);
+	} while (u8_response != SD_RESPONSE_READY && --u8_retries > 0);
+
+	if (SD_RESPONSE_READY == u8_response)
+	{
+		SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
+
+		// Wait for start token (0xFE)
+		while (SD_transfer(0xFF) != 0xFE)
+		{
+			continue;
+		}
+
+		// Read data block
+		for (uint16_t i = 0; i < SD_BLOCK_SIZE; i++)
+		{
+			pu8_buffer[i] = SD_transfer(0xFF);
+		}
+
+		// Read and discard CRC
+		SD_transfer(0xFF);
+		SD_transfer(0xFF);
+
+		SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 	}
 
-	// Read data block
-	for (uint16_t i = 0; i < SD_BLOCK_SIZE; i++)
-	{
-		pu8_buffer[i] = SD_transfer(0xFF);
-	}
-
-	// Read and discard CRC
-	SD_transfer(0xFF);
-	SD_transfer(0xFF);
-
-	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
-
-	return 0;
+	return u8_response;
 }
 
 bool SD_is_initialized(void)
@@ -583,6 +616,8 @@ static uint8_t SD_cmd_write_single_block(uint32_t u32_block_address)
  ****************************************************************************************************/
 static uint8_t SD_cmd_read_single_block(uint32_t u32_block_address)
 {
+	ASSERT(u32_block_address % SD_BLOCK_SIZE == 0);
+
 	const uint8_t cmd[SD_CMD_LEN] =
 	{
 		0x51,
@@ -847,6 +882,37 @@ uint8_t SD_shell_info(uint8_t argc, char ** argv)
 	else
 	{
 		SHELL_printf("Usage: sd info\r\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
+
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Displays SD info
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
+uint8_t SD_shell_init(uint8_t argc, char ** argv)
+{
+	if (argc == 0)
+	{
+		if (SD_card_init())
+		{
+			SHELL_printf("SD card initialized\r\n");
+		}
+		else
+		{
+			SHELL_printf("Failed to initialize SD card\r\n");
+		}
+	}
+	else
+	{
+		SHELL_printf("Usage: sd init\r\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;

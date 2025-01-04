@@ -318,6 +318,66 @@ uint8_t DRIVE_API_shell_write_nvm(uint8_t argc, char ** argv)
  *
  *	@return `SHELL_COMMAND_SUCCESS`
  ****************************************************************************************************/
+uint8_t DRIVE_API_shell_cat(uint8_t argc, char ** argv)
+{
+
+	FRESULT 	f_result;
+	FIL			file;
+	UINT		u32_bytes_read;
+	bool		b_res = false;
+	char		pc_buffer[8];
+	char * 		pc_fname;
+
+	memset(pc_buffer, 0, 8);
+
+	if (argc == 1)
+	{
+		pc_fname = argv[0];
+
+		SHELL_printf("Opening %s\r\n", pc_fname);
+
+		f_result = f_open(&file, pc_fname, FA_READ);
+
+		if (FR_OK == f_result)
+		{
+			f_result = f_read(&file, pc_buffer, 8, &u32_bytes_read);
+
+			if (FR_OK == f_result)
+			{
+				b_res = true;
+
+				f_close(&file);
+			}
+		}
+		else
+		{
+			SHELL_printf("Couldn't open file: %s (status: %u)\r\n", pc_fname, f_result);
+		}
+	}
+	else
+	{
+		SHELL_printf("Usage: drive fs cat <fname>\r\n");
+	}
+
+	if (b_res)
+	{
+		// SHELL_printf("Read %u bytes:\r\n", u32_bytes_read);
+		// SHELL_printf("\n%s\r\n", pc_buffer);
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
+
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Runs the interface wrapper for FatFs f_mkfs
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
 uint8_t DRIVE_API_shell_mkfs(uint8_t argc, char ** argv)
 {
 	uint32_t 	u32_start_ticks = CHRONO_get_ticks();
@@ -370,6 +430,10 @@ uint8_t DRIVE_API_shell_mount(uint8_t argc, char ** argv)
 		{
 			SHELL_printf("File system mounted\r\n");
 		}
+		else
+		{
+			SHELL_printf("Failed to mount file system (status: %u)\r\n", f_result);
+		}
 	}
 	else
 	{
@@ -389,7 +453,7 @@ uint8_t DRIVE_API_shell_mount(uint8_t argc, char ** argv)
  *
  *	@return `SHELL_COMMAND_SUCCESS`
  ****************************************************************************************************/
-uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
+uint8_t DRIVE_API_shell_wtest(uint8_t argc, char ** argv)
 {
 	char buf[32];
 	memset(buf, 0, 32);
@@ -399,7 +463,7 @@ uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
 
 	if (argc == 0)
 	{
-		res = FSIF_f_open("beep.txt", buf, &bw, &br);
+		res = FSIF_f_open("testlfnfile.test.txt", buf, &bw, &br);
 
 		SHELL_printf("res: %u, bw: %u, br: %u\r\n", res, bw, br);
 
@@ -411,8 +475,39 @@ uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
 	}
 	else
 	{
+		SHELL_printf("Usage: drive fs wtest\r\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
+
+uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
+{
+	bool 		b_res = true;
+	FRESULT 	f_result;
+	FIL			file;
+
+	if (argc == 1)
+	{
+		f_result = f_open(&file, argv[0], FA_READ);
+		SHELL_printf("f_open result:%u\r\n", f_result);
+	}
+	else
+	{
 		SHELL_printf("Usage: drive fs open\r\n");
 	}
+	
+	return SHELL_COMMAND_SUCCESS;
+}
+
+uint8_t DRIVE_API_shell_close(uint8_t argc, char ** argv)
+{
+
+	return SHELL_COMMAND_SUCCESS;
+}
+
+uint8_t DRIVE_API_shell_read(uint8_t argc, char ** argv)
+{
 
 	return SHELL_COMMAND_SUCCESS;
 }
@@ -433,8 +528,6 @@ uint8_t DRIVE_API_shell_ls(uint8_t argc, char ** argv)
 	DIR			dir_obj;
 	FILINFO 	f_info;
 	uint8_t		u8_num_files = 0;
-	FATFS *		fs;
-	DWORD 		free_clusters, free_sectors, total_sectors;
 
 	if (argc == 0)
 	{
@@ -455,19 +548,6 @@ uint8_t DRIVE_API_shell_ls(uint8_t argc, char ** argv)
 
 		SHELL_printf("\r\nTotal: %u\r\n", u8_num_files);
 
-		f_result = f_getfree("", &free_clusters, &fs);
-
-		SHELL_SEPARATOR();
-		SHELL_printf("Number of FAT entries: %u\r\n", fs->n_fatent);
-		SHELL_printf("Cluster Size: %u sectors\r\n", fs->csize);
-		SHELL_printf("Free Clusters: %u\r\n", free_clusters);
-
-		total_sectors = (fs->n_fatent - 2) * fs->csize;
-    	free_sectors = free_clusters * fs->csize;
-
-		/* Print the free space (assuming 512 bytes/sector) */
-		SHELL_printf("Total drive space: %10lu KiB\r\n", total_sectors / 2);
-		SHELL_printf("Available space: %10lu KiB\r\n", free_sectors / 2);
 		SHELL_SEPARATOR();
 	}
 	else
@@ -475,5 +555,68 @@ uint8_t DRIVE_API_shell_ls(uint8_t argc, char ** argv)
 		SHELL_printf("Usage: ls\r\n");
 	}
 
+	return SHELL_COMMAND_SUCCESS;
+}
+
+uint8_t DRIVE_API_shell_unmount(uint8_t argc, char ** argv)
+{
+	FRESULT 	f_result;
+
+	if (argc == 0)
+	{
+		f_result = f_unmount("");
+
+		if (FR_OK == f_result)
+		{
+			SHELL_printf("Filesystem unmounted\r\n");
+		}
+		else
+		{
+			SHELL_printf("Failed to unmount file system (status: %u)\r\n", f_result);
+		}
+	}
+	else
+	{
+		SHELL_printf("Usage: drive fs unmount\r\n");
+	}
+	
+	return SHELL_COMMAND_SUCCESS;
+}
+
+uint8_t DRIVE_API_shell_fs_info(uint8_t argc, char ** argv)
+{
+	FRESULT 	f_result;
+	FATFS *		fs;
+	DWORD 		free_clusters, free_sectors, total_sectors;
+
+	if (argc == 0)
+	{
+		f_result = f_getfree("", &free_clusters, &fs);
+
+		if (FR_OK == f_result)
+		{
+			SHELL_SEPARATOR();
+			SHELL_printf("Number of FAT entries: %u\r\n", fs->n_fatent);
+			SHELL_printf("Cluster Size: %u sectors\r\n", fs->csize);
+			SHELL_printf("Free Clusters: %u\r\n", free_clusters);
+
+			total_sectors = (fs->n_fatent - 2) * fs->csize;
+			free_sectors = free_clusters * fs->csize;
+
+			// 1Kib / 2 = 512 bytes (sector size), so divide total and free by two
+			SHELL_printf("Total drive space: %10lu KiB\r\n", total_sectors / 2);
+			SHELL_printf("Available space: %10lu KiB\r\n", free_sectors / 2);
+			SHELL_SEPARATOR();
+		}
+		else
+		{
+			SHELL_printf("Failed to get file system info (status: %u)\r\n", f_result);
+		}
+	}
+	else
+	{
+		SHELL_printf("Usage: drive fs info\r\n");
+	}
+	
 	return SHELL_COMMAND_SUCCESS;
 }

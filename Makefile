@@ -98,7 +98,8 @@ $(APP_BUILD_DIR)/%.o: FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/MemMang/%.c
 # FatFs Includes
 FATFS_INC = 	-Iff15a/source
 # FatFs C files
-FATFS_VPATH = 	ff15a/source/ff.c
+FATFS_VPATH = 	ff15a/source/ff.c \
+				ff15a/source/ffunicode.c
 
 # Matching .o files from FATFS_VPATH
 FATFS_OBJECTS = $(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(FATFS_VPATH)))

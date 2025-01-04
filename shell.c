@@ -230,12 +230,39 @@ static const SHELL_command_t kp_drive_command_table[] =
 static const SHELL_command_t kp_drive_fs_command_table[] =
 {
 	{
+		.kpc_name 			= "cat",
+		.function 			= DRIVE_API_shell_cat,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tDisplays the first n bytes of a file\r\n"
+									"\tUsage: drive fs cat <fname>\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "close",
+		.function 			= DRIVE_API_shell_close,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tCloses a file\r\n"
+									"\tUsage: drive fs close <fname>\r\n"
+								)
+	},
+	{
 		.kpc_name 			= "format",
 		.function 			= DRIVE_API_shell_mkfs,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
 									"\tRuns FatFs f_mkfs, creates the file system\r\n"
-									"\tUsage: drive format\r\n"
+									"\tUsage: drive fs format\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "info",
+		.function 			= DRIVE_API_shell_fs_info,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tDisplays file system information\r\n"
+									"\tUsage: drive fs info\r\n"
 								)
 	},
 	{
@@ -244,7 +271,7 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
 									"\tRuns FatFs f_mount, mounts the file system\r\n"
-									"\tUsage: drive mount\r\n"
+									"\tUsage: drive fs mount\r\n"
 								)
 	},
 	{
@@ -252,8 +279,35 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 		.function 			= DRIVE_API_shell_open,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
+									"\tOpens a file\r\n"
+									"\tUsage: drive fs open <fname>\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "read",
+		.function 			= DRIVE_API_shell_read,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
 									"\tRuns FatFs f_mount, mounts the file system\r\n"
 									"\tUsage: drive mount\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "unmount",
+		.function 			= DRIVE_API_shell_unmount,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tUnmounts the file system\r\n"
+									"\tUsage: drive fs unmount\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "wtest",
+		.function 			= DRIVE_API_shell_wtest,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tPerforms a write test\r\n"
+									"\tUsage: drive fs wtest\r\n"
 								)
 	},
 	//////////
@@ -353,6 +407,15 @@ static const SHELL_command_t kp_sd_command_table[] =
 		.kpc_docstring		= 	(
 									"\tDisplays SD info\r\n"
 									"\tUsage: sd info\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "init",
+		.function 			= SD_shell_init,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tInitializes the SD card\r\n"
+									"\tUsage: sd init\r\n"
 								)
 	},
 	{
@@ -593,7 +656,7 @@ void SHELL_task(void * p_params)
  ****************************************************************************************************/
 void SHELL_printf(const char *format, ...)
 {
-	xSemaphoreTake(SHELL_info.printf_mutex, portMAX_DELAY);
+	// xSemaphoreTake(SHELL_info.printf_mutex, portMAX_DELAY);
 
 	va_list 	args;
 
@@ -608,7 +671,7 @@ void SHELL_printf(const char *format, ...)
 		UART_tx_char(UART_CHANNEL_SHELL, *p);
 	}
 
-	xSemaphoreGive(SHELL_info.printf_mutex);
+	// xSemaphoreGive(SHELL_info.printf_mutex);
 }
 
 /****************************************************************************************************

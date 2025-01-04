@@ -13,6 +13,10 @@
 #define FSIF_LOG_DBG(fmt, ...)   		SHELL_printf("\r%-10s" fmt, "[FSIF]", ##__VA_ARGS__)
 #define FSIF_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-10s" fmt, "[FSIF]", ##__VA_ARGS__)
 
+
+#define FSIF_DISK_RW_RETRIES			(5)
+
+
 typedef enum _FSIF_fs_type_id
 {
 	FSIF_FS_TYPE_ID_INVALID = 0,
@@ -112,12 +116,26 @@ DRESULT disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
 {
 	UNUSED(pdrv);
 
+	DRESULT d_result = RES_ERROR;
+	uint8_t u8_retries = FSIF_DISK_RW_RETRIES;
+
 	for (uint8_t i = 0; i < count; i++)
 	{
-		SD_read_block((sector + i) * SD_BLOCK_SIZE, buff + (i * SD_BLOCK_SIZE));
+		do
+		{
+			if (0 == SD_read_block((sector + i) * SD_BLOCK_SIZE, buff + (i * SD_BLOCK_SIZE)))
+			{
+				d_result = RES_OK;
+				u8_retries = FSIF_DISK_RW_RETRIES;
+			}
+			else
+			{
+				d_result = RES_ERROR;
+			}
+		} while (d_result != RES_OK && --u8_retries);
 	}
 
-	return RES_OK;
+	return d_result;
 }
 
 /****************************************************************************************************
@@ -139,12 +157,26 @@ DRESULT disk_write(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count)
 {
 	UNUSED(pdrv);
 
+	DRESULT d_result 	= RES_ERROR;
+	uint8_t u8_retries 	= FSIF_DISK_RW_RETRIES;
+
 	for (uint8_t i = 0; i < count; i++)
 	{
-		SD_write_block((sector + i) * SD_BLOCK_SIZE, buff + (i * SD_BLOCK_SIZE));
+		do
+		{
+			if (0 == SD_write_block((sector + i) * SD_BLOCK_SIZE, buff + (i * SD_BLOCK_SIZE)))
+			{
+				d_result = RES_OK;
+				u8_retries = FSIF_DISK_RW_RETRIES;
+			}
+			else
+			{
+				d_result = RES_ERROR;
+			}
+		} while (d_result != RES_OK && --u8_retries);
 	}
 
-	return RES_OK;
+	return d_result;
 }
 
 /****************************************************************************************************
@@ -167,6 +199,7 @@ DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 
 	UINT * 		ptr = (UINT *)buff;
 	DRESULT 	result = RES_ERROR;
+	uint32_t	u32_sector_count = (uint32_t)((SD_get_capacity() / SD_BLOCK_SIZE));
 
 	switch (cmd)
 	{
@@ -178,7 +211,7 @@ DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 		}
 		case GET_SECTOR_COUNT:
 		{
-			ptr[0] = (SD_get_capacity() / SD_BLOCK_SIZE);
+			*ptr = u32_sector_count;
 			result = RES_OK;
 			break;
 		}
@@ -287,22 +320,22 @@ bool FSIF_fs_init(void)
 		{
 			b_result = true;
 		}
-		else if (FR_NO_FILESYSTEM == f_result)
-		{
-			FSIF_LOG_DBG("Unable to locate FAT volume. Reformatting...\r\n");
+		// else if (FR_NO_FILESYSTEM == f_result)
+		// {
+		// 	FSIF_LOG_DBG("Unable to locate FAT volume. Reformatting...\r\n");
 
-			f_result = FSIF_f_mkfs();
+		// 	f_result = FSIF_f_mkfs();
 
-			if (FR_OK == f_result)
-			{
-				FSIF_LOG_DBG("Done\r\n");
-				b_result = true;
-			}
-			else
-			{
-				FSIF_LOG_WARN("Reformatting failed (status: %u)\r\n");
-			}
-		}
+		// 	if (FR_OK == f_result)
+		// 	{
+		// 		FSIF_LOG_DBG("Done\r\n");
+		// 		b_result = true;
+		// 	}
+		// 	else
+		// 	{
+		// 		FSIF_LOG_WARN("Reformatting failed (status: %u)\r\n");
+		// 	}
+		// }
 		else
 		{
 			FSIF_LOG_WARN("Failed to mount file system (status: %u)\r\n", f_result);
@@ -331,13 +364,13 @@ FRESULT FSIF_f_mkfs(void)
 	MKFS_PARM 	fmt_opt =
 	{
 		.fmt 		= FM_ANY,
-		.n_fat 		= 1,						// one FAT copy
-		.align 		= 1,						// alignment of of the volume data in unit of sector
-		.n_root 	= 1,						// Specifies number of root directory entries on the FAT volume (no effect in FAT32)
-		.au_size 	= SD_BLOCK_SIZE * 2 * 32	// Specifies size of the cluster (allocation unit) in unit of byte
+		.n_fat 		= 2,					// one FAT copy
+		.align 		= 1,					// alignment of of the volume data in unit of sector
+		.n_root 	= 0,					// Specifies number of root directory entries on the FAT volume (no effect in FAT32)
+		.au_size 	= SD_BLOCK_SIZE * 8		// Specifies size of the cluster (allocation unit) in unit of byte
 	};
 
-	f_result = f_mkfs("", &fmt_opt, workspace, sizeof(workspace));
+	f_result = f_mkfs("", 0, workspace, sizeof(workspace));
 
 	return f_result;
 }
@@ -346,11 +379,7 @@ FRESULT FSIF_f_mount(void)
 {
 	FRESULT f_result = f_mount(&fsif_info.fs, "", 1);
 
-	if (FR_OK == f_result)
-	{
-		f_result = f_setlabel("ARCDRIVE");
-	}
-	else
+	if (FR_OK != f_result)
 	{
 		FSIF_LOG_WARN("Failed to mount file system (status: %u)", f_result);
 	}
@@ -370,7 +399,7 @@ FRESULT FSIF_f_open(const char * kpc_fname, char * buf, uint32_t * bw, uint32_t 
         return f_result;
     }
 
-	char * pc = "Bing bong testaroo";
+	char * pc = "We're all gonna make it";
 
     // Write to the file
     f_result = f_write(&file, pc, strlen(pc), &bytes_written);

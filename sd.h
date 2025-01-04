@@ -26,6 +26,7 @@ uint64_t	SD_get_capacity			(void);
 uint8_t		SD_shell_read			(uint8_t argc, char ** argv);
 uint8_t 	SD_shell_wtest			(uint8_t argc, char ** argv);
 uint8_t 	SD_shell_info			(uint8_t argc, char ** argv);
+uint8_t 	SD_shell_init			(uint8_t argc, char ** argv);
 uint8_t 	SD_shell_erase			(uint8_t argc, char ** argv);
 
 
