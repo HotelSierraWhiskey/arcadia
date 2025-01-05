@@ -14,7 +14,4 @@ FATFS * 		FSIF_f_get_fs			(void);
 const char * 	FSIF_get_fat_subtype	(void);
 void 			FSIF_get_volume_label	(void);
 
-
-
-
 #endif // FSIF_H

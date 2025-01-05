@@ -13,7 +13,7 @@
 #define FSIF_LOG_DBG(fmt, ...)   		SHELL_printf("\r%-10s" fmt, "[FSIF]", ##__VA_ARGS__)
 #define FSIF_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-10s" fmt, "[FSIF]", ##__VA_ARGS__)
 
-
+#define FSIF_DEFAULT_DRIVE_PATH			""
 #define FSIF_DISK_RW_RETRIES			(5)
 
 
@@ -199,7 +199,6 @@ DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 
 	UINT * 		ptr = (UINT *)buff;
 	DRESULT 	result = RES_ERROR;
-	uint32_t	u32_sector_count = (uint32_t)((SD_get_capacity() / SD_BLOCK_SIZE));
 
 	switch (cmd)
 	{
@@ -211,7 +210,7 @@ DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 		}
 		case GET_SECTOR_COUNT:
 		{
-			*ptr = u32_sector_count;
+			*ptr = (uint32_t)((SD_get_capacity() / SD_BLOCK_SIZE));
 			result = RES_OK;
 			break;
 		}
@@ -307,6 +306,16 @@ void ff_mutex_give(int vol)
 	ARCADIA_semaphore_give(fsif_info.semaphore);
 }
 
+/****************************************************************************************************
+ *	File system initialization sequence
+ *
+ * 	Attempts to initialize the SD card before mounting the FS
+ *
+ * 	@reference:
+ * 	http://elm-chan.org/fsw/ff/doc/mount.html
+ *
+ *	@return `FR_OK` if everything went well. See `f_mount` for all possible return values
+ ****************************************************************************************************/
 bool FSIF_fs_init(void)
 {
 	FRESULT 	f_result;
@@ -320,22 +329,6 @@ bool FSIF_fs_init(void)
 		{
 			b_result = true;
 		}
-		// else if (FR_NO_FILESYSTEM == f_result)
-		// {
-		// 	FSIF_LOG_DBG("Unable to locate FAT volume. Reformatting...\r\n");
-
-		// 	f_result = FSIF_f_mkfs();
-
-		// 	if (FR_OK == f_result)
-		// 	{
-		// 		FSIF_LOG_DBG("Done\r\n");
-		// 		b_result = true;
-		// 	}
-		// 	else
-		// 	{
-		// 		FSIF_LOG_WARN("Reformatting failed (status: %u)\r\n");
-		// 	}
-		// }
 		else
 		{
 			FSIF_LOG_WARN("Failed to mount file system (status: %u)\r\n", f_result);
@@ -359,27 +352,37 @@ bool FSIF_fs_init(void)
  ****************************************************************************************************/
 FRESULT FSIF_f_mkfs(void)
 {
-    FRESULT 	f_result;
     BYTE 		workspace[FF_MAX_SS];
-	MKFS_PARM 	fmt_opt =
-	{
-		.fmt 		= FM_ANY,
-		.n_fat 		= 2,					// one FAT copy
-		.align 		= 1,					// alignment of of the volume data in unit of sector
-		.n_root 	= 0,					// Specifies number of root directory entries on the FAT volume (no effect in FAT32)
-		.au_size 	= SD_BLOCK_SIZE * 8		// Specifies size of the cluster (allocation unit) in unit of byte
-	};
 
-	f_result = f_mkfs("", 0, workspace, sizeof(workspace));
+    MKFS_PARM fmt_opt = {
+        .fmt      = FM_FAT32 | FM_SFD,  // FAT32 with superfloppy format
+        .n_fat    = 2,                 	// Two FAT copies
+        .align    = 512,               	// Align to 512-byte sectors
+        .n_root   = 0,                 	// Ignored for FAT32
+        .au_size  = 32 * 1024          	// 32 KB cluster size
+    };
 
-	return f_result;
+	return f_mkfs(FSIF_DEFAULT_DRIVE_PATH, &fmt_opt, workspace, FF_MAX_SS);
 }
 
+/****************************************************************************************************
+ *	Mounts the FS
+ *
+ * 	@reference:
+ * 	http://elm-chan.org/fsw/ff/doc/mount.html
+ *
+ *	@return `FR_OK` if everything went well. See `f_mount` for all possible return values
+ ****************************************************************************************************/
 FRESULT FSIF_f_mount(void)
 {
-	FRESULT f_result = f_mount(&fsif_info.fs, "", 1);
+	FRESULT f_result = f_mount(&fsif_info.fs, FSIF_DEFAULT_DRIVE_PATH, 1);
 
-	if (FR_OK != f_result)
+	if (FR_OK == f_result)
+	{
+		f_result = f_setlabel("ARCADIA");
+	}
+
+	if (f_result != FR_OK)
 	{
 		FSIF_LOG_WARN("Failed to mount file system (status: %u)", f_result);
 	}
@@ -430,7 +433,7 @@ void FSIF_f_ls(void)
     DIR			dj;
     FILINFO 	fno;
 
-    fr = f_findfirst(&dj, &fno, "", "*.*");
+    fr = f_findfirst(&dj, &fno, FSIF_DEFAULT_DRIVE_PATH, "*.*");
 
     while (fr == FR_OK && fno.fname[0])
 	{
@@ -456,8 +459,8 @@ void FSIF_get_volume_label(void)
 {
 	char pc_label[12];
 
-    /* Get volume label of the default drive */
-    f_getlabel("", pc_label, 0);
+    // Default drive
+    f_getlabel(FSIF_DEFAULT_DRIVE_PATH, pc_label, 0);
 
 	FSIF_LOG_DBG("Volume label: %s", pc_label);
 }

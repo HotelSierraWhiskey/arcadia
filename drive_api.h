@@ -31,6 +31,7 @@ uint8_t 			DRIVE_API_shell_ls			(uint8_t argc, char ** argv);
 uint8_t 			DRIVE_API_shell_open 		(uint8_t argc, char ** argv);
 uint8_t 			DRIVE_API_shell_close 		(uint8_t argc, char ** argv);
 uint8_t 			DRIVE_API_shell_read 		(uint8_t argc, char ** argv);
+uint8_t 			DRIVE_API_shell_rm			(uint8_t argc, char ** argv);
 uint8_t 			DRIVE_API_shell_unmount		(uint8_t argc, char ** argv);
 uint8_t 			DRIVE_API_shell_fs_info		(uint8_t argc, char ** argv);
 

@@ -334,8 +334,6 @@ uint8_t DRIVE_API_shell_cat(uint8_t argc, char ** argv)
 	{
 		pc_fname = argv[0];
 
-		SHELL_printf("Opening %s\r\n", pc_fname);
-
 		f_result = f_open(&file, pc_fname, FA_READ);
 
 		if (FR_OK == f_result)
@@ -361,8 +359,8 @@ uint8_t DRIVE_API_shell_cat(uint8_t argc, char ** argv)
 
 	if (b_res)
 	{
-		// SHELL_printf("Read %u bytes:\r\n", u32_bytes_read);
-		// SHELL_printf("\n%s\r\n", pc_buffer);
+		SHELL_printf("Read %u bytes:\r\n", u32_bytes_read);
+		SHELL_printf("\n%s\r\n", pc_buffer);
 	}
 
 	return SHELL_COMMAND_SUCCESS;
@@ -483,18 +481,25 @@ uint8_t DRIVE_API_shell_wtest(uint8_t argc, char ** argv)
 
 uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
 {
-	bool 		b_res = true;
 	FRESULT 	f_result;
 	FIL			file;
 
 	if (argc == 1)
 	{
 		f_result = f_open(&file, argv[0], FA_READ);
-		SHELL_printf("f_open result:%u\r\n", f_result);
+
+		if (FR_OK == f_result)
+		{
+			SHELL_printf("Opened file: %s\r\n", argv[0]);
+		}
+		else
+		{
+			SHELL_printf("Failed to open file (status: %u)\r\n", f_result);
+		}
 	}
 	else
 	{
-		SHELL_printf("Usage: drive fs open\r\n");
+		SHELL_printf("Usage: drive fs open <fname>\r\n");
 	}
 	
 	return SHELL_COMMAND_SUCCESS;
@@ -509,6 +514,31 @@ uint8_t DRIVE_API_shell_close(uint8_t argc, char ** argv)
 uint8_t DRIVE_API_shell_read(uint8_t argc, char ** argv)
 {
 
+	return SHELL_COMMAND_SUCCESS;
+}
+
+uint8_t DRIVE_API_shell_rm(uint8_t argc, char ** argv)
+{
+	FRESULT 	f_result;
+
+	if (argc == 1)
+	{
+		f_result = f_unlink(argv[0]);
+
+		if (FR_OK == f_result)
+		{
+			SHELL_printf("Deleted file: %s\r\n", argv[0]);
+		}
+		else
+		{
+			SHELL_printf("Failed to delete file (status: %u)\r\n", f_result);
+		}
+	}
+	else
+	{
+		SHELL_printf("Usage: drive fs open <fname>\r\n");
+	}
+	
 	return SHELL_COMMAND_SUCCESS;
 }
 

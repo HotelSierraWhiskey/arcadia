@@ -125,6 +125,7 @@ static const SHELL_command_t kp_command_table[] =
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
 									"\tList file system contents\r\n"
+									"\tUsage: ls\r\n"
 								)
 	},
 	{
@@ -132,6 +133,15 @@ static const SHELL_command_t kp_command_table[] =
 		.function 			= NULL,
 		.kp_command_table 	= kp_nvm_command_table,
 		.kpc_docstring		= NULL
+	},
+	{
+		.kpc_name 			= "rm",
+		.function 			= DRIVE_API_shell_rm,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tDeletes a file\r\n"
+									"\tUsage: rm <fname>\r\n"
+								)
 	},
 	{
 		.kpc_name 			= "sd",
@@ -434,6 +444,15 @@ static const SHELL_command_t kp_sd_command_table[] =
 		.kpc_docstring		= 	(
 									"\tWrite a block of dummy data\r\n"
 									"\tUsage: sd wtest <addr>\r\n"
+								)
+	},
+	{
+		.kpc_name 			= "wipe",
+		.function 			= SD_shell_wipe,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tFills the SD card with zeros\r\n"
+									"\tUsage: sd wipe\r\n"
 								)
 	},
 	//////////

@@ -917,3 +917,40 @@ uint8_t SD_shell_init(uint8_t argc, char ** argv)
 
 	return SHELL_COMMAND_SUCCESS;
 }
+
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Fills the Sd card with zeros (This takes a long time)
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
+uint8_t SD_shell_wipe(uint8_t argc, char ** argv)
+{
+	static const uint8_t kpu8_blank_block[SD_BLOCK_SIZE] = {0};
+
+	if (argc == 0)
+	{
+		if (SD_is_initialized())
+		{
+			for (uint64_t i = 0; i < SD_get_capacity() / SD_BLOCK_SIZE; i++)
+			{
+				SD_write_block(i * SD_BLOCK_SIZE, kpu8_blank_block);
+			}
+			SHELL_printf("SD card wiped\r\n");
+		}
+		else
+		{
+			SHELL_printf("SD card is uninitialized\r\n");
+		}
+	}
+	else
+	{
+		SHELL_printf("Usage: sd wipe\r\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
