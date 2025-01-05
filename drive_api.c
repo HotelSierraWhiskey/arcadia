@@ -451,25 +451,24 @@ uint8_t DRIVE_API_shell_mount(uint8_t argc, char ** argv)
  *
  *	@return `SHELL_COMMAND_SUCCESS`
  ****************************************************************************************************/
-uint8_t DRIVE_API_shell_wtest(uint8_t argc, char ** argv)
+uint8_t DRIVE_API_shell_touch(uint8_t argc, char ** argv)
 {
-	char buf[32];
-	memset(buf, 0, 32);
-	uint32_t bw = 0;
-	uint32_t br = 0;
-	FRESULT res;
+	FIL			file;
+	FRESULT 	f_result;
 
-	if (argc == 0)
+	if (argc == 1)
 	{
-		res = FSIF_f_open("testlfnfile.test.txt", buf, &bw, &br);
+    	f_result = f_open(&file, argv[0], FA_READ | FA_OPEN_ALWAYS);
 
-		SHELL_printf("res: %u, bw: %u, br: %u\r\n", res, bw, br);
-
-		if (res == FR_OK)
+		if (FR_OK == f_result)
 		{
-			SHELL_printf("buffer: %s\r\n", buf);
+			SHELL_printf("Created file: %s\r\n", argv[0]);
+			f_close(&file);
 		}
-
+		else
+		{
+			SHELL_printf("Failed to create file, (status: %u)\r\n", f_result);
+		}
 	}
 	else
 	{
@@ -479,6 +478,16 @@ uint8_t DRIVE_API_shell_wtest(uint8_t argc, char ** argv)
 	return SHELL_COMMAND_SUCCESS;
 }
 
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Runs the interface wrapper for FatFs f_open
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
 uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
 {
 	FRESULT 	f_result;
@@ -564,19 +573,31 @@ uint8_t DRIVE_API_shell_ls(uint8_t argc, char ** argv)
 		f_result = f_findfirst(&dir_obj, &f_info, "", "*.*");
 
 		SHELL_SEPARATOR();
-		SHELL_printf("%-20s %s\r\n", "file", "size");
-		SHELL_SEPARATOR();
+		
+		if (f_info.fname[0])
+		{
+			SHELL_printf("%-24s %s\r\n", "file", "size");
+			SHELL_SEPARATOR();
+		}
 
 		while (f_result == FR_OK && f_info.fname[0])
 		{
 			u8_num_files++;
-			SHELL_printf("%-20s %u\r\n", f_info.fname, f_info.fsize);
+			SHELL_printf("%-24s %u\r\n", f_info.fname, f_info.fsize);
 			f_result = f_findnext(&dir_obj, &f_info);
 		}
 
 		f_closedir(&dir_obj);
 
-		SHELL_printf("\r\nTotal: %u\r\n", u8_num_files);
+		if (u8_num_files > 0)
+		{
+			SHELL_printf("\r\nTotal: %u\r\n", u8_num_files);
+		}
+		else
+		{
+			SHELL_printf("%9s%s", "", "(File system empty)\r\n");
+		}
+
 
 		SHELL_SEPARATOR();
 	}

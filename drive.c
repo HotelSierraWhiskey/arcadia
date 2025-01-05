@@ -51,11 +51,11 @@ void DRIVE_task(void * p_params)
 {
 	UNUSED(p_params);
 
-	// if (FSIF_fs_init())
-	// {
-	// 	DRIVE_LOG_DBG("%s file system mounted\r\n", FSIF_get_fat_subtype());
-	// 	// FSIF_get_volume_label();
-	// }
+	if (FSIF_fs_init())
+	{
+		DRIVE_LOG_DBG("File system mounted (%s, %s)\r\n",
+			FSIF_get_volume_label(), FSIF_get_fat_subtype());
+	}
 
 	while (1)
 	{

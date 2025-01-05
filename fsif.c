@@ -15,6 +15,7 @@
 
 #define FSIF_DEFAULT_DRIVE_PATH			""
 #define FSIF_DISK_RW_RETRIES			(5)
+#define FSIF_FS_LABEL_NAME_LEN_MAX		(12)
 
 
 typedef enum _FSIF_fs_type_id
@@ -31,6 +32,7 @@ typedef enum _FSIF_fs_type_id
 typedef struct _FSIF_info
 {
 	FATFS				fs;
+	char				pc_label[FSIF_FS_LABEL_NAME_LEN_MAX];
 	SemaphoreHandle_t	semaphore;
 	StaticSemaphore_t	semaphore_buffer;
 } FSIF_info_t;
@@ -354,8 +356,8 @@ FRESULT FSIF_f_mkfs(void)
 {
     BYTE 		workspace[FF_MAX_SS];
 
-    MKFS_PARM fmt_opt = {
-        .fmt      = FM_FAT32 | FM_SFD,  // FAT32 with superfloppy format
+    const MKFS_PARM fmt_opt = {
+        .fmt      = FM_FAT32 | FM_SFD,  // FAT32 superfloppy
         .n_fat    = 2,                 	// Two FAT copies
         .align    = 512,               	// Align to 512-byte sectors
         .n_root   = 0,                 	// Ignored for FAT32
@@ -455,12 +457,9 @@ const char * FSIF_get_fat_subtype(void)
 	return kpc_fat_subtype[fsif_info.fs.fs_type];
 }
 
-void FSIF_get_volume_label(void)
+const char * FSIF_get_volume_label(void)
 {
-	char pc_label[12];
+    f_getlabel(FSIF_DEFAULT_DRIVE_PATH, fsif_info.pc_label, 0);
 
-    // Default drive
-    f_getlabel(FSIF_DEFAULT_DRIVE_PATH, pc_label, 0);
-
-	FSIF_LOG_DBG("Volume label: %s", pc_label);
+	return fsif_info.pc_label;
 }

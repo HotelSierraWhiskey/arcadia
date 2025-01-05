@@ -168,6 +168,15 @@ static const SHELL_command_t kp_command_table[] =
 		.kpc_docstring		= NULL
 	},
 	{
+		.kpc_name 			= "touch",
+		.function 			= DRIVE_API_shell_touch,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tCreates a empty file\r\n"
+									"\tUsage: touch <fname>\r\n"
+								)
+	},
+	{
 		.kpc_name 			= "uart",
 		.function 			= NULL,
 		.kp_command_table 	= kp_uart_command_table,
@@ -309,15 +318,6 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 		.kpc_docstring		= 	(
 									"\tUnmounts the file system\r\n"
 									"\tUsage: drive fs unmount\r\n"
-								)
-	},
-	{
-		.kpc_name 			= "wtest",
-		.function 			= DRIVE_API_shell_wtest,
-		.kp_command_table 	= NULL,
-		.kpc_docstring		= 	(
-									"\tPerforms a write test\r\n"
-									"\tUsage: drive fs wtest\r\n"
 								)
 	},
 	//////////

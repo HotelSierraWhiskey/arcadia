@@ -26,7 +26,7 @@ uint8_t				DRIVE_API_shell_write_nvm	(uint8_t argc, char ** argv);
 uint8_t 			DRIVE_API_shell_cat			(uint8_t argc, char ** argv);
 uint8_t 			DRIVE_API_shell_mkfs		(uint8_t argc, char ** argv);
 uint8_t 			DRIVE_API_shell_mount		(uint8_t argc, char ** argv);
-uint8_t 			DRIVE_API_shell_wtest		(uint8_t argc, char ** argv);
+uint8_t 			DRIVE_API_shell_touch		(uint8_t argc, char ** argv);
 uint8_t 			DRIVE_API_shell_ls			(uint8_t argc, char ** argv);
 uint8_t 			DRIVE_API_shell_open 		(uint8_t argc, char ** argv);
 uint8_t 			DRIVE_API_shell_close 		(uint8_t argc, char ** argv);
