@@ -159,8 +159,8 @@ DRESULT disk_write(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count)
 {
 	UNUSED(pdrv);
 
-	DRESULT d_result 	= RES_ERROR;
-	uint8_t u8_retries 	= FSIF_DISK_RW_RETRIES;
+	DRESULT d_result = RES_ERROR;
+	uint8_t u8_retries = FSIF_DISK_RW_RETRIES;
 
 	for (uint8_t i = 0; i < count; i++)
 	{
@@ -357,7 +357,7 @@ FRESULT FSIF_f_mkfs(void)
     BYTE 		workspace[FF_MAX_SS];
 
     const MKFS_PARM fmt_opt = {
-        .fmt      = FM_FAT32 | FM_SFD,  // FAT32 superfloppy
+        .fmt      = FM_FAT32, // | FM_SFD,  // FAT32 superfloppy
         .n_fat    = 2,                 	// Two FAT copies
         .align    = 512,               	// Align to 512-byte sectors
         .n_root   = 0,                 	// Ignored for FAT32
@@ -382,11 +382,6 @@ FRESULT FSIF_f_mount(void)
 	if (FR_OK == f_result)
 	{
 		f_result = f_setlabel("ARCADIA");
-	}
-
-	if (f_result != FR_OK)
-	{
-		FSIF_LOG_WARN("Failed to mount file system (status: %u)", f_result);
 	}
 
 	return f_result;

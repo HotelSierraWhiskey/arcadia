@@ -671,3 +671,33 @@ uint8_t DRIVE_API_shell_fs_info(uint8_t argc, char ** argv)
 	
 	return SHELL_COMMAND_SUCCESS;
 }
+
+extern int test_diskio (
+    BYTE pdrv,      /* Physical drive number to be checked (all data on the drive will be lost) */
+    UINT ncyc,      /* Number of test cycles */
+    DWORD* buff,    /* Pointer to the working buffer */
+    UINT sz_buff    /* Size of the working buffer in unit of byte */
+);
+
+uint8_t DRIVE_API_shell_fs_dtest(uint8_t argc, char ** argv)
+{
+	int rc;
+	DWORD buff[FF_MAX_SS];  /* Working buffer (4 sector in size) */
+	if (argc == 0)
+	{
+		/* Check function/compatibility of the physical drive #0 */
+		rc = test_diskio(0, 3, buff, sizeof buff);
+
+		if (rc) {
+			SHELL_printf("Sorry the function/compatibility test failed. (rc=%d)\nFatFs will not work with this disk driver.\n", rc);
+		} else {
+			SHELL_printf("Congratulations! The disk driver works well.\n");
+		}
+	}
+	else
+	{
+		SHELL_printf("Usage: drive fs dtest\r\n");
+	}
+	
+	return SHELL_COMMAND_SUCCESS;
+}

@@ -9,6 +9,9 @@
 #include "ff.h"         /* Declarations of sector size */
 #include "diskio.h"     /* Declarations of disk functions */
 
+#define printf SHELL_printf
+
+extern void SHELL_printf(const char *format, ...);
 
 
 static DWORD pn (       /* Pseudo random number generator */
@@ -296,20 +299,20 @@ int test_diskio (
 
 
 
-int main (int argc, char* argv[])
-{
-    int rc;
-    DWORD buff[FF_MAX_SS];  /* Working buffer (4 sector in size) */
+// int main (int argc, char* argv[])
+// {
+//     int rc;
+//     DWORD buff[FF_MAX_SS];  /* Working buffer (4 sector in size) */
 
-    /* Check function/compatibility of the physical drive #0 */
-    rc = test_diskio(0, 3, buff, sizeof buff);
+//     /* Check function/compatibility of the physical drive #0 */
+//     rc = test_diskio(0, 3, buff, sizeof buff);
 
-    if (rc) {
-        printf("Sorry the function/compatibility test failed. (rc=%d)\nFatFs will not work with this disk driver.\n", rc);
-    } else {
-        printf("Congratulations! The disk driver works well.\n");
-    }
+//     if (rc) {
+//         printf("Sorry the function/compatibility test failed. (rc=%d)\nFatFs will not work with this disk driver.\n", rc);
+//     } else {
+//         printf("Congratulations! The disk driver works well.\n");
+//     }
 
-    return rc;
-}
+//     return rc;
+// }
 

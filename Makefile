@@ -8,7 +8,7 @@ COMMON_FLAGS = \
 	-mcpu=cortex-m0plus \
 	-std=c17 \
 	-nostartfiles \
-	-Os \
+	-O0 \
 	-g \
 	-fstack-usage
 
@@ -99,13 +99,18 @@ $(APP_BUILD_DIR)/%.o: FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/MemMang/%.c
 FATFS_INC = 	-Iff15a/source
 # FatFs C files
 FATFS_VPATH = 	ff15a/source/ff.c \
-				ff15a/source/ffunicode.c
+				ff15a/source/ffunicode.c \
+				ff15a/documents/res/app4.c
 
 # Matching .o files from FATFS_VPATH
 FATFS_OBJECTS = $(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(FATFS_VPATH)))
 
 # Build rule for FatFs implementation files
 $(APP_BUILD_DIR)/%.o: ff15a/source/%.c
+	@echo $@
+	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
+
+$(APP_BUILD_DIR)/%.o: ff15a/documents/res/%.c
 	@echo $@
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
