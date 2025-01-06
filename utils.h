@@ -13,6 +13,7 @@
 #define SECTION_APP_NVM		__attribute__((section(".app_nvm")))
 #define PACKED				__attribute__((packed, aligned))
 #define UNUSED(x)			(void)(x)
+#define BYTES_TO_WORDS(x)	((uint32_t)(x / 4))
 
 #define ASSERT(x) do { \
 	if (!(x)) \

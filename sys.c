@@ -431,6 +431,7 @@ uint8_t	SYS_shell_wm(uint8_t argc, char ** argv)
 {
 	TaskHandle_t 	handle;
 	uint16_t 		u16_used_stack_space;
+	uint32_t		u32_total_stack_size;
 
 	if (argc == 0)
 	{
@@ -443,15 +444,18 @@ uint8_t	SYS_shell_wm(uint8_t argc, char ** argv)
 
 			ASSERT(handle);
 
-			u16_used_stack_space = (configMINIMAL_STACK_SIZE - uxTaskGetStackHighWaterMark(handle)) * 4;
+			u32_total_stack_size = ARCADIA_get_task_stack_size_words(i) * 4;
+			u16_used_stack_space = u32_total_stack_size - (uxTaskGetStackHighWaterMark(handle) * 4);
 
 			SHELL_printf("%-10s %u bytes of %u available (%.2f%%)\r\n",
 				ARCADIA_get_task_name(i),
 				u16_used_stack_space,
-				configMINIMAL_STACK_SIZE * 4,
-				((float)u16_used_stack_space / (float)(configMINIMAL_STACK_SIZE * 4)) * 100.0F);
+				u32_total_stack_size,
+				((float)u16_used_stack_space / (float)(u32_total_stack_size)) * 100.0F);
+				CHRONO_delay_ms(5);
 		}
 		SHELL_SEPARATOR();
+
 	}
 	else
 	{
