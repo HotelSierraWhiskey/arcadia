@@ -13,6 +13,7 @@
 #define FSIF_LOG_DBG(fmt, ...)   		SHELL_printf("\r%-10s" fmt, "[FSIF]", ##__VA_ARGS__)
 #define FSIF_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-10s" fmt, "[FSIF]", ##__VA_ARGS__)
 
+#define FSIF_VOLUME_LABEL				"ARCADIA"
 #define FSIF_DEFAULT_DRIVE_PATH			""
 #define FSIF_DISK_RW_RETRIES			(5)
 #define FSIF_FS_LABEL_NAME_LEN_MAX		(12)
@@ -356,11 +357,11 @@ FRESULT FSIF_f_mkfs(void)
     BYTE 		workspace[FF_MAX_SS];
 
     const MKFS_PARM fmt_opt = {
-        .fmt      = FM_FAT32, // 		// FAT32 superfloppy
-        .n_fat    = 2,                 	// Two FAT copies
-        .align    = 512,               	// Align to 512-byte sectors
-        .n_root   = 0,                 	// Ignored for FAT32
-        .au_size  = 32 * 1024          	// 32 KB cluster size
+        .fmt      = FM_FAT32,		// FAT32 superfloppy
+        .n_fat    = 2,            	// Two FAT copies
+        .align    = SD_BLOCK_SIZE,	// Align to 512-byte sectors
+        .n_root   = 0,            	// Ignored for FAT32
+        .au_size  = 32 * 1024     	// 32 KB cluster size
     };
 
 	return f_mkfs(FSIF_DEFAULT_DRIVE_PATH, &fmt_opt, workspace, FF_MAX_SS);
@@ -380,77 +381,38 @@ FRESULT FSIF_f_mount(void)
 
 	if (FR_OK == f_result)
 	{
-		f_result = f_setlabel("ARCADIA");
+		f_result = f_setlabel(FSIF_VOLUME_LABEL);
 	}
 
 	return f_result;
 }
 
-FRESULT FSIF_f_open(const char * kpc_fname, char * buf, uint32_t * bw, uint32_t * br)
-{
-    FIL 		file;
-    FRESULT 	f_result = f_open(&file, kpc_fname, FA_READ | FA_WRITE | FA_OPEN_ALWAYS);
-    UINT 		bytes_written;
-    UINT 		bytes_read;
-
-    if (FR_OK != f_result)
-    {
-        return f_result;
-    }
-
-	char * pc = "We're all gonna make it";
-
-    // Write to the file
-    f_result = f_write(&file, pc, strlen(pc), &bytes_written);
-    *bw = bytes_written;
-
-    if (FR_OK == f_result)
-    {
-        f_result = f_lseek(&file, 0);
-        if (FR_OK != f_result)
-        {
-            f_close(&file);
-            return f_result;
-        }
-
-        // Read from the file
-        f_result = f_read(&file, buf, strlen(pc), &bytes_read);
-        *br = bytes_read;
-    }
-
-    f_close(&file);
-
-    return f_result;
-}
-
-void FSIF_f_ls(void)
-{
-    FRESULT		fr;
-    DIR			dj;
-    FILINFO 	fno;
-
-    fr = f_findfirst(&dj, &fno, FSIF_DEFAULT_DRIVE_PATH, "*.*");
-
-    while (fr == FR_OK && fno.fname[0])
-	{
-        SHELL_printf("%-20s %u\r\n", fno.fname, fno.fsize);
-        fr = f_findnext(&dj, &fno);
-    }
-
-    f_closedir(&dj);
-}
-
+/****************************************************************************************************
+ *	Retrieves the FS object
+ *
+ *  @return a pointer to the module's FS object
+ ****************************************************************************************************/
 FATFS * FSIF_f_get_fs(void)
 {
 	return &fsif_info.fs;
 }
 
+/****************************************************************************************************
+ *	Retrieves the FS subtype (FAT12 / 16 / 32...) descriptor
+ *
+ *  @return the subtype's associated descriptor string
+ ****************************************************************************************************/
 const char * FSIF_get_fat_subtype(void)
 {
 	ASSERT(fsif_info.fs.fs_type < FSIF_FS_TYPE_ID_NUM_IDS);
 	return kpc_fat_subtype[fsif_info.fs.fs_type];
 }
 
+/****************************************************************************************************
+ *	Retrieves the FS volume label
+ *
+ *  @return the name of the volume
+ ****************************************************************************************************/
 const char * FSIF_get_volume_label(void)
 {
     f_getlabel(FSIF_DEFAULT_DRIVE_PATH, fsif_info.pc_label, 0);

@@ -429,14 +429,27 @@ uint8_t	SYS_shell_reset(uint8_t argc, char ** argv)
  ****************************************************************************************************/
 uint8_t	SYS_shell_wm(uint8_t argc, char ** argv)
 {
+	TaskHandle_t 	handle;
+	uint16_t 		u16_used_stack_space;
+
 	if (argc == 0)
 	{
 		SHELL_SEPARATOR();
+		SHELL_printf("Stack High Watermarks\r\n");
+		SHELL_SEPARATOR();
 		for (uint8_t i = 0; i < ARCADIA_TASK_ID_NUM_IDS; i++)
 		{
-			SHELL_printf("%-10s %u\r\n", 
+			handle = ARCADIA_handle_from_id(i);
+
+			ASSERT(handle);
+
+			u16_used_stack_space = (configMINIMAL_STACK_SIZE - uxTaskGetStackHighWaterMark(handle)) * 4;
+
+			SHELL_printf("%-10s %u bytes of %u available (%.2f%%)\r\n",
 				ARCADIA_get_task_name(i),
-				uxTaskGetStackHighWaterMark(ARCADIA_handle_from_id(i)));
+				u16_used_stack_space,
+				configMINIMAL_STACK_SIZE * 4,
+				((float)u16_used_stack_space / (float)(configMINIMAL_STACK_SIZE * 4)) * 100.0F);
 		}
 		SHELL_SEPARATOR();
 	}

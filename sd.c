@@ -11,9 +11,6 @@
 #define SD_LOG_DBG(fmt, ...)   			SHELL_printf("\r%-10s" fmt, "[SD]", ##__VA_ARGS__)
 #define SD_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-10s" fmt, "[SD]", ##__VA_ARGS__)
 
-#define SD_enter_critical()				taskENTER_CRITICAL()
-#define SD_exit_critical()				taskEXIT_CRITICAL()
-
 #define SD_CMD_LEN						(6)
 #define SD_RESPONSE_IDLE 				(0x01)
 #define SD_RESPONSE_READY 				(0x00)
@@ -277,25 +274,26 @@ bool SD_card_init(void)
 	return SD_info.b_initialized;
 }
 
-
-/*
-
-
-In SPI mode, after transmitting a data block, the SD card sends a Data Response Token:
-
-    The response is a single byte with the following structure:
-
-0 0 0  | x x x  | 1 0 1
-
-The first three bits are always 0.
-The next three bits (xxx) provide the status:
-
-    010: Data accepted (0x05)
-    101: Data rejected due to a CRC error
-    110: Data rejected due to a write error
-
-
-*/
+/****************************************************************************************************
+ *	Top level block write routine
+ *
+ * 	After transmitting a data block, the SD card sends a Data Response Token:
+ * 	The response is a single byte with the following structure:
+ * 
+ *	0 0 0  | x x x  | 1 0 1
+ *
+ *	The first three bits are always 0.
+ *	The next three bits (xxx) provide the status:
+ * 
+ *  010: Data accepted (0x05)
+ *  101: Data rejected due to a CRC error
+ *	110: Data rejected due to a write error
+ *
+ * 	@param[in] u32_block_address The address of the target block
+ * 	@param[in] kpu8_buffer The data to write
+ * 
+ * 	@return 0 if the data was accepted, otherwise the data response token
+ ****************************************************************************************************/
 uint8_t SD_write_block(uint32_t u32_block_address, const uint8_t * kpu8_buffer)
 {
 	uint8_t u8_response = SD_cmd_write_single_block(u32_block_address);
@@ -337,6 +335,16 @@ uint8_t SD_write_block(uint32_t u32_block_address, const uint8_t * kpu8_buffer)
 	return 0;
 }
 
+/****************************************************************************************************
+ *	Top level block read routine
+ *
+ * 	Reads data from the desired memory block
+ *
+ * 	@param[in] 	u32_block_address The address of the target block
+ * 	@param[out] kpu8_buffer A buffer to store the read data
+ * 
+ * 	@return R1 response
+ ****************************************************************************************************/
 uint8_t SD_read_block(uint32_t u32_block_address, uint8_t * pu8_buffer)
 {
 	uint8_t u8_response;
@@ -373,6 +381,11 @@ uint8_t SD_read_block(uint32_t u32_block_address, uint8_t * pu8_buffer)
 	return u8_response;
 }
 
+/****************************************************************************************************
+ *	Returns the initialization state of the SD card
+ * 
+ * 	@return `true` if the card was initialized, otherwise `false`
+ ****************************************************************************************************/
 bool SD_is_initialized(void)
 {
 	return SD_info.b_initialized;
@@ -427,8 +440,6 @@ static uint8_t SD_cmd_go_idle_state(void)
 {
 	const uint8_t u8_cmd[SD_CMD_LEN] = {0x40, 0x00, 0x00, 0x00, 0x00, 0x95};
 
-	SD_enter_critical();
-
 	SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
 
 	for (uint8_t i = 0; i < SD_CMD_LEN; i++)
@@ -437,8 +448,6 @@ static uint8_t SD_cmd_go_idle_state(void)
 	}
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
-
-	SD_exit_critical();
 
 	return SD_await_r1_response(SD_RESPONSE_IDLE);
 }

@@ -13,12 +13,26 @@
 #define ARCADIA_Q_LENGTH		(5)
 #define ARCADIA_Q_ITEM_SIZE		sizeof(ARCADIA_msg_t)
 
+/**
+ *	Main task loop function pointer prototype
+ */
 typedef void (* ARCADIA_task_t)(void *);
+
+/**
+ *	Pre-kernel task initialization function pointer prototype
+ */
 typedef void (* ARCADIA_task_init_t)(void);
 
+/**
+ *	Task typedef
+ *
+ * 	@note
+ * 	Only the task's id, name, and two functions need to be provided.
+ * 	The rest of the members are populated during initialization
+ */
 typedef struct _ARCADIA_rtos_task
 {
-	ARCADIA_task_id_t			task_id;
+	ARCADIA_task_id_t		task_id;
 	const char * const		kpc_name;
 	ARCADIA_task_t			task;
 	ARCADIA_task_init_t		init;
@@ -35,6 +49,9 @@ typedef struct _ARCADIA_rtos_task
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
 
+/**
+ *	Main RTOS task table
+ */
 static ARCADIA_rtos_task_t rtos_tasks[ARCADIA_TASK_ID_NUM_IDS] =
 {
 	{
@@ -57,7 +74,10 @@ static ARCADIA_rtos_task_t rtos_tasks[ARCADIA_TASK_ID_NUM_IDS] =
 	},
 };
 
-static const char * const kpc_msg_names[ARCADIA_MSG_ID_NUM_IDS] =
+/**
+ *	Message descriptors
+ */
+static const char * const kpc_msg_descriptors[ARCADIA_MSG_ID_NUM_IDS] =
 {
 	// Universal msg descriptors
 	[ARCADIA_MSG_ID_NOOP] 							= "NOOP",
@@ -219,5 +239,5 @@ const char * ARCADIA_get_task_name(ARCADIA_task_id_t task_id)
 const char * ARCADIA_get_msg_type(ARCADIA_msg_id_t msg_id)
 {
 	ASSERT(msg_id < ARCADIA_MSG_ID_NUM_IDS);
-	return kpc_msg_names[msg_id];
+	return kpc_msg_descriptors[msg_id];
 }

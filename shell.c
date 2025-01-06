@@ -267,15 +267,6 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 								)
 	},
 	{
-		.kpc_name 			= "dtest",
-		.function 			= DRIVE_API_shell_fs_dtest,
-		.kp_command_table 	= NULL,
-		.kpc_docstring		= 	(
-									"\tRuns FatFs diskio checker\r\n"
-									"\tUsage: drive fs dtest\r\n"
-								)
-	},
-	{
 		.kpc_name 			= "format",
 		.function 			= DRIVE_API_shell_mkfs,
 		.kp_command_table 	= NULL,

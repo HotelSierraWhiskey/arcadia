@@ -112,7 +112,7 @@
  * (in words, not in bytes!).  The kernel does not use this constant for any other
  * purpose.  Demo applications use the constant to make the demos somewhat portable
  * across hardware architectures. */
-#define configMINIMAL_STACK_SIZE                   512 // 180
+#define configMINIMAL_STACK_SIZE                   512
 
 /* configMAX_TASK_NAME_LEN sets the maximum length (in characters) of a task's
  * human readable name.  Includes the NULL terminator. */
@@ -228,7 +228,7 @@
  * timer task (in words, not in bytes!).  The timer task is a standard FreeRTOS
  * task.  See https://www.freertos.org/RTOS-software-timer-service-daemon-task.html
  * Only used if configUSE_TIMERS is set to 1. */
-#define configTIMER_TASK_STACK_DEPTH    configMINIMAL_STACK_SIZE
+#define configTIMER_TASK_STACK_DEPTH    1 // configMINIMAL_STACK_SIZE
 
 /* configTIMER_QUEUE_LENGTH sets the length of the queue (the number of discrete
  * items the queue can hold) used to send commands to the timer task.  See

@@ -10,7 +10,7 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define UART_BUFFER_SIZE (1024)
+#define UART_BUFFER_SIZE (256)
 
 typedef struct _UART_buffer
 {
@@ -25,20 +25,20 @@ typedef struct _UART_buffer
 typedef struct _UART_channel
 {
 	// Must be populated
-	const char *						kpc_name;
-	IO_pin_id_t							rx_pin;
-	IO_pin_id_t							tx_pin;
-	uint32_t							u32_rx_pad;
-	uint32_t							u32_tx_pad;
-	UART_baud_rate_id_t					baud_rate;
-	UART_buffer_t						rx_buffer;
-	UART_buffer_t						tx_buffer;
-	SERCOM_channel_id_t					sercom_channel_id;
-	IO_peripheral_function_t			peripheral_function;
+	const char *					kpc_name;
+	IO_pin_id_t						rx_pin;
+	IO_pin_id_t						tx_pin;
+	uint32_t						u32_rx_pad;
+	uint32_t						u32_tx_pad;
+	UART_baud_rate_id_t				baud_rate;
+	UART_buffer_t					rx_buffer;
+	UART_buffer_t					tx_buffer;
+	SERCOM_channel_id_t				sercom_channel_id;
+	IO_peripheral_function_t		peripheral_function;
 
 	// Populated during initialization (derived from `sercom_channel_id`)
-	IRQn_Type							_irq_index;
-	volatile sercom_registers_t *		_p_sercom_registers;
+	IRQn_Type						_irq_index;
+	sercom_usart_int_registers_t *	_p_sercom_registers;
 } UART_channel_t;
 
 /****************************************************************************************************
@@ -127,22 +127,22 @@ void UART_init(UART_channel_id_t channel_id)
 		case SERCOM_CHANNEL_ID_0:
 			MCLK_REGS->MCLK_APBCMASK |= MCLK_APBCMASK_SERCOM0(1);
 			p_channel->_irq_index = SERCOM0_IRQn;
-			p_channel->_p_sercom_registers = SERCOM0_REGS;
+			p_channel->_p_sercom_registers = &SERCOM0_REGS->USART_INT;
 			break;
 		case SERCOM_CHANNEL_ID_1:
 			MCLK_REGS->MCLK_APBCMASK |= MCLK_APBCMASK_SERCOM1(1);
 			p_channel->_irq_index = SERCOM1_IRQn;
-			p_channel->_p_sercom_registers = SERCOM1_REGS;
+			p_channel->_p_sercom_registers = &SERCOM1_REGS->USART_INT;
 			break;
 		case SERCOM_CHANNEL_ID_2:
 			MCLK_REGS->MCLK_APBCMASK |= MCLK_APBCMASK_SERCOM2(1);
 			p_channel->_irq_index = SERCOM2_IRQn;
-			p_channel->_p_sercom_registers = SERCOM2_REGS;
+			p_channel->_p_sercom_registers = &SERCOM2_REGS->USART_INT;
 			break;
 		case SERCOM_CHANNEL_ID_3:
 			MCLK_REGS->MCLK_APBCMASK |= MCLK_APBCMASK_SERCOM3(1);
 			p_channel->_irq_index = SERCOM3_IRQn;
-			p_channel->_p_sercom_registers = SERCOM3_REGS;
+			p_channel->_p_sercom_registers = &SERCOM3_REGS->USART_INT;
 			break;
 	}
 
@@ -154,30 +154,30 @@ void UART_init(UART_channel_id_t channel_id)
 	IO_enable_peripheral_function_for_pin(p_channel->rx_pin, p_channel->peripheral_function);
 	IO_enable_peripheral_function_for_pin(p_channel->tx_pin, p_channel->peripheral_function);
 
-	p_channel->_p_sercom_registers->USART_INT.SERCOM_CTRLA = 	p_channel->u32_rx_pad | 
+	p_channel->_p_sercom_registers->SERCOM_CTRLA = 	p_channel->u32_rx_pad | 
 																p_channel->u32_tx_pad;
 
-	p_channel->_p_sercom_registers->USART_INT.SERCOM_BAUD = kpu32_pre_calculated_baud_register_values[p_channel->baud_rate];
+	p_channel->_p_sercom_registers->SERCOM_BAUD = kpu32_pre_calculated_baud_register_values[p_channel->baud_rate];
 
-	p_channel->_p_sercom_registers->USART_INT.SERCOM_CTRLA |=	SERCOM_USART_INT_CTRLA_MODE_USART_INT_CLK |
-															SERCOM_USART_INT_CTRLA_FORM_USART_FRAME_NO_PARITY |
-															SERCOM_USART_INT_CTRLA_CMODE_ASYNC |
-															SERCOM_USART_INT_CTRLA_DORD_LSB;
+	p_channel->_p_sercom_registers->SERCOM_CTRLA |=	SERCOM_USART_INT_CTRLA_MODE_USART_INT_CLK |
+													SERCOM_USART_INT_CTRLA_FORM_USART_FRAME_NO_PARITY |
+													SERCOM_USART_INT_CTRLA_CMODE_ASYNC |
+													SERCOM_USART_INT_CTRLA_DORD_LSB;
 
-	p_channel->_p_sercom_registers->USART_INT.SERCOM_CTRLB =	SERCOM_USART_INT_CTRLB_TXEN(1) |
-												 			SERCOM_USART_INT_CTRLB_RXEN(1) |
-												 			SERCOM_USART_INT_CTRLB_CHSIZE_8_BIT |
-												 			SERCOM_USART_INT_CTRLB_SBMODE_1_BIT;
+	p_channel->_p_sercom_registers->SERCOM_CTRLB =	SERCOM_USART_INT_CTRLB_TXEN(1) |
+												 	SERCOM_USART_INT_CTRLB_RXEN(1) |
+												 	SERCOM_USART_INT_CTRLB_CHSIZE_8_BIT |
+												 	SERCOM_USART_INT_CTRLB_SBMODE_1_BIT;
 
-	p_channel->_p_sercom_registers->USART_INT.SERCOM_CTRLA |= SERCOM_USART_INT_CTRLA_ENABLE(1);
+	p_channel->_p_sercom_registers->SERCOM_CTRLA |= SERCOM_USART_INT_CTRLA_ENABLE(1);
 
 	// Wait to syncronize after enabling
-	while (p_channel->_p_sercom_registers->USART_INT.SERCOM_SYNCBUSY & SERCOM_USART_INT_SYNCBUSY_ENABLE(1))
+	while (p_channel->_p_sercom_registers->SERCOM_SYNCBUSY & SERCOM_USART_INT_SYNCBUSY_ENABLE(1))
 	{
 		continue;
 	}
 
-	p_channel->_p_sercom_registers->USART_INT.SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_RXC(1);
+	p_channel->_p_sercom_registers->SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_RXC(1);
 	
 	NVIC_EnableIRQ(p_channel->_irq_index);
 }
@@ -191,11 +191,11 @@ void UART_init(UART_channel_id_t channel_id)
  ****************************************************************************************************/
 void UART_tx_char(UART_channel_id_t channel_id, char c)
 {
-	volatile sercom_registers_t * p_sercom_registers = p_uart_channels[channel_id]._p_sercom_registers;
+	sercom_usart_int_registers_t * p_sercom_registers = p_uart_channels[channel_id]._p_sercom_registers;
 
 	UART_tx_buffer_push(channel_id, (uint8_t)c);
 
-	p_sercom_registers->USART_INT.SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_DRE(1);
+	p_sercom_registers->SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_DRE(1);
 }
 
 /****************************************************************************************************
@@ -392,9 +392,9 @@ static bool UART_tx_buffer_is_full(UART_channel_id_t channel_id)
 }
 
 /****************************************************************************************************
- *	The SERCOM0 Interrupt Service Routine
+ *	SERCOM0 Interrupt Service Routine (SHELL's UART ISR)
  *
- * 	@todo Document me thoroughly
+ * 	@todo Document
  ****************************************************************************************************/
 void irqSERCOM0()
 {

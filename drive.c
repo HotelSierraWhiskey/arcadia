@@ -7,7 +7,6 @@
 #include "utils.h"
 #include "drive_payload.h"
 #include "spi.h"
-#include "sd.h" // remove
 #include "fsif.h"
 
 /****************************************************************************************************

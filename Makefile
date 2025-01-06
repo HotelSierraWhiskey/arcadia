@@ -19,6 +19,7 @@ COMMON_FLAGS = \
 APP_BASENAME = app
 APP_BUILD_DIR = build
 
+
 # App compiler flags
 APP_CFLAGS = 	$(COMMON_FLAGS) \
 				-ffunction-sections \
@@ -28,6 +29,7 @@ APP_CFLAGS = 	$(COMMON_FLAGS) \
 				-T toolchain/linkerscript.ld \
 				-Wno-switch \
 				-Wno-main \
+				-Wl,--print-memory-usage
 
 # App include paths
 APP_INC = 	-I./ \
@@ -100,17 +102,12 @@ FATFS_INC = 	-Iff15a/source
 # FatFs C files
 FATFS_VPATH = 	ff15a/source/ff.c \
 				ff15a/source/ffunicode.c \
-				ff15a/documents/res/app4.c
 
 # Matching .o files from FATFS_VPATH
 FATFS_OBJECTS = $(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(FATFS_VPATH)))
 
 # Build rule for FatFs implementation files
 $(APP_BUILD_DIR)/%.o: ff15a/source/%.c
-	@echo $@
-	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
-
-$(APP_BUILD_DIR)/%.o: ff15a/documents/res/%.c
 	@echo $@
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
@@ -154,7 +151,8 @@ clean_app:
 
 .PHONY:
 size:
-	@$(SIZE) $(APP_BUILD_DIR)/$(APP_BASENAME).elf
+	arm-none-eabi-nm --print-size --size-sort -t d $(APP_BUILD_DIR)/$(APP_BASENAME).elf && \
+	$(SIZE) $(APP_BUILD_DIR)/$(APP_BASENAME).elf
 
 .PHONY:
 elf:
