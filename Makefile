@@ -8,7 +8,7 @@ COMMON_FLAGS = \
 	-mcpu=cortex-m0plus \
 	-std=c17 \
 	-nostartfiles \
-	-O0 \
+	-Os \
 	-g \
 	-fstack-usage
 

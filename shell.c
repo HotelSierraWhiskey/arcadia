@@ -684,12 +684,13 @@ void SHELL_task(void * p_params)
  ****************************************************************************************************/
 void SHELL_printf(const char *format, ...)
 {
-	// xSemaphoreTake(SHELL_info.printf_mutex, portMAX_DELAY);
 
 	va_list 	args;
 
 	va_start(args, format);
 
+	xSemaphoreTake(SHELL_info.printf_mutex, portMAX_DELAY);
+	
 	(void)vsnprintf(printf_buffer, sizeof(printf_buffer), format, args);
 
 	va_end(args);
@@ -699,7 +700,7 @@ void SHELL_printf(const char *format, ...)
 		UART_tx_char(UART_CHANNEL_SHELL, *p);
 	}
 
-	// xSemaphoreGive(SHELL_info.printf_mutex);
+	xSemaphoreGive(SHELL_info.printf_mutex);
 }
 
 /****************************************************************************************************

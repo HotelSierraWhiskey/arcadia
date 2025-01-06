@@ -679,20 +679,64 @@ extern int test_diskio (
     UINT sz_buff    /* Size of the working buffer in unit of byte */
 );
 
+
+
+
+#include "ff.h"
+#include "diskio.h"
+
+
 uint8_t DRIVE_API_shell_fs_dtest(uint8_t argc, char ** argv)
 {
 	int rc;
 	DWORD buff[FF_MAX_SS];  /* Working buffer (4 sector in size) */
 	if (argc == 0)
 	{
-		/* Check function/compatibility of the physical drive #0 */
+		// /* Check function/compatibility of the physical drive #0 */
 		rc = test_diskio(0, 3, buff, sizeof buff);
 
 		if (rc) {
-			SHELL_printf("Sorry the function/compatibility test failed. (rc=%d)\nFatFs will not work with this disk driver.\n", rc);
+			SHELL_printf("Sorry the function/compatibility test failed. (rc=%d)\r\nFatFs will not work with this disk driver.\r\n", rc);
 		} else {
-			SHELL_printf("Congratulations! The disk driver works well.\n");
+			SHELL_printf("Congratulations! The disk driver works well.\r\n");
 		}
+
+		// const uint32_t test_sector = 0; // Sector to test
+        // const uint32_t buffer_size = 512; // Typically 512 bytes for an SD card
+        // uint8_t write_buffer[buffer_size];
+        // uint8_t read_buffer[buffer_size];
+        // uint8_t result;
+
+        // // Fill the write buffer with a pattern
+        // for (uint32_t i = 0; i < buffer_size; i++) {
+        //     write_buffer[i] = (uint8_t)(i & 0xFF);
+        // }
+
+        // // Write data to the test sector
+        // // SHELL_printf("Writing to sector %lu...\r\n", test_sector);
+        // result = disk_write(0, write_buffer, test_sector, 1);
+        // if (result != 0) {
+        //     // SHELL_printf("Write failed: %u\r\n", result);
+        //     return SHELL_COMMAND_SUCCESS;
+        // }
+
+        // // Read data back from the test sector
+        // // SHELL_printf("Reading from sector %lu...\r\n", test_sector);
+        // result = disk_read(0, read_buffer, test_sector, 1);
+        // if (result != 0) {
+        //     // SHELL_printf("Read failed: %u\r\n", result);
+        //     return SHELL_COMMAND_SUCCESS;
+        // }
+
+        // // Verify the read data matches the written data
+        // for (uint32_t i = 0; i < buffer_size; i++) {
+        //     if (read_buffer[i] != write_buffer[i]) {
+        //         SHELL_printf("Data mismatch at byte %lu: wrote 0x%02X, read 0x%02X\r\n", i, write_buffer[i], read_buffer[i]);
+        //         return SHELL_COMMAND_SUCCESS;
+        //     }
+        // }
+
+        // SHELL_printf("Test passed\r\n");
 	}
 	else
 	{

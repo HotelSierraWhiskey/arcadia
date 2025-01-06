@@ -9,7 +9,7 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define CHRONO_delay_ms(ms)				vTaskDelay(ms)
+#define CHRONO_delay_ms(ms)				vTaskDelay(pdMS_TO_TICKS(ms))
 #define CHRONO_get_ticks()				xTaskGetTickCount()
 
 typedef struct _CHRONO_msg_schedule_entry

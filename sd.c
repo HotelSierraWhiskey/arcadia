@@ -11,6 +11,9 @@
 #define SD_LOG_DBG(fmt, ...)   			SHELL_printf("\r%-10s" fmt, "[SD]", ##__VA_ARGS__)
 #define SD_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-10s" fmt, "[SD]", ##__VA_ARGS__)
 
+#define SD_enter_critical()				taskENTER_CRITICAL()
+#define SD_exit_critical()				taskEXIT_CRITICAL()
+
 #define SD_CMD_LEN						(6)
 #define SD_RESPONSE_IDLE 				(0x01)
 #define SD_RESPONSE_READY 				(0x00)
@@ -264,7 +267,7 @@ bool SD_card_init(void)
 		UNUSED(SD_cmd_read_ocr);
 		UNUSED(SD_cmd_set_blocklen);
 
-		SPI_set_baud(SPI_CHANNEL_SD_CARD, SPI_BAUD_ID_4MHZ);
+		// SPI_set_baud(SPI_CHANNEL_SD_CARD, SPI_BAUD_ID_4MHZ);
 
 		SD_info.b_initialized = true;
 
@@ -387,8 +390,8 @@ uint64_t SD_get_capacity(void)
 {
 	// This is okay because the structure member comes first in each spec
 	SD_csd_version_t 	version = SD_info.csd_info.csdv1.csd_ver;
-	uint64_t 			u32_c_size;
-	uint64_t			u64_capacity = 0;
+	uint32_t 			u32_c_size;
+	uint32_t			u64_capacity = 0;
 
 	switch (version)
 	{
@@ -424,6 +427,8 @@ static uint8_t SD_cmd_go_idle_state(void)
 {
 	const uint8_t u8_cmd[SD_CMD_LEN] = {0x40, 0x00, 0x00, 0x00, 0x00, 0x95};
 
+	SD_enter_critical();
+
 	SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
 
 	for (uint8_t i = 0; i < SD_CMD_LEN; i++)
@@ -432,6 +437,8 @@ static uint8_t SD_cmd_go_idle_state(void)
 	}
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
+
+	SD_exit_critical();
 
 	return SD_await_r1_response(SD_RESPONSE_IDLE);
 }
@@ -581,7 +588,7 @@ static uint8_t SD_cmd_set_blocklen(uint32_t u32_blocklen)
  ****************************************************************************************************/
 static uint8_t SD_cmd_write_single_block(uint32_t u32_block_address)
 {
-	ASSERT(u32_block_address % SD_BLOCK_SIZE == 0);
+	// ASSERT(u32_block_address % SD_BLOCK_SIZE == 0);
 
 	const uint8_t cmd[SD_CMD_LEN] =
 	{
@@ -616,7 +623,7 @@ static uint8_t SD_cmd_write_single_block(uint32_t u32_block_address)
  ****************************************************************************************************/
 static uint8_t SD_cmd_read_single_block(uint32_t u32_block_address)
 {
-	ASSERT(u32_block_address % SD_BLOCK_SIZE == 0);
+	// ASSERT(u32_block_address % SD_BLOCK_SIZE == 0);
 
 	const uint8_t cmd[SD_CMD_LEN] =
 	{
@@ -752,7 +759,8 @@ static void SD_display_info(void)
 uint8_t SD_shell_read(uint8_t argc, char ** argv)
 {
 	uint32_t 	u32_address;
-
+	char		pc_line[97]; // 32 bytes * 3 chars (2 hex digits + space) + 1 null terminator
+	char *		pc_char_ptr;
 	if (argc == 1)
 	{
 		if (UTILS_string_to_u32(argv[0], &u32_address))
@@ -765,12 +773,17 @@ uint8_t SD_shell_read(uint8_t argc, char ** argv)
 
 			for (uint16_t i = 0; i < SD_BLOCK_SIZE / 32; i++)
 			{	
+				pc_char_ptr = pc_line;
+
 				for (uint16_t j = 0; j < 32; j++)
 				{
-					SHELL_printf("%02X ", SD_info.pu8_buffer[i * 32 + j]);
-					CHRONO_delay_ms(1); // Fixme
+					pc_char_ptr += sprintf(pc_char_ptr, "%02X ", SD_info.pu8_buffer[i * 32 + j]);
 				}
-				SHELL_printf("\r\n");
+				*pc_char_ptr = '\0';
+				SHELL_printf("%s\r\n", pc_line);
+
+				// Let printf's buffer flush
+				CHRONO_delay_ms(5);
 			}
 
 			SHELL_SEPARATOR();
@@ -936,7 +949,7 @@ uint8_t SD_shell_wipe(uint8_t argc, char ** argv)
 	{
 		if (SD_is_initialized())
 		{
-			for (uint64_t i = 0; i < SD_get_capacity() / SD_BLOCK_SIZE; i++)
+			for (uint32_t i = 0; i < SD_get_capacity() / SD_BLOCK_SIZE; i++)
 			{
 				SD_write_block(i * SD_BLOCK_SIZE, kpu8_blank_block);
 			}

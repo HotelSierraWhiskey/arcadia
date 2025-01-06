@@ -9,7 +9,7 @@
 #include "ff.h"         /* Declarations of sector size */
 #include "diskio.h"     /* Declarations of disk functions */
 
-#define printf SHELL_printf
+#define printf
 
 extern void SHELL_printf(const char *format, ...);
 

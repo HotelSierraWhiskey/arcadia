@@ -17,7 +17,6 @@
 #define FSIF_DISK_RW_RETRIES			(5)
 #define FSIF_FS_LABEL_NAME_LEN_MAX		(12)
 
-
 typedef enum _FSIF_fs_type_id
 {
 	FSIF_FS_TYPE_ID_INVALID = 0,
@@ -125,7 +124,7 @@ DRESULT disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
 	{
 		do
 		{
-			if (0 == SD_read_block((sector + i) * SD_BLOCK_SIZE, buff + (i * SD_BLOCK_SIZE)))
+			if (0 == SD_read_block((sector + i), buff + (i * SD_BLOCK_SIZE)))
 			{
 				d_result = RES_OK;
 				u8_retries = FSIF_DISK_RW_RETRIES;
@@ -166,7 +165,7 @@ DRESULT disk_write(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count)
 	{
 		do
 		{
-			if (0 == SD_write_block((sector + i) * SD_BLOCK_SIZE, buff + (i * SD_BLOCK_SIZE)))
+			if (0 == SD_write_block((sector + i), buff + (i * SD_BLOCK_SIZE)))
 			{
 				d_result = RES_OK;
 				u8_retries = FSIF_DISK_RW_RETRIES;
@@ -357,7 +356,7 @@ FRESULT FSIF_f_mkfs(void)
     BYTE 		workspace[FF_MAX_SS];
 
     const MKFS_PARM fmt_opt = {
-        .fmt      = FM_FAT32, // | FM_SFD,  // FAT32 superfloppy
+        .fmt      = FM_FAT32, // 		// FAT32 superfloppy
         .n_fat    = 2,                 	// Two FAT copies
         .align    = 512,               	// Align to 512-byte sectors
         .n_root   = 0,                 	// Ignored for FAT32
