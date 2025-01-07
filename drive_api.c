@@ -7,6 +7,7 @@
 #include "nvmctrl.h"
 #include "fsif.h"
 #include "chrono.h"
+#include "mempool.h"
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -250,8 +251,10 @@ uint8_t DRIVE_API_shell_write_nvm(uint8_t argc, char ** argv)
 	uint32_t 			u32_row;
 	uint32_t 			u32_num_bytes;
 	uint32_t 			u32_data;
-	char				pc_buffer[NVMCTRL_ROW_SIZE];
 	ARCADIA_status_t	status;
+	MEMPOOL_buffer_t	pc_buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_256);
+
+	ASSERT(pc_buffer);
 
 	memset(pc_buffer, 0, NVMCTRL_ROW_SIZE);
 
@@ -279,7 +282,7 @@ uint8_t DRIVE_API_shell_write_nvm(uint8_t argc, char ** argv)
 			{
 				if (UTILS_string_to_u32(argv[2 + i], &u32_data))
 				{
-					pc_buffer[i] = (uint8_t)u32_data;
+					((char *)(pc_buffer))[i] = (uint8_t)u32_data;
 				}
 				else
 				{
@@ -305,6 +308,8 @@ uint8_t DRIVE_API_shell_write_nvm(uint8_t argc, char ** argv)
 		SHELL_printf("Usage: drive nvm write <row_id> <num_bytes> <...>\r\n");
 	}
 
+	MEMPOOL_free(pc_buffer);
+
 	return SHELL_COMMAND_SUCCESS;
 }
 
@@ -320,36 +325,72 @@ uint8_t DRIVE_API_shell_write_nvm(uint8_t argc, char ** argv)
  ****************************************************************************************************/
 uint8_t DRIVE_API_shell_cat(uint8_t argc, char ** argv)
 {
+	FRESULT 			f_result;
+	FIL					file;
+	UINT				u32_bytes_read = 0;
+	UINT				u32_bytes_this_read = 0;
+	UINT				u32_bytes_to_read;
+	UINT				u32_file_size;
+	const uint16_t		ku16_block = 512;
+	MEMPOOL_buffer_t	file_buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_512);
 
-	FRESULT 	f_result;
-	FIL			file;
-	UINT		u32_bytes_read;
-	bool		b_res = false;
-	char		pc_buffer[8];
-	char * 		pc_fname;
+	ASSERT(file_buffer);
 
-	memset(pc_buffer, 0, 8);
+	memset(file_buffer, 0, ku16_block);
 
 	if (argc == 1)
 	{
-		pc_fname = argv[0];
 
-		f_result = f_open(&file, pc_fname, FA_READ);
+		f_result = f_open(&file, argv[0], FA_READ);
 
 		if (FR_OK == f_result)
 		{
-			f_result = f_read(&file, pc_buffer, 8, &u32_bytes_read);
+			u32_file_size = f_size(&file);
 
-			if (FR_OK == f_result)
+			if (u32_file_size > 0)
 			{
-				b_res = true;
+				if (u32_file_size < ku16_block)
+				{
+					f_result = f_read(&file, file_buffer, u32_file_size, &u32_bytes_read);
+					SHELL_printf("%s\n", (char *)file_buffer);
+				}
+				else
+				{	
+					while (u32_bytes_read < u32_file_size && f_result == FR_OK)
+					{
+						u32_bytes_this_read = 0;
+						u32_bytes_to_read = (u32_file_size - u32_bytes_read > ku16_block)
+											? ku16_block
+											: (u32_file_size - u32_bytes_read);
 
-				f_close(&file);
+						f_result = f_read(&file, file_buffer, u32_bytes_to_read, &u32_bytes_read);
+
+						if (f_result == FR_OK)
+						{
+							// f_read will return OK at EOF, but won't read anything. So break here.
+							if (u32_bytes_read == 0)
+							{
+								break;
+							}
+
+							SHELL_printf("%s\n", (char *)file_buffer);
+							memset(file_buffer, 0, ku16_block);
+							u32_bytes_read += u32_bytes_this_read;
+						}
+						// Break if anything else is the case
+						else
+						{
+							break;
+						}
+					}
+				}
 			}
+			
+			f_close(&file);
 		}
 		else
 		{
-			SHELL_printf("Couldn't open file: %s (status: %u)\r\n", pc_fname, f_result);
+			SHELL_printf("Couldn't open file: %s (status: %u)\r\n", argv[0], f_result);
 		}
 	}
 	else
@@ -357,11 +398,7 @@ uint8_t DRIVE_API_shell_cat(uint8_t argc, char ** argv)
 		SHELL_printf("Usage: drive fs cat <fname>\r\n");
 	}
 
-	if (b_res)
-	{
-		SHELL_printf("Read %u bytes:\r\n", u32_bytes_read);
-		SHELL_printf("\n%s\r\n", pc_buffer);
-	}
+	MEMPOOL_free(file_buffer);
 
 	return SHELL_COMMAND_SUCCESS;
 }

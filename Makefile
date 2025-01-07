@@ -57,7 +57,8 @@ APP_VPATH = 	main.c  \
 				chrono_api.c \
 				spi.c \
 				sd.c \
-				fsif.c
+				fsif.c \
+				mempool.c
 
 # Matching .o files from APP_VPATH, and .o files from FreeRTOS and FatFs
 APP_OBJECTS = 	$(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(wildcard $(APP_VPATH)))) $(FREERTOS_OBJECTS) $(FATFS_OBJECTS)

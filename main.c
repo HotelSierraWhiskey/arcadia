@@ -1,4 +1,5 @@
 #include "sys.h"
+#include "mempool.h"
 #include "arcadia.h"
 
 /****************************************************************************************************
@@ -8,6 +9,7 @@
 void main(void)
 {
 	SYS_init();
+	MEMPOOL_init();
 
 	ARCADIA_start();
 }

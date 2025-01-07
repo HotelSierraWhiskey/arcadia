@@ -10,7 +10,7 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define UART_BUFFER_SIZE (256)
+#define UART_BUFFER_SIZE (256U)
 
 typedef struct _UART_buffer
 {
@@ -424,7 +424,17 @@ void irqSERCOM0()
 		else
 		{
 			u8_byte = UART_tx_buffer_pop(UART_CHANNEL_SHELL);
+
+			SERCOM0_REGS->USART_INT.SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_TXC(1);
+
 			SERCOM0_REGS->USART_INT.SERCOM_DATA = u8_byte;
+
+			while ((SERCOM0_REGS->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTENSET_TXC(1)) == 0)
+			{
+				continue;
+			}
+
+			SERCOM0_REGS->USART_INT.SERCOM_INTENCLR = SERCOM_USART_INT_INTENCLR_TXC(1);
 		}
 	}
 

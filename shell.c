@@ -17,7 +17,7 @@
 #define SHELL_LOG_DBG(fmt, ...)   					SHELL_printf("\r%-10s" fmt, "[SHELL]", ##__VA_ARGS__)
 #define SHELL_LOG_WARN(fmt, ...)   					SHELL_PRINT_WARNING("\r%-10s" fmt, "[SHELL]", ##__VA_ARGS__)
 
-#define SHELL_COMMAND_BUFFER_SIZE	(128)
+#define SHELL_COMMAND_BUFFER_SIZE	(512)
 #define SHELL_CRLF					"\r\n"
 #define SHELL_MAX_TOKENS			(16)
 #define SHELL_MAX_ARGS				(8)
@@ -99,7 +99,16 @@ static const SHELL_command_t kp_uart_command_table[];
  */
 static const SHELL_command_t kp_command_table[] =
 {
-		{
+	{
+		.kpc_name 			= "cat",
+		.function 			= DRIVE_API_shell_cat,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tDumps the contents of a file\r\n"
+									"\tUsage: cat <fname>\r\n"
+								),
+	},
+	{
 		.kpc_name 			= "chrono",
 		.function 			= NULL,
 		.kp_command_table 	= kp_chrono_command_table,
@@ -248,15 +257,6 @@ static const SHELL_command_t kp_drive_command_table[] =
  */
 static const SHELL_command_t kp_drive_fs_command_table[] =
 {
-	{
-		.kpc_name 			= "cat",
-		.function 			= DRIVE_API_shell_cat,
-		.kp_command_table 	= NULL,
-		.kpc_docstring		= 	(
-									"\tDisplays the first n bytes of a file\r\n"
-									"\tUsage: drive fs cat <fname>\r\n"
-								)
-	},
 	{
 		.kpc_name 			= "close",
 		.function 			= DRIVE_API_shell_close,
@@ -675,23 +675,26 @@ void SHELL_task(void * p_params)
  ****************************************************************************************************/
 void SHELL_printf(const char *format, ...)
 {
+    va_list args;
 
-	va_list 	args;
+    va_start(args, format);
 
-	va_start(args, format);
+    xSemaphoreTake(SHELL_info.printf_mutex, portMAX_DELAY);
 
-	xSemaphoreTake(SHELL_info.printf_mutex, portMAX_DELAY);
-	
-	(void)vsnprintf(printf_buffer, sizeof(printf_buffer), format, args);
+    (void)vsnprintf(printf_buffer, sizeof(printf_buffer), format, args);
 
-	va_end(args);
+    va_end(args);
 
-	for (char *p = printf_buffer; *p != '\0'; ++p)
-	{
-		UART_tx_char(UART_CHANNEL_SHELL, *p);
-	}
+    for (char *p = printf_buffer; *p != '\0'; ++p)
+    {
+        if (*p == '\n')  // Check for newline
+        {
+            UART_tx_char(UART_CHANNEL_SHELL, '\r');
+        }
+        UART_tx_char(UART_CHANNEL_SHELL, *p);
+    }
 
-	xSemaphoreGive(SHELL_info.printf_mutex);
+    xSemaphoreGive(SHELL_info.printf_mutex);
 }
 
 /****************************************************************************************************
