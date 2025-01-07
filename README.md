@@ -1,6 +1,50 @@
-# Roadmap to 1.0 Beta
+# Roadmap to Arcadia 1.0.0 Beta
 
-### - [x] version 0.0.0
+### ☑️ version 0.4.0
+Hardware:
+- Development Board Revision B
+
+Firmware:<br>
+- Story structure implementation
+- Button interface
+- Application state machine development
+
+---
+
+### ☑️ version 0.3.0
+Hardware:
+- Wonka Board + SD module + AMOLED display
+
+Firmware:<br>
+- Display drivers
+- DISPLAY task + integration
+
+---
+
+### ✅ version 0.2.0
+Hardware:
+- Wonka Board + SD module
+
+Firmware:<br>
+- SPI driver + SD card interface
+- FatFs integration
+- PC / device FAT32 file system interoperability
+
+---
+
+### ✅ version 0.1.0
+Hardware:
+- Wonka Board
+
+Firmware:<br>
+- FreeRTOS Integration
+- SHELL, CHRONO, DRIVE tasks + development
+- Inter-task messaging support
+- Expanded CLI utilities
+
+---
+
+### ✅ version 0.0.0
 
 Hardware:
 - Wonka Board
@@ -8,41 +52,4 @@ Hardware:
 Firmware:<br>
 - Low level system setup and driver developement.
 - Debug shell development
-
-### version 0.1.0
-Hardware:
-- Wonka Board
-
-Firmware:<br>
-- FreeRTOS Integration
-- Inter-task messaging
-- Expanded CLI utilities
-
-### version 0.2.0
-Hardware:
-- Wonka Board + SD module
-
-Firmware:<br>
-- SPI driver + SD card interface
-- FatFs integration
-
-
-# ToDo
-
-## Priority One
-
-- Minimize RAM (use `make size` for reference). 
-	- Optimize stack usage 
-	- Use a memory pool for shared buffers
-	- Revisit FreeRTOS and FatFs configs
-
-
-
-
-
-
-# Bugs
-
-- Printf is janky and weird, might want to rethink it
-- Why does FreeRTOS want to use configTIMER_TASK_STACK_DEPTH if we're not using FreeRtos' timers?
 
