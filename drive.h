@@ -11,7 +11,5 @@
 void		DRIVE_init					(void);
 void		DRIVE_task					(void * p_params);
 file_t * 	DRIVE_index_to_file_pointer	(uint8_t u8_index);
-file_t * 	DRIVE_allocate_file			(void);
-void 		DRIVE_free_file				(file_t *p_file);
 
 #endif // DRIVE_H

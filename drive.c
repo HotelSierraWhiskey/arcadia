@@ -46,7 +46,7 @@ static bool 	DRIVE_handle_msg_erase_nvm		(ARCADIA_msg_t * p_msg);
 static bool 	DRIVE_handle_msg_open_file		(ARCADIA_msg_t * p_msg);
 static bool 	DRIVE_handle_msg_close_file		(ARCADIA_msg_t * p_msg);
 
-file_t * 		DRIVE_allocate_file				(void);
+file_t * 		DRIVE_allocate_file				(int8_t * pi8_handle);
 void 			DRIVE_free_file					(file_t *p_file);
 file_t * 		DRIVE_index_to_file_pointer		(uint8_t u8_index);
 
@@ -97,12 +97,13 @@ file_t * DRIVE_index_to_file_pointer(uint8_t u8_index)
     return &DRIVE_info.file_pool[u8_index].file;
 }
 
-file_t * DRIVE_allocate_file(void)
+file_t * DRIVE_allocate_file(int8_t * pi8_handle)
 {
     for (uint8_t i = 0; i < DRIVE_MAX_OPEN_FILES; ++i)
     {
         if (!DRIVE_info.file_pool[i].b_in_use)
         {
+			*pi8_handle = i;
             DRIVE_info.file_pool[i].b_in_use = true;
             return &DRIVE_info.file_pool[i].file;
         }
@@ -254,13 +255,15 @@ static bool DRIVE_handle_msg_erase_nvm(ARCADIA_msg_t * p_msg)
 static bool DRIVE_handle_msg_open_file(ARCADIA_msg_t * p_msg)
 {
 	const char * 	kpc_fname = p_msg->payload.drive_payload_open_file.kpc_fname;
-	file_t * 		p_file = p_msg->payload.drive_payload_open_file.p_file;
+	int8_t 			i8_handle = -1;
+	file_t *		p_file = DRIVE_allocate_file(&i8_handle);
 	FRESULT			f_result = f_open(p_file, kpc_fname, FA_READ);
 
 	if (FR_OK == f_result)
 	{
+		p_msg->payload.drive_payload_open_file.p_file = p_file;
 		*p_msg->payload.drive_payload_open_file.p_result_status = ARCADIA_STATUS_OK;
-		DRIVE_LOG_DBG("Opened file: %s\n", kpc_fname);
+		DRIVE_LOG_DBG("Opened file: %s with handle %d\n", kpc_fname, i8_handle);
 	}
 	else
 	{
@@ -274,11 +277,13 @@ static bool DRIVE_handle_msg_open_file(ARCADIA_msg_t * p_msg)
 
 static bool DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
 {
-	FRESULT f_result = f_close(p_msg->payload.drive_payload_close_file.p_file);
+	file_t * p_file = p_msg->payload.drive_payload_close_file.p_file;
+	FRESULT f_result = f_close(p_file);
 
 	if (FR_OK == f_result)
 	{
 		*p_msg->payload.drive_payload_close_file.p_result_status = ARCADIA_STATUS_OK;
+		DRIVE_free_file(p_file);
 		DRIVE_LOG_DBG("File closed\n");
 	}
 	else

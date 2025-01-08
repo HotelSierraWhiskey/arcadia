@@ -142,8 +142,6 @@ ARCADIA_status_t DRIVE_API_erase_nvm(const NVMCTRL_app_nvm_row_id_t k_row_id)
 
 ARCADIA_status_t DRIVE_API_open_file(const char *kpc_fname, file_t * p_file)
 {
-	ASSERT(p_file);
-
 	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
 
 	DRIVE_PAYLOAD_open_file_t payload =
@@ -594,22 +592,13 @@ uint8_t DRIVE_API_shell_touch(uint8_t argc, char ** argv)
  *
  *	@return `SHELL_COMMAND_SUCCESS`
  ****************************************************************************************************/
-file_t file;
-
 uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
 {
 	file_t * p_file;
 
 	if (argc == 1)
 	{
-		p_file = DRIVE_allocate_file();
-
-		if (p_file)
-		{
-			DRIVE_API_open_file(argv[0], &file);
-			CHRONO_delay_ms(100);
-			DRIVE_API_close_file(&file);
-		}
+		DRIVE_API_open_file(argv[0], p_file);
 	}
 	else
 	{
@@ -621,8 +610,8 @@ uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
 
 uint8_t DRIVE_API_shell_close(uint8_t argc, char ** argv)
 {
-	uint32_t u32_fh;
-	file_t * p_file;
+	uint32_t 	u32_fh;
+	file_t * 	p_file;
 
 	if (argc == 1)
 	{
@@ -632,10 +621,7 @@ uint8_t DRIVE_API_shell_close(uint8_t argc, char ** argv)
 
 			if (p_file)
 			{
-				if (ARCADIA_STATUS_OK == DRIVE_API_close_file(p_file))
-				{
-					DRIVE_free_file(p_file);
-				}
+				DRIVE_API_close_file(p_file);
 			}
 		}
 	}
