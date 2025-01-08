@@ -4,6 +4,7 @@
 #include "common.h"
 #include "arcadia.h"
 #include "nvmctrl.h"
+#include "fsif.h"
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -12,6 +13,9 @@
 ARCADIA_status_t	DRIVE_API_read_nvm			(const NVMCTRL_app_nvm_row_id_t row_id, char * pc_data);
 ARCADIA_status_t	DRIVE_API_write_nvm			(const NVMCTRL_app_nvm_row_id_t row_id, const char * kpc_data);
 ARCADIA_status_t	DRIVE_API_erase_nvm			(const NVMCTRL_app_nvm_row_id_t row_id);
+
+ARCADIA_status_t	DRIVE_API_open_file			(const char *kpc_fname, file_t * p_file);
+ARCADIA_status_t	DRIVE_API_close_file		(file_t * p_file);
 
 /****************************************************************************************************
  *	S H E L L   F U N C T I O N S

@@ -111,7 +111,7 @@ ARCADIA_status_t DRIVE_API_write_nvm(const NVMCTRL_app_nvm_row_id_t k_row_id, co
  ****************************************************************************************************/
 ARCADIA_status_t DRIVE_API_erase_nvm(const NVMCTRL_app_nvm_row_id_t k_row_id)
 {
-	ARCADIA_status_t 	status = ARCADIA_STATUS_FAILED;
+	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
 
 	DRIVE_PAYLOAD_erase_nvm_t payload =
 	{
@@ -130,6 +130,73 @@ ARCADIA_status_t DRIVE_API_erase_nvm(const NVMCTRL_app_nvm_row_id_t k_row_id)
 
 	ARCADIA_send(ARCADIA_TASK_ID_DRIVE, &msg);
 	
+	if (!ARCADIA_semaphore_take(msg.semaphore))
+	{
+		status = ARCADIA_STATUS_API_TIMEOUT;
+	}
+
+	ARCADIA_semaphore_free(msg.semaphore);
+
+	return status;
+}
+
+ARCADIA_status_t DRIVE_API_open_file(const char *kpc_fname, file_t * p_file)
+{
+	ASSERT(p_file);
+
+	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
+
+	DRIVE_PAYLOAD_open_file_t payload =
+	{
+		.kpc_fname = kpc_fname,
+		.p_file = p_file,
+		.p_result_status = &status
+	};
+
+	ARCADIA_msg_t msg =
+	{
+		.id = ARCADIA_MSG_ID_DRIVE_OPEN_FILE,
+		.from = ARCADIA_get_current_task_id(),
+		.payload.drive_payload_open_file = payload
+	};
+
+	msg.semaphore = ARCADIA_semaphore_alloc(&msg.semaphore_buffer);
+
+	ARCADIA_send(ARCADIA_TASK_ID_DRIVE, &msg);
+
+	if (!ARCADIA_semaphore_take(msg.semaphore))
+	{
+		status = ARCADIA_STATUS_API_TIMEOUT;
+	}
+
+	ARCADIA_semaphore_free(msg.semaphore);
+
+	return status;
+}
+
+ARCADIA_status_t DRIVE_API_close_file(file_t * p_file)
+{
+	ASSERT(p_file);
+
+	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
+
+	DRIVE_PAYLOAD_close_file_t payload =
+	{
+		.p_file = p_file,
+		.p_result_status = &status
+	};
+
+	ARCADIA_msg_t msg =
+	{
+		.id = ARCADIA_MSG_ID_DRIVE_CLOSE_FILE,
+		.from = ARCADIA_get_current_task_id(),
+		.payload.drive_payload_close_file = payload
+	};
+
+	msg.semaphore = ARCADIA_semaphore_alloc(&msg.semaphore_buffer);
+
+	ARCADIA_send(ARCADIA_TASK_ID_DRIVE, &msg);
+
 	if (!ARCADIA_semaphore_take(msg.semaphore))
 	{
 		status = ARCADIA_STATUS_API_TIMEOUT;
@@ -191,9 +258,9 @@ uint8_t DRIVE_API_shell_erase_nvm(uint8_t argc, char ** argv)
  ****************************************************************************************************/
 uint8_t DRIVE_API_shell_read_nvm(uint8_t argc, char ** argv)
 {
-	bool 		b_res = false;
-	uint32_t 	u32_row;
-	char 		pc_buffer[NVMCTRL_ROW_SIZE];
+	bool 				b_res = false;
+	uint32_t 			u32_row;
+	MEMPOOL_buffer_t	buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_256);
 
 	if (argc == 1)
 	{
@@ -201,14 +268,14 @@ uint8_t DRIVE_API_shell_read_nvm(uint8_t argc, char ** argv)
 		{
 			if (u32_row < NVMCTRL_APP_NVM_ROW_NUM_ROWS)
 			{
-				if (ARCADIA_STATUS_OK == DRIVE_API_read_nvm((const NVMCTRL_app_nvm_row_id_t)u32_row, pc_buffer))
+				if (ARCADIA_STATUS_OK == DRIVE_API_read_nvm((const NVMCTRL_app_nvm_row_id_t)u32_row, buffer))
 				{
 					SHELL_SEPARATOR();
 					for (uint8_t u8_page = 0; u8_page < NVMCTRL_ROW_SIZE / NVMCTRL_PAGE_SIZE; u8_page++)
 					{
 						for (uint16_t i = 0; i < NVMCTRL_PAGE_SIZE; i++)
 						{
-							SHELL_printf("%02X ", pc_buffer[i + (NVMCTRL_PAGE_SIZE * u8_page)]);
+							SHELL_printf("%02X ", ((char *)(buffer))[i + (NVMCTRL_PAGE_SIZE * u8_page)]);
 
 							if ((i + 1) % 16 == 0)
 							{
@@ -231,6 +298,8 @@ uint8_t DRIVE_API_shell_read_nvm(uint8_t argc, char ** argv)
 	{
 		SHELL_printf("Usage: drive nvm read <row_id>\r\n");
 	}
+
+	MEMPOOL_free(&buffer);
 
 	return SHELL_COMMAND_SUCCESS;
 }
@@ -525,22 +594,21 @@ uint8_t DRIVE_API_shell_touch(uint8_t argc, char ** argv)
  *
  *	@return `SHELL_COMMAND_SUCCESS`
  ****************************************************************************************************/
+file_t file;
+
 uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
 {
-	FRESULT 	f_result;
-	FIL			file;
+	file_t * p_file;
 
 	if (argc == 1)
 	{
-		f_result = f_open(&file, argv[0], FA_READ);
+		p_file = DRIVE_allocate_file();
 
-		if (FR_OK == f_result)
+		if (p_file)
 		{
-			SHELL_printf("Opened file: %s\r\n", argv[0]);
-		}
-		else
-		{
-			SHELL_printf("Failed to open file (status: %u)\r\n", f_result);
+			DRIVE_API_open_file(argv[0], &file);
+			CHRONO_delay_ms(100);
+			DRIVE_API_close_file(&file);
 		}
 	}
 	else
@@ -553,7 +621,29 @@ uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
 
 uint8_t DRIVE_API_shell_close(uint8_t argc, char ** argv)
 {
+	uint32_t u32_fh;
+	file_t * p_file;
 
+	if (argc == 1)
+	{
+		if (UTILS_string_to_u32(argv[0], &u32_fh))
+		{
+			p_file = DRIVE_index_to_file_pointer(u32_fh);
+
+			if (p_file)
+			{
+				if (ARCADIA_STATUS_OK == DRIVE_API_close_file(p_file))
+				{
+					DRIVE_free_file(p_file);
+				}
+			}
+		}
+	}
+	else
+	{
+		SHELL_printf("Usage: drive fs open <fname>\r\n");
+	}
+	
 	return SHELL_COMMAND_SUCCESS;
 }
 

@@ -52,4 +52,3 @@ Hardware:
 Firmware:<br>
 - Low level system setup and driver developement.
 - Debug shell development
-
