@@ -140,14 +140,15 @@ ARCADIA_status_t DRIVE_API_erase_nvm(const NVMCTRL_app_nvm_row_id_t k_row_id)
 	return status;
 }
 
-ARCADIA_status_t DRIVE_API_open_file(const char *kpc_fname, file_t * p_file)
+ARCADIA_status_t DRIVE_API_open_file(file_t * p_file, const char *kpc_fname, const char * kpc_open_mode)
 {
 	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
 
 	DRIVE_PAYLOAD_open_file_t payload =
 	{
-		.kpc_fname = kpc_fname,
 		.p_file = p_file,
+		.kpc_fname = kpc_fname,
+		.kpc_open_mode = kpc_open_mode,
 		.p_result_status = &status
 	};
 
@@ -598,7 +599,7 @@ uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
 
 	if (argc == 1)
 	{
-		DRIVE_API_open_file(argv[0], p_file);
+		DRIVE_API_open_file(p_file, argv[0], "r");
 	}
 	else
 	{

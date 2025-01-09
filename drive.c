@@ -16,7 +16,7 @@
 #define DRIVE_LOG_DBG(fmt, ...)   		SHELL_printf("\r%-10s" fmt, "[DRIVE]", ##__VA_ARGS__)
 #define DRIVE_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-10s" fmt, "[DRIVE]", ##__VA_ARGS__)
 
-#define DRIVE_MAX_OPEN_FILES			(4U)
+#define DRIVE_MAX_OPEN_FILES			(3U)
 
 typedef struct _DRIVE_file_slot
 {
@@ -38,17 +38,16 @@ static DRIVE_info_t DRIVE_info;
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
-static void 	DRIVE_handle_message			(void);
-static bool 	DRIVE_handle_msg_read_nvm		(ARCADIA_msg_t * p_msg);
-static bool 	DRIVE_handle_msg_write_nvm		(ARCADIA_msg_t * p_msg);
-static bool 	DRIVE_handle_msg_erase_nvm		(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_message			(void);
+static bool 		DRIVE_handle_msg_read_nvm		(ARCADIA_msg_t * p_msg);
+static bool 		DRIVE_handle_msg_write_nvm		(ARCADIA_msg_t * p_msg);
+static bool 		DRIVE_handle_msg_erase_nvm		(ARCADIA_msg_t * p_msg);
 
-static bool 	DRIVE_handle_msg_open_file		(ARCADIA_msg_t * p_msg);
-static bool 	DRIVE_handle_msg_close_file		(ARCADIA_msg_t * p_msg);
+static bool 		DRIVE_handle_msg_open_file		(ARCADIA_msg_t * p_msg);
+static bool 		DRIVE_handle_msg_close_file		(ARCADIA_msg_t * p_msg);
 
-file_t * 		DRIVE_allocate_file				(int8_t * pi8_handle);
-void 			DRIVE_free_file					(file_t *p_file);
-file_t * 		DRIVE_index_to_file_pointer		(uint8_t u8_index);
+static file_t * 	DRIVE_allocate_file				(int8_t * pi8_handle);
+static void 		DRIVE_free_file					(file_t * p_file);
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -90,37 +89,24 @@ void DRIVE_task(void * p_params)
 
 file_t * DRIVE_index_to_file_pointer(uint8_t u8_index)
 {
-    if (u8_index >= DRIVE_MAX_OPEN_FILES || !DRIVE_info.file_pool[u8_index].b_in_use)
-    {
-        return NULL;
-    }
-    return &DRIVE_info.file_pool[u8_index].file;
+	if (u8_index >= DRIVE_MAX_OPEN_FILES || !DRIVE_info.file_pool[u8_index].b_in_use)
+	{
+		return NULL;
+	}
+	return &DRIVE_info.file_pool[u8_index].file;
 }
 
-file_t * DRIVE_allocate_file(int8_t * pi8_handle)
+int8_t DRIVE_file_pointer_to_index(file_t *p_file)
 {
-    for (uint8_t i = 0; i < DRIVE_MAX_OPEN_FILES; ++i)
-    {
-        if (!DRIVE_info.file_pool[i].b_in_use)
-        {
-			*pi8_handle = i;
-            DRIVE_info.file_pool[i].b_in_use = true;
-            return &DRIVE_info.file_pool[i].file;
-        }
-    }
-    return NULL;
-}
+	for (uint8_t i = 0; i < DRIVE_MAX_OPEN_FILES; ++i)
+	{
+		if (&DRIVE_info.file_pool[i].file == p_file && DRIVE_info.file_pool[i].b_in_use)
+		{
+			return i;
+		}
+	}
 
-void DRIVE_free_file(file_t *p_file)
-{
-    for (uint8_t i = 0; i < DRIVE_MAX_OPEN_FILES; ++i)
-    {
-        if (&DRIVE_info.file_pool[i].file == p_file)
-        {
-            DRIVE_info.file_pool[i].b_in_use = false;
-            return;
-        }
-    }
+	return -1;
 }
 
 /****************************************************************************************************
@@ -165,12 +151,6 @@ static void DRIVE_handle_message(void)
 			default:
 				DRIVE_LOG_DBG("Unexpected message: %u\r\n", msg.id);
 		}
-
-		if (b_handled)
-		{
-			DRIVE_LOG_DBG("Handled msg %s with status %u\r\n",
-				ARCADIA_get_msg_type(msg.id), *msg.payload.drive_payload_read_nvm.p_result_status);
-		}
 	}
 }
 
@@ -197,6 +177,9 @@ static bool	DRIVE_handle_msg_read_nvm(ARCADIA_msg_t * p_msg)
 	}
 
 	ARCADIA_semaphore_give(p_msg->semaphore);
+
+	DRIVE_LOG_DBG("Handled msg %s with status %u\r\n",
+				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_read_nvm.p_result_status);
 
 	return true;
 }
@@ -226,6 +209,9 @@ static bool DRIVE_handle_msg_write_nvm(ARCADIA_msg_t * p_msg)
 
 	ARCADIA_semaphore_give(p_msg->semaphore);
 
+	DRIVE_LOG_DBG("Handled msg %s with status %u\r\n",
+				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_write_nvm.p_result_status);
+
 	return true;
 }
 
@@ -249,21 +235,28 @@ static bool DRIVE_handle_msg_erase_nvm(ARCADIA_msg_t * p_msg)
 
 	ARCADIA_semaphore_give(p_msg->semaphore);
 
+	DRIVE_LOG_DBG("Handled msg %s with status %u\r\n",
+				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_erase_nvm.p_result_status);
+
 	return true;
 }
 
 static bool DRIVE_handle_msg_open_file(ARCADIA_msg_t * p_msg)
 {
 	const char * 	kpc_fname = p_msg->payload.drive_payload_open_file.kpc_fname;
-	int8_t 			i8_handle = -1;
-	file_t *		p_file = DRIVE_allocate_file(&i8_handle);
-	FRESULT			f_result = f_open(p_file, kpc_fname, FA_READ);
+	int32_t			i32_open_flag = FSIF_open_mode_from_posix_flag(p_msg->payload.drive_payload_open_file.kpc_open_mode);
+
+	ASSERT(i32_open_flag != FSIF_INVALID_OPEN_MODE);
+
+	int8_t 		i8_handle = -1;
+	file_t *	p_file = DRIVE_allocate_file(&i8_handle);
+	FRESULT		f_result = f_open(p_file, kpc_fname, i32_open_flag);
 
 	if (FR_OK == f_result)
 	{
 		p_msg->payload.drive_payload_open_file.p_file = p_file;
 		*p_msg->payload.drive_payload_open_file.p_result_status = ARCADIA_STATUS_OK;
-		DRIVE_LOG_DBG("Opened file: %s with handle %d\n", kpc_fname, i8_handle);
+		DRIVE_LOG_DBG("Opened file %s with handle %d\n", kpc_fname, i8_handle);
 	}
 	else
 	{
@@ -272,19 +265,26 @@ static bool DRIVE_handle_msg_open_file(ARCADIA_msg_t * p_msg)
 
 	ARCADIA_semaphore_give(p_msg->semaphore);
 
+	DRIVE_LOG_DBG("Handled msg %s with status %u\r\n",
+				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_open_file.p_result_status);
+
 	return true;
 }
 
 static bool DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
 {
-	file_t * p_file = p_msg->payload.drive_payload_close_file.p_file;
-	FRESULT f_result = f_close(p_file);
+	file_t * 	p_file = p_msg->payload.drive_payload_close_file.p_file;
+	int8_t 		i8_handle = DRIVE_file_pointer_to_index(p_file);
+	
+	ASSERT(i8_handle >= 0);
+	
+	FRESULT 	f_result = f_close(p_file);
 
 	if (FR_OK == f_result)
 	{
 		*p_msg->payload.drive_payload_close_file.p_result_status = ARCADIA_STATUS_OK;
 		DRIVE_free_file(p_file);
-		DRIVE_LOG_DBG("File closed\n");
+		DRIVE_LOG_DBG("File %d closed\n", i8_handle);
 	}
 	else
 	{
@@ -293,5 +293,34 @@ static bool DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
 
 	ARCADIA_semaphore_give(p_msg->semaphore);
 
+	DRIVE_LOG_DBG("Handled msg %s with status %u\r\n",
+				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_close_file.p_result_status);
+
 	return true;
+}
+
+static file_t * DRIVE_allocate_file(int8_t * pi8_handle)
+{
+	for (uint8_t i = 0; i < DRIVE_MAX_OPEN_FILES; ++i)
+	{
+		if (!DRIVE_info.file_pool[i].b_in_use)
+		{
+			*pi8_handle = i;
+			DRIVE_info.file_pool[i].b_in_use = true;
+			return &DRIVE_info.file_pool[i].file;
+		}
+	}
+	return NULL;
+}
+
+static void DRIVE_free_file(file_t *p_file)
+{
+	for (uint8_t i = 0; i < DRIVE_MAX_OPEN_FILES; ++i)
+	{
+		if (&DRIVE_info.file_pool[i].file == p_file)
+		{
+			DRIVE_info.file_pool[i].b_in_use = false;
+			return;
+		}
+	}
 }

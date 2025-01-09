@@ -17,6 +17,7 @@
 #define FSIF_DEFAULT_DRIVE_PATH			""
 #define FSIF_DISK_RW_RETRIES			(5)
 #define FSIF_FS_LABEL_NAME_LEN_MAX		(12)
+#define FSIF_NUM_OPEN_FLAGS				(8U)
 
 typedef enum _FSIF_fs_type_id
 {
@@ -28,6 +29,12 @@ typedef enum _FSIF_fs_type_id
 	//////////
 	FSIF_FS_TYPE_ID_NUM_IDS
 } FSIF_fs_type_id_t;
+
+typedef struct _FSID_open_flags
+{
+	const char * 	kpc_posix_flag;
+	const int32_t	ki32_fatfs_flag;
+} FSIF_open_flags_t;
 
 typedef struct _FSIF_info
 {
@@ -41,13 +48,59 @@ typedef struct _FSIF_info
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
 
-static const char * const kpc_fat_subtype[] =
+static const char * const kpc_fat_subtype[FSIF_FS_TYPE_ID_NUM_IDS] =
 {
 	[FSIF_FS_TYPE_ID_INVALID] 	= "Invalid",
 	[FSIF_FS_TYPE_ID_FAT12] 	= "FAT12",
 	[FSIF_FS_TYPE_ID_FAT16] 	= "FAT16",
 	[FSIF_FS_TYPE_ID_FAT32] 	= "FAT32",
 	[FSIF_FS_TYPE_ID_EXFAT] 	= "EXFAT"
+};
+
+static const FSIF_open_flags_t k_open_flags[FSIF_NUM_OPEN_FLAGS] =
+{
+	{
+		.kpc_posix_flag 	= 	"r",
+		.ki32_fatfs_flag 	= 	FA_READ
+	},
+	{
+		.kpc_posix_flag 	= 	"r+",
+		.ki32_fatfs_flag 	= 	FA_READ |
+								FA_WRITE
+	},
+	{
+		.kpc_posix_flag 	= 	"w",
+		.ki32_fatfs_flag 	= 	FA_CREATE_ALWAYS |
+								FA_WRITE
+	},
+	{
+		.kpc_posix_flag 	= 	"w+",
+		.ki32_fatfs_flag 	= 	FA_CREATE_ALWAYS |
+								FA_WRITE |
+								FA_READ
+	},
+	{
+		.kpc_posix_flag 	= 	"a",
+		.ki32_fatfs_flag 	= 	FA_OPEN_APPEND |
+								FA_WRITE
+	},
+	{
+		.kpc_posix_flag 	= 	"a+",
+		.ki32_fatfs_flag 	= 	FA_OPEN_APPEND |
+								FA_WRITE |
+								FA_READ
+	},
+	{
+		.kpc_posix_flag 	= 	"wx",
+		.ki32_fatfs_flag 	= 	FA_CREATE_NEW |
+								FA_WRITE
+	},
+	{
+		.kpc_posix_flag 	= 	"w+x",
+		.ki32_fatfs_flag 	= 	FA_CREATE_NEW |
+								FA_WRITE |
+								FA_READ
+	},
 };
 
 static FSIF_info_t fsif_info;
@@ -385,6 +438,18 @@ FRESULT FSIF_f_mount(void)
 	}
 
 	return f_result;
+}
+
+int32_t FSIF_open_mode_from_posix_flag(const char *kpc_posix_flag)
+{
+	for (uint8_t i = 0; i < FSIF_NUM_OPEN_FLAGS; i++)
+	{
+		if (0 == strcmp(kpc_posix_flag, k_open_flags[i].kpc_posix_flag))
+		{
+			return k_open_flags[i].ki32_fatfs_flag;
+		}
+	}
+	return -1;
 }
 
 /****************************************************************************************************

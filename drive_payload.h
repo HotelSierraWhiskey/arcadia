@@ -31,8 +31,9 @@ typedef struct _DRIVE_PAYLOAD_erase_nvm
 
 typedef struct _DRIVE_PAYLOAD_open_file
 {
-	const char *		kpc_fname;
 	file_t *			p_file;
+	const char *		kpc_fname;
+	const char *		kpc_open_mode;
 	ARCADIA_status_t *	p_result_status;
 } DRIVE_PAYLOAD_open_file_t;
 

@@ -14,7 +14,7 @@ ARCADIA_status_t	DRIVE_API_read_nvm			(const NVMCTRL_app_nvm_row_id_t row_id, ch
 ARCADIA_status_t	DRIVE_API_write_nvm			(const NVMCTRL_app_nvm_row_id_t row_id, const char * kpc_data);
 ARCADIA_status_t	DRIVE_API_erase_nvm			(const NVMCTRL_app_nvm_row_id_t row_id);
 
-ARCADIA_status_t	DRIVE_API_open_file			(const char *kpc_fname, file_t * p_file);
+ARCADIA_status_t	DRIVE_API_open_file			(file_t * p_file, const char *kpc_fname, const char * kpc_open_mode);
 ARCADIA_status_t	DRIVE_API_close_file		(file_t * p_file);
 
 /****************************************************************************************************
