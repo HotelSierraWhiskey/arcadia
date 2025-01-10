@@ -152,12 +152,12 @@ uint8_t CHRONO_API_shell_sn(uint8_t argc, char ** argv)
 	{
 		if (TIMER_INVALID == CHRONO_API_schedule_msg_for_task(&msg, task_id, delay, mode))
 		{
-			SHELL_printf("Timer invalid\r\n");
+			SHELL_printf("Timer invalid\n");
 		}
 	}
 	else
 	{
-		SHELL_printf("Usage: chrono sn <task_id> <delay> <mode>\r\n");
+		SHELL_printf("Usage: chrono sn <task_id> <delay> <mode>\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
@@ -193,12 +193,12 @@ uint8_t CHRONO_API_shell_cancel(uint8_t argc, char ** argv)
 	{
 		if (CHRONO_API_cancel_scheduled_message(timer_id) != ARCADIA_STATUS_OK)
 		{
-			SHELL_printf("Unable to cancel a scheduled message on timer %u\r\n", timer_id);
+			SHELL_printf("Unable to cancel a scheduled message on timer %u\n", timer_id);
 		}
 	}
 	else
 	{
-		SHELL_printf("Usage: chrono cancel <timer_id>\r\n");
+		SHELL_printf("Usage: chrono cancel <timer_id>\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
@@ -234,11 +234,11 @@ uint8_t CHRONO_API_shell_info(uint8_t argc, char ** argv)
 			p_timer_info 			= (TIMER_info_t *)TIMER_get_timer_info(i);
 			p_msg_schedule_entry 	= CHRONO_get_msg_schedule_entry(i);
 
-			SHELL_printf("Slot %u\r\n", i);
+			SHELL_printf("Slot %u\n", i);
 
 			if (TIMER_AVAILABLE == p_timer_info->u16_period)
 			{
-				SHELL_printf("\t%-20s: Unscheduled\r\n", "Status");
+				SHELL_printf("\t%-20s: Unscheduled\n", "Status");
 			}
 			else
 			{
@@ -252,15 +252,15 @@ uint8_t CHRONO_API_shell_info(uint8_t argc, char ** argv)
 
 				snprintf(pc_time_buffer, sizeof(pc_time_buffer), "%02lu:%02lu:%02lu", u32_hours, u32_minutes, u32_seconds);
 
-				SHELL_printf("\t%-20s: Scheduled\r\n", "Status");
-				SHELL_printf("\t%-20s: %s\r\n", "Msg", ARCADIA_get_msg_type(p_msg_schedule_entry->msg.id));
-				SHELL_printf("\t%-20s: %s\r\n", "Addressed Task", ARCADIA_get_task_name(p_msg_schedule_entry->task_id));
-				SHELL_printf("\t%-20s: %s\r\n", "From", ARCADIA_get_task_name(p_msg_schedule_entry->msg.from));
-				SHELL_printf("\t%-20s: %s\r\n", "Time Remaining", pc_time_buffer);
+				SHELL_printf("\t%-20s: Scheduled\n", "Status");
+				SHELL_printf("\t%-20s: %s\n", "Msg", ARCADIA_get_msg_type(p_msg_schedule_entry->msg.id));
+				SHELL_printf("\t%-20s: %s\n", "Addressed Task", ARCADIA_get_task_name(p_msg_schedule_entry->task_id));
+				SHELL_printf("\t%-20s: %s\n", "From", ARCADIA_get_task_name(p_msg_schedule_entry->msg.from));
+				SHELL_printf("\t%-20s: %s\n", "Time Remaining", pc_time_buffer);
 			}
 			if (i < TIMER_ID_NUM_TIMERS - 1)
 			{
-				SHELL_printf("\r\n");
+				SHELL_printf("\n");
 			}
 		}
 
@@ -268,7 +268,7 @@ uint8_t CHRONO_API_shell_info(uint8_t argc, char ** argv)
 	}
 	else
 	{
-		SHELL_printf("Usage: chrono info\r\n");
+		SHELL_printf("Usage: chrono info\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;

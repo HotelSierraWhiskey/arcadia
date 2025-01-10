@@ -76,7 +76,7 @@ void DRIVE_task(void * p_params)
 
 	if (FSIF_fs_init())
 	{
-		DRIVE_LOG_DBG("File system mounted (%s, %s)\r\n",
+		DRIVE_LOG_DBG("File system mounted (%s, %s)\n",
 			FSIF_get_volume_label(), FSIF_get_fat_subtype());
 	}
 
@@ -120,7 +120,7 @@ static void DRIVE_handle_message(void)
 
 	if (ARCADIA_receive(&msg))
 	{
-		DRIVE_LOG_DBG("Received msg %s from %s\r\n", 
+		DRIVE_LOG_DBG("Received msg %s from %s\n", 
 			ARCADIA_get_msg_type(msg.id), ARCADIA_get_task_name(msg.from));
 
 		switch (msg.id)
@@ -149,7 +149,7 @@ static void DRIVE_handle_message(void)
 				break;
 			
 			default:
-				DRIVE_LOG_DBG("Unexpected message: %u\r\n", msg.id);
+				DRIVE_LOG_DBG("Unexpected message: %u\n", msg.id);
 		}
 	}
 }
@@ -169,7 +169,7 @@ static bool	DRIVE_handle_msg_read_nvm(ARCADIA_msg_t * p_msg)
 
 	*p_msg->payload.drive_payload_read_nvm.p_result_status = ARCADIA_STATUS_OK;
 
-	DRIVE_LOG_DBG("Reading row (0x%08X - 0x%08X)\r\n", u32_addr, u32_addr + NVMCTRL_ROW_SIZE - 1);
+	DRIVE_LOG_DBG("Reading row (0x%08X - 0x%08X)\n", u32_addr, u32_addr + NVMCTRL_ROW_SIZE - 1);
 
 	for (uint16_t i = 0; i < NVMCTRL_ROW_SIZE; i++)
 	{
@@ -178,7 +178,7 @@ static bool	DRIVE_handle_msg_read_nvm(ARCADIA_msg_t * p_msg)
 
 	ARCADIA_semaphore_give(p_msg->semaphore);
 
-	DRIVE_LOG_DBG("Handled msg %s with status %u\r\n",
+	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_read_nvm.p_result_status);
 
 	return true;
@@ -197,7 +197,7 @@ static bool DRIVE_handle_msg_write_nvm(ARCADIA_msg_t * p_msg)
 	uint32_t 	u32_addr = p_msg->payload.drive_payload_write_nvm.u32_addr;
 	uint8_t * 	pc_buffer = (uint8_t *)p_msg->payload.drive_payload_write_nvm.kpc_buffer;
 
-	DRIVE_LOG_DBG("Writing to row (0x%08X - 0x%08X)\r\n", u32_addr, u32_addr + NVMCTRL_ROW_SIZE - 1);
+	DRIVE_LOG_DBG("Writing to row (0x%08X - 0x%08X)\n", u32_addr, u32_addr + NVMCTRL_ROW_SIZE - 1);
 
 	for (uint8_t i = 0; i < (NVMCTRL_ROW_SIZE / NVMCTRL_PAGE_SIZE); i++)
 	{
@@ -209,7 +209,7 @@ static bool DRIVE_handle_msg_write_nvm(ARCADIA_msg_t * p_msg)
 
 	ARCADIA_semaphore_give(p_msg->semaphore);
 
-	DRIVE_LOG_DBG("Handled msg %s with status %u\r\n",
+	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_write_nvm.p_result_status);
 
 	return true;
@@ -227,7 +227,7 @@ static bool DRIVE_handle_msg_erase_nvm(ARCADIA_msg_t * p_msg)
 {
 	uint32_t u32_addr = p_msg->payload.drive_payload_erase_nvm.u32_addr;
 
-	DRIVE_LOG_DBG("Erasing row (0x%08X - 0x%08X)\r\n", u32_addr, u32_addr + NVMCTRL_ROW_SIZE - 1);
+	DRIVE_LOG_DBG("Erasing row (0x%08X - 0x%08X)\n", u32_addr, u32_addr + NVMCTRL_ROW_SIZE - 1);
 
 	NVMCTRL_erase_row(u32_addr);
 
@@ -235,7 +235,7 @@ static bool DRIVE_handle_msg_erase_nvm(ARCADIA_msg_t * p_msg)
 
 	ARCADIA_semaphore_give(p_msg->semaphore);
 
-	DRIVE_LOG_DBG("Handled msg %s with status %u\r\n",
+	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_erase_nvm.p_result_status);
 
 	return true;
@@ -265,7 +265,7 @@ static bool DRIVE_handle_msg_open_file(ARCADIA_msg_t * p_msg)
 
 	ARCADIA_semaphore_give(p_msg->semaphore);
 
-	DRIVE_LOG_DBG("Handled msg %s with status %u\r\n",
+	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_open_file.p_result_status);
 
 	return true;
@@ -293,7 +293,7 @@ static bool DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
 
 	ARCADIA_semaphore_give(p_msg->semaphore);
 
-	DRIVE_LOG_DBG("Handled msg %s with status %u\r\n",
+	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_close_file.p_result_status);
 
 	return true;

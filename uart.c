@@ -10,7 +10,7 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define UART_BUFFER_SIZE (256U)
+#define UART_BUFFER_SIZE (512U)
 
 typedef struct _UART_buffer
 {

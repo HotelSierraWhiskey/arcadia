@@ -65,6 +65,15 @@ uint8_t 		SHELL_shell_help		(uint8_t argc, char ** argv);
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
 
+// Arcadia ASCII art banner
+const char * kp_arcadia_banner = 
+	"\n"
+	SHELL_COLOR_VAPORWAVE_PINK		"   _                  _ _      \n"
+	SHELL_COLOR_VAPORWAVE_PURPLE	"  / \\  _ _ __ __ _ __| (_)__ _ \n"
+	SHELL_COLOR_VAPORWAVE_AQUA		" / _ \\| '_/ _/ _` / _` | / _` |\n"
+	SHELL_COLOR_VAPORWAVE_MINT		"/_/ \\_\\_| \\__\\__,_\\__,_|_\\__,_|\n"
+	SHELL_COLOR_RESET;
+
 // Top-level command table
 static const SHELL_command_t kp_command_table[];
 
@@ -104,8 +113,8 @@ static const SHELL_command_t kp_command_table[] =
 		.function 			= DRIVE_API_shell_cat,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tDumps the contents of a file\r\n"
-									"\tUsage: cat <fname>\r\n"
+									"\tDumps the contents of a file\n"
+									"\tUsage: cat <fname>\n"
 								),
 	},
 	{
@@ -125,7 +134,7 @@ static const SHELL_command_t kp_command_table[] =
 		.function 			= SHELL_shell_help,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		=	(
-									"\tDisplays this message\r\n"
+									"\tDisplays this message\n"
 								)
 	},
 	{
@@ -133,8 +142,8 @@ static const SHELL_command_t kp_command_table[] =
 		.function 			= DRIVE_API_shell_ls,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tList file system contents\r\n"
-									"\tUsage: ls\r\n"
+									"\tList file system contents\n"
+									"\tUsage: ls\n"
 								)
 	},
 	{
@@ -148,8 +157,8 @@ static const SHELL_command_t kp_command_table[] =
 		.function 			= DRIVE_API_shell_rm,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tDeletes a file\r\n"
-									"\tUsage: rm <fname>\r\n"
+									"\tDeletes a file\n"
+									"\tUsage: rm <fname>\n"
 								)
 	},
 	{
@@ -181,8 +190,8 @@ static const SHELL_command_t kp_command_table[] =
 		.function 			= DRIVE_API_shell_touch,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tCreates a empty file\r\n"
-									"\tUsage: touch <fname>\r\n"
+									"\tCreates a empty file\n"
+									"\tUsage: touch <fname>\n"
 								)
 	},
 	{
@@ -205,8 +214,8 @@ static const SHELL_command_t kp_chrono_command_table[] =
 		.function 			= CHRONO_API_shell_cancel,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tCancels a scheduled message\r\n"
-									"\tUsage: chrono cancel <timer_id>\r\n"
+									"\tCancels a scheduled message\n"
+									"\tUsage: chrono cancel <timer_id>\n"
 								)
 	},
 	{
@@ -214,8 +223,8 @@ static const SHELL_command_t kp_chrono_command_table[] =
 		.function 			= CHRONO_API_shell_info,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tDisplays chrono msg schedule\r\n"
-									"\tUsage: chrono info\r\n"
+									"\tDisplays chrono msg schedule\n"
+									"\tUsage: chrono info\n"
 								)
 	},
 	{
@@ -223,8 +232,8 @@ static const SHELL_command_t kp_chrono_command_table[] =
 		.function 			= CHRONO_API_shell_sn,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tSchedules a NOOP for a given task\r\n"
-									"\tUsage: chrono sn <task_id> <delay> <mode>\r\n"
+									"\tSchedules a NOOP for a given task\n"
+									"\tUsage: chrono sn <task_id> <delay> <mode>\n"
 								)
 	},
 	//////////
@@ -262,8 +271,8 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 		.function 			= DRIVE_API_shell_close,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tCloses a file\r\n"
-									"\tUsage: drive fs close <fname>\r\n"
+									"\tCloses a file\n"
+									"\tUsage: drive fs close <fname>\n"
 								)
 	},
 	{
@@ -271,8 +280,8 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 		.function 			= DRIVE_API_shell_mkfs,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tRuns FatFs f_mkfs, creates the file system\r\n"
-									"\tUsage: drive fs format\r\n"
+									"\tRuns FatFs f_mkfs, creates the file system\n"
+									"\tUsage: drive fs format\n"
 								)
 	},
 	{
@@ -280,8 +289,8 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 		.function 			= DRIVE_API_shell_fs_info,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tDisplays file system information\r\n"
-									"\tUsage: drive fs info\r\n"
+									"\tDisplays file system information\n"
+									"\tUsage: drive fs info\n"
 								)
 	},
 	{
@@ -289,8 +298,8 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 		.function 			= DRIVE_API_shell_mount,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tRuns FatFs f_mount, mounts the file system\r\n"
-									"\tUsage: drive fs mount\r\n"
+									"\tRuns FatFs f_mount, mounts the file system\n"
+									"\tUsage: drive fs mount\n"
 								)
 	},
 	{
@@ -298,8 +307,8 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 		.function 			= DRIVE_API_shell_open,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tOpens a file\r\n"
-									"\tUsage: drive fs open <fname>\r\n"
+									"\tOpens a file\n"
+									"\tUsage: drive fs open <fname>\n"
 								)
 	},
 	{
@@ -307,8 +316,8 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 		.function 			= DRIVE_API_shell_read,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tRuns FatFs f_mount, mounts the file system\r\n"
-									"\tUsage: drive mount\r\n"
+									"\tRuns FatFs f_mount, mounts the file system\n"
+									"\tUsage: drive mount\n"
 								)
 	},
 	{
@@ -316,8 +325,8 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 		.function 			= DRIVE_API_shell_unmount,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tUnmounts the file system\r\n"
-									"\tUsage: drive fs unmount\r\n"
+									"\tUnmounts the file system\n"
+									"\tUsage: drive fs unmount\n"
 								)
 	},
 	//////////
@@ -334,8 +343,8 @@ static const SHELL_command_t kp_drive_nvm_command_table[] =
 		.function 			= DRIVE_API_shell_erase_nvm,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tErases a row from NVM\r\n"
-									"\tUsage: drive nvm erase <addr>\r\n"
+									"\tErases a row from NVM\n"
+									"\tUsage: drive nvm erase <addr>\n"
 								)
 	},
 	{
@@ -343,8 +352,8 @@ static const SHELL_command_t kp_drive_nvm_command_table[] =
 		.function 			= DRIVE_API_shell_read_nvm,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tReads a page from NVM\r\n"
-									"\tUsage: drive nvm read <addr>\r\n"
+									"\tReads a page from NVM\n"
+									"\tUsage: drive nvm read <addr>\n"
 								)
 	},
 	{
@@ -352,8 +361,8 @@ static const SHELL_command_t kp_drive_nvm_command_table[] =
 		.function 			= DRIVE_API_shell_write_nvm,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tErases a row from NVM\r\n"
-									"\tUsage: drive nvm write <addr> <num_bytes> <...>\r\n"
+									"\tErases a row from NVM\n"
+									"\tUsage: drive nvm write <addr> <num_bytes> <...>\n"
 								)
 	},
 	//////////
@@ -370,8 +379,8 @@ static const SHELL_command_t kp_nvm_command_table[] =
 		.function 			= NVMCTRL_shell_erase,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tErases a row from NVM\r\n"
-									"\tUsage: nvm erase <addr>\r\n"
+									"\tErases a row from NVM\n"
+									"\tUsage: nvm erase <addr>\n"
 								)
 	},
 	{
@@ -379,8 +388,8 @@ static const SHELL_command_t kp_nvm_command_table[] =
 		.function 			= NVMCTRL_shell_read,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tReads a page from NVM\r\n"
-									"\tUsage: nvm read <addr>\r\n"
+									"\tReads a page from NVM\n"
+									"\tUsage: nvm read <addr>\n"
 								)
 	},
 	{
@@ -388,8 +397,8 @@ static const SHELL_command_t kp_nvm_command_table[] =
 		.function 			= NVMCTRL_shell_write,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tWrites a page to NVM\r\n"
-									"\tUsage: nvm write <addr> <num_bytes> <...>\r\n"
+									"\tWrites a page to NVM\n"
+									"\tUsage: nvm write <addr> <num_bytes> <...>\n"
 								)
 	},
 	//////////
@@ -406,8 +415,8 @@ static const SHELL_command_t kp_sd_command_table[] =
 		.function 			= SD_shell_erase,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tErases a block of memory\r\n"
-									"\tUsage: sd erase <addr>\r\n"
+									"\tErases a block of memory\n"
+									"\tUsage: sd erase <addr>\n"
 								)
 	},
 	{
@@ -415,8 +424,8 @@ static const SHELL_command_t kp_sd_command_table[] =
 		.function 			= SD_shell_info,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tDisplays SD info\r\n"
-									"\tUsage: sd info\r\n"
+									"\tDisplays SD info\n"
+									"\tUsage: sd info\n"
 								)
 	},
 	{
@@ -424,8 +433,8 @@ static const SHELL_command_t kp_sd_command_table[] =
 		.function 			= SD_shell_init,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tInitializes the SD card\r\n"
-									"\tUsage: sd init\r\n"
+									"\tInitializes the SD card\n"
+									"\tUsage: sd init\n"
 								)
 	},
 	{
@@ -433,8 +442,8 @@ static const SHELL_command_t kp_sd_command_table[] =
 		.function 			= SD_shell_read,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tRead a block of data\r\n"
-									"\tUsage: sd read <addr>\r\n"
+									"\tRead a block of data\n"
+									"\tUsage: sd read <addr>\n"
 								)
 	},
 	{
@@ -442,8 +451,8 @@ static const SHELL_command_t kp_sd_command_table[] =
 		.function 			= SD_shell_wtest,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tWrite a block of dummy data\r\n"
-									"\tUsage: sd wtest <addr>\r\n"
+									"\tWrite a block of dummy data\n"
+									"\tUsage: sd wtest <addr>\n"
 								)
 	},
 	{
@@ -451,8 +460,8 @@ static const SHELL_command_t kp_sd_command_table[] =
 		.function 			= SD_shell_wipe,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tFills the SD card with zeros\r\n"
-									"\tUsage: sd wipe\r\n"
+									"\tFills the SD card with zeros\n"
+									"\tUsage: sd wipe\n"
 								)
 	},
 	//////////
@@ -469,8 +478,8 @@ static const SHELL_command_t kp_sys_command_table[] =
 		.function 			= SYS_shell_crash,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tForces a Hard Fault exception\r\n"
-									"\tUsage: sys crash\r\n"
+									"\tForces a Hard Fault exception\n"
+									"\tUsage: sys crash\n"
 								)
 	},
 	{
@@ -478,8 +487,8 @@ static const SHELL_command_t kp_sys_command_table[] =
 		.function 			= SYS_shell_delay,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tBlocking systick delay\r\n"
-									"\tUsage: sys delay <ms>\r\n"
+									"\tBlocking systick delay\n"
+									"\tUsage: sys delay <ms>\n"
 								)
 	},
 	{
@@ -487,8 +496,8 @@ static const SHELL_command_t kp_sys_command_table[] =
 		.function 			= SYS_shell_info,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tGeneral system information\r\n"
-									"\tUsage: sys info\r\n"
+									"\tGeneral system information\n"
+									"\tUsage: sys info\n"
 								)
 	},
 	{
@@ -496,8 +505,8 @@ static const SHELL_command_t kp_sys_command_table[] =
 		.function 			= SYS_shell_reset,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tPerforms a software reset\r\n"
-									"\tUsage: sys reset\r\n"
+									"\tPerforms a software reset\n"
+									"\tUsage: sys reset\n"
 								)
 	},
 	{
@@ -505,8 +514,8 @@ static const SHELL_command_t kp_sys_command_table[] =
 		.function 			= SYS_shell_wm,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tView task high watermarks\r\n"
-									"\tUsage: sys wm\r\n"
+									"\tView task high watermarks\n"
+									"\tUsage: sys wm\n"
 								)
 	},
 	//////////
@@ -523,8 +532,8 @@ static const SHELL_command_t kp_timer_command_table[] =
 		.function 			= TIMER_shell_info,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tDisplays timer information\r\n"
-									"\tUsage: timer info\r\n"
+									"\tDisplays timer information\n"
+									"\tUsage: timer info\n"
 								)
 	},
 	{
@@ -532,8 +541,8 @@ static const SHELL_command_t kp_timer_command_table[] =
 		.function 			= TIMER_shell_start_timer,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tStarts a specified timer\r\n"
-									"\tUsage: timer start <id> <seconds> <mode>\r\n"
+									"\tStarts a specified timer\n"
+									"\tUsage: timer start <id> <seconds> <mode>\n"
 								)
 	},
 	{
@@ -541,8 +550,8 @@ static const SHELL_command_t kp_timer_command_table[] =
 		.function 			= TIMER_shell_stop_timer,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tStops a specified timer\r\n"
-									"\tUsage: timer stop <id>\r\n"
+									"\tStops a specified timer\n"
+									"\tUsage: timer stop <id>\n"
 								)
 	},
 	//////////
@@ -556,8 +565,8 @@ static const SHELL_command_t kp_spi_command_table[] =
 		.function 			= SPI_shell_write,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tWrites a byte to the SPI interface\r\n"
-									"\tUsage: spi write <channel_id> <num_bytes> <...>\r\n"
+									"\tWrites a byte to the SPI interface\n"
+									"\tUsage: spi write <channel_id> <num_bytes> <...>\n"
 								)
 	},
 	//////////
@@ -574,8 +583,8 @@ static const SHELL_command_t kp_uart_command_table[] =
 		.function 			= UART_shell_info,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tDisplays UART configuration\r\n"
-									"\tUsage: uart info\r\n"
+									"\tDisplays UART configuration\n"
+									"\tUsage: uart info\n"
 								)
 	},
 	//////////
@@ -713,7 +722,7 @@ static void SHELL_handle_msg(void)
 
 	if (ARCADIA_receive_nb(&msg))
 	{
-		SHELL_LOG_DBG("Received msg %s from %s\r\n", 
+		SHELL_LOG_DBG("Received msg %s from %s\n", 
 			ARCADIA_get_msg_type(msg.id), ARCADIA_get_task_name(msg.from));
 
 		switch (msg.id)
@@ -722,7 +731,7 @@ static void SHELL_handle_msg(void)
 				break;
 			
 			default:
-				SHELL_LOG_DBG("Unexpected message: %u\r\n", msg.id);
+				SHELL_LOG_DBG("Unexpected message: %u\n", msg.id);
 		}
 	}
 }
@@ -774,13 +783,13 @@ static void SHELL_handle_command(void)
 
 				if (argc >= SHELL_MAX_ARGS)
 				{
-					SHELL_printf("\r\nToo many arguments\r\n");
+					SHELL_printf("\nToo many arguments\n");
 					goto cleanup;
 				}
 			}
 			else
 			{
-				SHELL_printf("\r\nCommand not found: %s\r\n", token);
+				SHELL_printf("\nCommand not found: %s\n", token);
 				goto cleanup;
 			}
 		}
@@ -794,12 +803,12 @@ static void SHELL_handle_command(void)
 		// Keep spacing uniform when top-level help is called
 		if (shell_function != SHELL_shell_help)
 		{
-			SHELL_printf("\r\n");
+			SHELL_printf("\n");
 		}
 
 		if (shell_function(argc, argv) != SHELL_COMMAND_SUCCESS)
 		{
-			SHELL_printf("\r\nCommand returned bad status code\r\n");
+			SHELL_printf("\nCommand returned bad status code\n");
 		}
 	}
 	else
@@ -820,13 +829,13 @@ cleanup:
  ****************************************************************************************************/
 static void SHELL_help(const SHELL_command_t * p_table)
 {
-	SHELL_printf("\r\n\nCommands:\r\n");
+	SHELL_printf("\n\nCommands:\n");
 
 	SHELL_SEPARATOR();
 
 	while (p_table->kpc_name)
 	{
-		SHELL_printf("%s\r\n", p_table->kpc_name);
+		SHELL_printf("%s\n", p_table->kpc_name);
 
 		// Check if a docstring exists for this command
 		if (p_table->kpc_docstring)
@@ -835,7 +844,7 @@ static void SHELL_help(const SHELL_command_t * p_table)
 		}
 		else
 		{
-			SHELL_printf("\t%s commands\r\n", p_table->kpc_name);
+			SHELL_printf("\t%s commands\n", p_table->kpc_name);
 		}
 		p_table++;
 	}
@@ -849,17 +858,7 @@ static void SHELL_help(const SHELL_command_t * p_table)
  ****************************************************************************************************/
 void SHELL_display_banner(void)
 {
-	SHELL_printf("\r\n");
-	SHELL_printf(SHELL_COLOR_VAPORWAVE_PINK);
-	SHELL_printf("   _                  _ _      \n\r");
-	SHELL_printf(SHELL_COLOR_VAPORWAVE_PURPLE);
-	SHELL_printf("  /_\\  _ _ __ __ _ __| (_)__ _ \n\r");
-	SHELL_printf(SHELL_COLOR_VAPORWAVE_AQUA);
-	SHELL_printf(" / _ \\| '_/ _/ _` / _` | / _` |\n\r");
-	SHELL_printf(SHELL_COLOR_VAPORWAVE_MINT);
-	SHELL_printf("/_/ \\_\\_| \\__\\__,_\\__,_|_\\__,_|\n\r");
-	SHELL_printf(SHELL_COLOR_RESET);
-	SHELL_printf("\r\n");
+	SHELL_printf("%s\n", kp_arcadia_banner);
 }
 
 /****************************************************************************************************

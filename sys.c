@@ -26,7 +26,7 @@
  */
 typedef enum _SYS_clock_src_freq
 {
-	SYS_CLOCK_SRC_FREQ_48_MHZ,
+	SYS_CLOCK_SRC_FREQ_48_MHZ = 0,
 	SYS_CLOCK_SRC_FREQ_24_MHZ,
 	SYS_CLOCK_SRC_FREQ_16_MHZ,
 	SYS_CLOCK_SRC_FREQ_12_MHZ,
@@ -177,7 +177,8 @@ static void SYS_osc48m_init(void)
 	NVMCTRL_REGS->NVMCTRL_CTRLB = NVMCTRL_CTRLB_RWS_DUAL;
 
 	// Enable in on-demand mode with a division factor of 1 (for 48MHz) with 21.33us startup delay
-	OSCCTRL_REGS->OSCCTRL_OSC48MCTRL = OSCCTRL_OSC48MCTRL_ENABLE(1) | OSCCTRL_OSC48MCTRL_ONDEMAND(1);
+	OSCCTRL_REGS->OSCCTRL_OSC48MCTRL = 	OSCCTRL_OSC48MCTRL_ENABLE(1) |
+										OSCCTRL_OSC48MCTRL_ONDEMAND(1);
 	OSCCTRL_REGS->OSCCTRL_OSC48MDIV = OSCCTRL_OSC48MDIV_DIV_DIV1;
 	OSCCTRL_REGS->OSCCTRL_OSC48MSTUP = OSCCTRL_OSC48MSTUP_STARTUP_CYCLE1024;
 
@@ -297,7 +298,7 @@ uint8_t SYS_shell_crash(uint8_t argc, char ** argv)
 	}
 	else
 	{
-		SHELL_printf("Usage: sys crash\r\n");
+		SHELL_printf("Usage: sys crash\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
@@ -322,9 +323,9 @@ uint8_t SYS_shell_delay(uint8_t argc, char ** argv)
 	{
 		if (UTILS_string_to_u32(argv[0], &u32_delay))
 		{
-			SYS_LOG_DBG("Delaying %u ms\r\n", u32_delay);
+			SYS_LOG_DBG("Delaying %u ms\n", u32_delay);
 			CHRONO_delay_ms(u32_delay);
-			SYS_LOG_DBG("Done\r\n");
+			SYS_LOG_DBG("Done\n");
 
 			b_res = true;
 		}
@@ -332,7 +333,7 @@ uint8_t SYS_shell_delay(uint8_t argc, char ** argv)
 
 	if (!b_res)
 	{
-		SHELL_printf("Usage: sys delay <ms>\r\n");
+		SHELL_printf("Usage: sys delay <ms>\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
@@ -376,13 +377,13 @@ uint8_t SYS_shell_info(uint8_t argc, char ** argv)
 			uid_buffer[3]);
 
 		SHELL_SEPARATOR();
-		SHELL_printf("%-30s: %u.%u.%u\r\n", "Firmware Version", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
-		SHELL_printf("%-30s: %s\r\n", "FreeRTOS Version", VERSION_FREERTOS);
-		SHELL_printf("%-30s: %s %s\r\n", "Compilation Timestamp", __DATE__, __TIME__);
-		SHELL_printf("%-30s: %s\r\n", "Uptime", pc_time_buffer);
-		SHELL_printf("%-30s: %s (Cortex M0+)\r\n", "MCU Model Number", kpc_part_descriptors[SYS_info.k_part]);
-		SHELL_printf("%-30s: %s\r\n", "Clock Source Freq", kpc_sys_clock_freq_descriptors[SYS_info.clock_source_freq]);
-		SHELL_printf("%-30s: %s\r\n", "Serial Number", pc_serial_number);
+		SHELL_printf("%-30s: %u.%u.%u\n", "Firmware Version", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+		SHELL_printf("%-30s: %s\n", "FreeRTOS Version", VERSION_FREERTOS);
+		SHELL_printf("%-30s: %s%s\n", "Compilation Timestamp", __DATE__, __TIME__);
+		SHELL_printf("%-30s: %s\n", "Uptime", pc_time_buffer);
+		SHELL_printf("%-30s: %s (Cortex M0+)\n", "MCU Model Number", kpc_part_descriptors[SYS_info.k_part]);
+		SHELL_printf("%-30s: %s\n", "Clock Source Freq", kpc_sys_clock_freq_descriptors[SYS_info.clock_source_freq]);
+		SHELL_printf("%-30s: %s\n", "Serial Number", pc_serial_number);
 		SHELL_SEPARATOR();
 	}
 
@@ -403,7 +404,7 @@ uint8_t	SYS_shell_reset(uint8_t argc, char ** argv)
 {
 	if (argc == 0)
 	{
-		SYS_LOG_DBG("System rebooting...\r\n");
+		SYS_LOG_DBG("System rebooting...\n");
 		
 		// Delay 10ms to empty the UART tx buffer
 		CHRONO_delay_ms(10);
@@ -411,7 +412,7 @@ uint8_t	SYS_shell_reset(uint8_t argc, char ** argv)
 	}
 	else
 	{
-		SHELL_printf("Usage: sys reset\r\n");
+		SHELL_printf("Usage: sys reset\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
@@ -436,7 +437,7 @@ uint8_t	SYS_shell_wm(uint8_t argc, char ** argv)
 	if (argc == 0)
 	{
 		SHELL_SEPARATOR();
-		SHELL_printf("Stack High Watermarks\r\n");
+		SHELL_printf("Stack High Watermarks\n");
 		SHELL_SEPARATOR();
 		for (uint8_t i = 0; i < ARCADIA_TASK_ID_NUM_IDS; i++)
 		{
@@ -447,7 +448,7 @@ uint8_t	SYS_shell_wm(uint8_t argc, char ** argv)
 			u32_total_stack_size = ARCADIA_get_task_stack_size_words(i) * 4;
 			u16_used_stack_space = u32_total_stack_size - (uxTaskGetStackHighWaterMark(handle) * 4);
 
-			SHELL_printf("%-10s %u bytes of %u available (%.2f%%)\r\n",
+			SHELL_printf("%-10s %u bytes of %u available (%.2f%%)\n",
 				ARCADIA_get_task_name(i),
 				u16_used_stack_space,
 				u32_total_stack_size,
@@ -459,7 +460,7 @@ uint8_t	SYS_shell_wm(uint8_t argc, char ** argv)
 	}
 	else
 	{
-		SHELL_printf("Usage: sys wm\r\n");
+		SHELL_printf("Usage: sys wm\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;

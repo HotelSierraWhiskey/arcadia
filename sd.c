@@ -268,7 +268,7 @@ bool SD_card_init(void)
 
 		SD_info.b_initialized = true;
 
-		SD_LOG_DBG("Initialized %s card\r\n", kpc_version_descriptors[SD_info.csd_info.csdv1.csd_ver]);
+		SD_LOG_DBG("Initialized %s card\n", kpc_version_descriptors[SD_info.csd_info.csdv1.csd_ver]);
 	}
 
 	return SD_info.b_initialized;
@@ -747,8 +747,8 @@ static uint8_t SD_await_r1_response(uint8_t u8_expected)
  ****************************************************************************************************/
 static void SD_display_info(void)
 {
-	SHELL_printf("%-20s: %s\r\n", "Version", kpc_version_descriptors[SD_info.csd_info.csdv1.csd_ver]);
-	SHELL_printf("%-20s: %llu bytes\r\n", "Capacity", SD_get_capacity());
+	SHELL_printf("%-20s: %s\n", "Version", kpc_version_descriptors[SD_info.csd_info.csdv1.csd_ver]);
+	SHELL_printf("%-20s: %llu bytes\n", "Capacity", SD_get_capacity());
 }
 
 /****************************************************************************************************
@@ -789,7 +789,7 @@ uint8_t SD_shell_read(uint8_t argc, char ** argv)
 					pc_char_ptr += sprintf(pc_char_ptr, "%02X ", SD_info.pu8_buffer[i * 32 + j]);
 				}
 				*pc_char_ptr = '\0';
-				SHELL_printf("%s\r\n", pc_line);
+				SHELL_printf("%s\n", pc_line);
 
 				// Let printf's buffer flush
 				CHRONO_delay_ms(5);
@@ -800,7 +800,7 @@ uint8_t SD_shell_read(uint8_t argc, char ** argv)
 	}
 	else
 	{
-		SHELL_printf("Usage: sd read <addr>\r\n");
+		SHELL_printf("Usage: sd read <addr>\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
@@ -836,12 +836,12 @@ uint8_t SD_shell_wtest(uint8_t argc, char ** argv)
 
 			memset(SD_info.pu8_buffer, 0, SD_BLOCK_SIZE);
 
-			SHELL_printf("Wrote block to address 0x%08X\r\n", u32_address);
+			SHELL_printf("Wrote block to address 0x%08X\n", u32_address);
 		}
 	}
 	else
 	{
-		SHELL_printf("Usage: sd wtest <addr>\r\n");
+		SHELL_printf("Usage: sd wtest <addr>\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
@@ -872,12 +872,12 @@ uint8_t SD_shell_erase(uint8_t argc, char ** argv)
 
 			memset(SD_info.pu8_buffer, 0, SD_BLOCK_SIZE);
 
-			SHELL_printf("Erased block at address 0x%08X\r\n", u32_address);
+			SHELL_printf("Erased block at address 0x%08X\n", u32_address);
 		}
 	}
 	else
 	{
-		SHELL_printf("Usage: sd erase <addr>\r\n");
+		SHELL_printf("Usage: sd erase <addr>\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
@@ -903,7 +903,7 @@ uint8_t SD_shell_info(uint8_t argc, char ** argv)
 	}
 	else
 	{
-		SHELL_printf("Usage: sd info\r\n");
+		SHELL_printf("Usage: sd info\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
@@ -925,16 +925,16 @@ uint8_t SD_shell_init(uint8_t argc, char ** argv)
 	{
 		if (SD_card_init())
 		{
-			SHELL_printf("SD card initialized\r\n");
+			SHELL_printf("SD card initialized\n");
 		}
 		else
 		{
-			SHELL_printf("Failed to initialize SD card\r\n");
+			SHELL_printf("Failed to initialize SD card\n");
 		}
 	}
 	else
 	{
-		SHELL_printf("Usage: sd init\r\n");
+		SHELL_printf("Usage: sd init\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
@@ -962,16 +962,16 @@ uint8_t SD_shell_wipe(uint8_t argc, char ** argv)
 			{
 				SD_write_block(i * SD_BLOCK_SIZE, kpu8_blank_block);
 			}
-			SHELL_printf("SD card wiped\r\n");
+			SHELL_printf("SD card wiped\n");
 		}
 		else
 		{
-			SHELL_printf("SD card is uninitialized\r\n");
+			SHELL_printf("SD card is uninitialized\n");
 		}
 	}
 	else
 	{
-		SHELL_printf("Usage: sd wipe\r\n");
+		SHELL_printf("Usage: sd wipe\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;

@@ -96,7 +96,7 @@ static void CHRONO_handle_message(void)
 
 	if (ARCADIA_receive(&msg))
 	{
-		CHRONO_LOG_DBG("Received msg %s from %s\r\n", 
+		CHRONO_LOG_DBG("Received msg %s from %s\n", 
 			ARCADIA_get_msg_type(msg.id), ARCADIA_get_task_name(msg.from));
 
 		switch (msg.id)
@@ -117,7 +117,7 @@ static void CHRONO_handle_message(void)
 				break;
 			
 			default:
-				CHRONO_LOG_DBG("Unexpected message: %u\r\n", msg.id);
+				CHRONO_LOG_DBG("Unexpected message: %u\n", msg.id);
 		}
 	}
 }
@@ -131,7 +131,7 @@ static void	CHRONO_handle_msg_timer_elapsed(ARCADIA_msg_t * p_msg)
 
 	if (task_id != ARCADIA_INVALID_TASK)
 	{
-		CHRONO_LOG_DBG("Timer %u Elapsed. Relaying msg %s to task %s\r\n", 
+		CHRONO_LOG_DBG("Timer %u Elapsed. Relaying msg %s to task %s\n", 
 			timer_id, ARCADIA_get_msg_type(p_msg_schedule[timer_id].msg.id), ARCADIA_get_task_name(task_id));
 		
 		ARCADIA_send(task_id, p_scheduled_msg);
@@ -148,7 +148,7 @@ static void	CHRONO_handle_msg_timer_elapsed(ARCADIA_msg_t * p_msg)
 		}
 	}
 
-	CHRONO_LOG_DBG("Handled msg %s\r\n", ARCADIA_get_msg_type(p_msg->id));
+	CHRONO_LOG_DBG("Handled msg %s\n", ARCADIA_get_msg_type(p_msg->id));
 }
 
 static void CHRONO_handle_msg_schedule_msg_for_task(ARCADIA_msg_t * p_msg)
@@ -169,14 +169,14 @@ static void CHRONO_handle_msg_schedule_msg_for_task(ARCADIA_msg_t * p_msg)
 
 		TIMER_start(timer_id);
 
-		CHRONO_LOG_DBG("Message %s scheduled for transmission to %s in %u seconds\r\n",
+		CHRONO_LOG_DBG("Message %s scheduled for transmission to %s in %u seconds\n",
 			ARCADIA_get_msg_type(p_msg_schedule[timer_id].msg.id),
 			ARCADIA_get_task_name(p_msg_schedule[timer_id].task_id),
 			p_msg->payload.chrono_payload_schedule_msg_for_task.u16_delta_seconds);
 	}
 	else
 	{
-		CHRONO_LOG_WARN("Timer pool empty. Message scheduling failed\r\n");
+		CHRONO_LOG_WARN("Timer pool empty. Message scheduling failed\n");
 	}
 
 	ARCADIA_semaphore_give(p_msg->semaphore);
@@ -193,7 +193,7 @@ static void CHRONO_handle_msg_cancel_scheduled_msg (ARCADIA_msg_t * p_msg)
 	{
 		TIMER_stop(timer_id);
 
-		CHRONO_LOG_DBG("Cancelled schedule for msg %s to %s\r\n",
+		CHRONO_LOG_DBG("Cancelled schedule for msg %s to %s\n",
 			ARCADIA_get_msg_type(p_msg_schedule[timer_id].msg.id),
 			ARCADIA_get_task_name(p_msg_schedule[timer_id].task_id));
 		
@@ -202,7 +202,7 @@ static void CHRONO_handle_msg_cancel_scheduled_msg (ARCADIA_msg_t * p_msg)
 	}
 	else
 	{
-		CHRONO_LOG_WARN("Nothing scheduled on timer %u\r\n", timer_id);
+		CHRONO_LOG_WARN("Nothing scheduled on timer %u\n", timer_id);
 	}
 
 	ARCADIA_semaphore_give(p_msg->semaphore);

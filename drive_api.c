@@ -239,7 +239,7 @@ uint8_t DRIVE_API_shell_erase_nvm(uint8_t argc, char ** argv)
 	}
 	if (!b_res)
 	{
-		SHELL_printf("Usage: drive nvm_erase <row_id>\r\n");
+		SHELL_printf("Usage: drive nvm_erase <row_id>\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
@@ -278,12 +278,12 @@ uint8_t DRIVE_API_shell_read_nvm(uint8_t argc, char ** argv)
 
 							if ((i + 1) % 16 == 0)
 							{
-								SHELL_printf("\r\n");
+								SHELL_printf("\n");
 							}
 						}
 						if (u8_page < (NVMCTRL_ROW_SIZE / NVMCTRL_PAGE_SIZE - 1))
 						{
-							SHELL_printf("\r\n");
+							SHELL_printf("\n");
 						}
 					}
 					SHELL_SEPARATOR();
@@ -295,7 +295,7 @@ uint8_t DRIVE_API_shell_read_nvm(uint8_t argc, char ** argv)
 	
 	if (!b_res)
 	{
-		SHELL_printf("Usage: drive nvm read <row_id>\r\n");
+		SHELL_printf("Usage: drive nvm read <row_id>\n");
 	}
 
 	MEMPOOL_free(&buffer);
@@ -354,7 +354,7 @@ uint8_t DRIVE_API_shell_write_nvm(uint8_t argc, char ** argv)
 				}
 				else
 				{
-					SHELL_printf("Error: %s\r\n", argv[2 + i]);
+					SHELL_printf("Error: %s\n", argv[2 + i]);
 					b_res = false;
 					break;
 				}
@@ -368,12 +368,12 @@ uint8_t DRIVE_API_shell_write_nvm(uint8_t argc, char ** argv)
 
 		if (status != ARCADIA_STATUS_OK)
 		{
-			SHELL_printf("Failed to write to nvm row #%u (status: %u)\r\n", u32_row, status);
+			SHELL_printf("Failed to write to nvm row #%u (status: %u)\n", u32_row, status);
 		}
 	}
 	else
 	{
-		SHELL_printf("Usage: drive nvm write <row_id> <num_bytes> <...>\r\n");
+		SHELL_printf("Usage: drive nvm write <row_id> <num_bytes> <...>\n");
 	}
 
 	MEMPOOL_free(pc_buffer);
@@ -458,12 +458,12 @@ uint8_t DRIVE_API_shell_cat(uint8_t argc, char ** argv)
 		}
 		else
 		{
-			SHELL_printf("Couldn't open file: %s (status: %u)\r\n", argv[0], f_result);
+			SHELL_printf("Couldn't open file: %s (status: %u)\n", argv[0], f_result);
 		}
 	}
 	else
 	{
-		SHELL_printf("Usage: drive fs cat <fname>\r\n");
+		SHELL_printf("Usage: drive fs cat <fname>\n");
 	}
 
 	MEMPOOL_free(file_buffer);
@@ -494,18 +494,18 @@ uint8_t DRIVE_API_shell_mkfs(uint8_t argc, char ** argv)
 		if (FR_OK == f_result)
 		{
 			u32_ticks_elapsed = CHRONO_ticks_since(u32_start_ticks);
-			SHELL_printf("Formatted volume\r\n");
-			SHELL_printf("Time elapsed: %u.%u seconds\r\n",
+			SHELL_printf("Formatted volume\n");
+			SHELL_printf("Time elapsed: %u.%u seconds\n",
 				u32_ticks_elapsed / 1000, u32_ticks_elapsed % 1000);
 		}
 		else
 		{
-			SHELL_printf("FSIF_f_mkfs returned status %u\r\n", f_result);
+			SHELL_printf("FSIF_f_mkfs returned status %u\n", f_result);
 		}
 	}
 	else
 	{
-		SHELL_printf("Usage: drive fs format\r\n");
+		SHELL_printf("Usage: drive fs format\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
@@ -531,16 +531,16 @@ uint8_t DRIVE_API_shell_mount(uint8_t argc, char ** argv)
 
 		if (FR_OK == f_result)
 		{
-			SHELL_printf("File system mounted\r\n");
+			SHELL_printf("File system mounted\n");
 		}
 		else
 		{
-			SHELL_printf("Failed to mount file system (status: %u)\r\n", f_result);
+			SHELL_printf("Failed to mount file system (status: %u)\n", f_result);
 		}
 	}
 	else
 	{
-		SHELL_printf("Usage: drive fs mount\r\n");
+		SHELL_printf("Usage: drive fs mount\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
@@ -567,17 +567,17 @@ uint8_t DRIVE_API_shell_touch(uint8_t argc, char ** argv)
 
 		if (FR_OK == f_result)
 		{
-			SHELL_printf("Created file: %s\r\n", argv[0]);
+			SHELL_printf("Created file: %s\n", argv[0]);
 			f_close(&file);
 		}
 		else
 		{
-			SHELL_printf("Failed to create file, (status: %u)\r\n", f_result);
+			SHELL_printf("Failed to create file, (status: %u)\n", f_result);
 		}
 	}
 	else
 	{
-		SHELL_printf("Usage: drive fs wtest\r\n");
+		SHELL_printf("Usage: drive fs wtest\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
@@ -603,7 +603,7 @@ uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
 	}
 	else
 	{
-		SHELL_printf("Usage: drive fs open <fname>\r\n");
+		SHELL_printf("Usage: drive fs open <fname>\n");
 	}
 	
 	return SHELL_COMMAND_SUCCESS;
@@ -628,7 +628,7 @@ uint8_t DRIVE_API_shell_close(uint8_t argc, char ** argv)
 	}
 	else
 	{
-		SHELL_printf("Usage: drive fs open <fname>\r\n");
+		SHELL_printf("Usage: drive fs open <fname>\n");
 	}
 	
 	return SHELL_COMMAND_SUCCESS;
@@ -650,16 +650,16 @@ uint8_t DRIVE_API_shell_rm(uint8_t argc, char ** argv)
 
 		if (FR_OK == f_result)
 		{
-			SHELL_printf("Deleted file: %s\r\n", argv[0]);
+			SHELL_printf("Deleted file: %s\n", argv[0]);
 		}
 		else
 		{
-			SHELL_printf("Failed to delete file (status: %u)\r\n", f_result);
+			SHELL_printf("Failed to delete file (status: %u)\n", f_result);
 		}
 	}
 	else
 	{
-		SHELL_printf("Usage: drive fs open <fname>\r\n");
+		SHELL_printf("Usage: drive fs open <fname>\n");
 	}
 	
 	return SHELL_COMMAND_SUCCESS;
@@ -690,14 +690,14 @@ uint8_t DRIVE_API_shell_ls(uint8_t argc, char ** argv)
 		
 		if (f_info.fname[0])
 		{
-			SHELL_printf("%-24s %s\r\n", "file", "size");
+			SHELL_printf("%-24s %s\n", "file", "size");
 			SHELL_SEPARATOR();
 		}
 
 		while (f_result == FR_OK && f_info.fname[0])
 		{
 			u8_num_files++;
-			SHELL_printf("%-24s %u\r\n", f_info.fname, f_info.fsize);
+			SHELL_printf("%-24s %u\n", f_info.fname, f_info.fsize);
 			f_result = f_findnext(&dir_obj, &f_info);
 		}
 
@@ -705,11 +705,11 @@ uint8_t DRIVE_API_shell_ls(uint8_t argc, char ** argv)
 
 		if (u8_num_files > 0)
 		{
-			SHELL_printf("\r\nTotal: %u\r\n", u8_num_files);
+			SHELL_printf("\nTotal: %u\n", u8_num_files);
 		}
 		else
 		{
-			SHELL_printf("%9s%s", "", "(File system empty)\r\n");
+			SHELL_printf("%9s%s", "", "(File system empty)\n");
 		}
 
 
@@ -717,7 +717,7 @@ uint8_t DRIVE_API_shell_ls(uint8_t argc, char ** argv)
 	}
 	else
 	{
-		SHELL_printf("Usage: ls\r\n");
+		SHELL_printf("Usage: ls\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
@@ -733,16 +733,16 @@ uint8_t DRIVE_API_shell_unmount(uint8_t argc, char ** argv)
 
 		if (FR_OK == f_result)
 		{
-			SHELL_printf("Filesystem unmounted\r\n");
+			SHELL_printf("Filesystem unmounted\n");
 		}
 		else
 		{
-			SHELL_printf("Failed to unmount file system (status: %u)\r\n", f_result);
+			SHELL_printf("Failed to unmount file system (status: %u)\n", f_result);
 		}
 	}
 	else
 	{
-		SHELL_printf("Usage: drive fs unmount\r\n");
+		SHELL_printf("Usage: drive fs unmount\n");
 	}
 	
 	return SHELL_COMMAND_SUCCESS;
@@ -761,26 +761,26 @@ uint8_t DRIVE_API_shell_fs_info(uint8_t argc, char ** argv)
 		if (FR_OK == f_result)
 		{
 			SHELL_SEPARATOR();
-			SHELL_printf("Number of FAT entries: %u\r\n", fs->n_fatent);
-			SHELL_printf("Cluster Size: %u sectors\r\n", fs->csize);
-			SHELL_printf("Free Clusters: %u\r\n", free_clusters);
+			SHELL_printf("Number of FAT entries: %u\n", fs->n_fatent);
+			SHELL_printf("Cluster Size: %u sectors\n", fs->csize);
+			SHELL_printf("Free Clusters: %u\n", free_clusters);
 
 			total_sectors = (fs->n_fatent - 2) * fs->csize;
 			free_sectors = free_clusters * fs->csize;
 
 			// 1Kib / 2 = 512 bytes (sector size), so divide total and free by two
-			SHELL_printf("Total drive space: %10lu KiB\r\n", total_sectors / 2);
-			SHELL_printf("Available space: %10lu KiB\r\n", free_sectors / 2);
+			SHELL_printf("Total drive space: %10lu KiB\n", total_sectors / 2);
+			SHELL_printf("Available space: %10lu KiB\n", free_sectors / 2);
 			SHELL_SEPARATOR();
 		}
 		else
 		{
-			SHELL_printf("Failed to get file system info (status: %u)\r\n", f_result);
+			SHELL_printf("Failed to get file system info (status: %u)\n", f_result);
 		}
 	}
 	else
 	{
-		SHELL_printf("Usage: drive fs info\r\n");
+		SHELL_printf("Usage: drive fs info\n");
 	}
 	
 	return SHELL_COMMAND_SUCCESS;
