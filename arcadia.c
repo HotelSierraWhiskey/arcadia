@@ -10,8 +10,8 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define ARCADIA_Q_LENGTH		(5U)
-#define ARCADIA_Q_ITEM_SIZE		sizeof(ARCADIA_msg_t)
+#define ARCADIA_Q_LENGTH				(3U)
+#define ARCADIA_Q_ITEM_SIZE				sizeof(ARCADIA_msg_t)
 
 #define ARCADIA_SHELL_STACK_SIZE		BYTES_TO_WORDS(2048U)
 #define ARCADIA_DRIVE_STACK_SIZE		BYTES_TO_WORDS(2048U)

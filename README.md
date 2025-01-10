@@ -1,23 +1,33 @@
 # Roadmap to Arcadia 1.0.0 Beta
 
-### ☑️ version 0.4.0
+### ☑️ version 0.5.0
 Hardware:
 - Development Board Revision B
 
-Firmware:<br>
-- Story structure implementation
+New firmware features:<br>
 - Button interface
 - Application state machine development
 
 ---
 
-### ☑️ version 0.3.0
+### ☑️ version 0.4.0
 Hardware:
 - Wonka Board + SD module + AMOLED display
 
-Firmware:<br>
+New firmware features:<br>
 - Display drivers
-- DISPLAY task + integration
+- Integration of display into RTOS
+
+---
+
+### ☑️ version 0.3.0
+Hardware:
+- Wonka Board + SD module
+
+New firmware features:<br>
+- Directory navigation
+- Story structure implementation
+- Story recognition and processing development
 
 ---
 
@@ -25,7 +35,7 @@ Firmware:<br>
 Hardware:
 - Wonka Board + SD module
 
-Firmware:<br>
+New firmware features:<br>
 - SPI driver + SD card interface
 - FatFs integration
 - PC / device FAT32 file system interoperability
@@ -36,7 +46,7 @@ Firmware:<br>
 Hardware:
 - Wonka Board
 
-Firmware:<br>
+New firmware features:<br>
 - FreeRTOS Integration
 - SHELL, CHRONO, DRIVE tasks + development
 - Inter-task messaging support
@@ -49,6 +59,6 @@ Firmware:<br>
 Hardware:
 - Wonka Board
 
-Firmware:<br>
+New firmware features:<br>
 - Low level system setup and driver developement.
 - Debug shell development
