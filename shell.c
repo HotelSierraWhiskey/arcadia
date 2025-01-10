@@ -69,7 +69,7 @@ uint8_t 		SHELL_shell_help		(uint8_t argc, char ** argv);
 const char * kp_arcadia_banner = 
 	"\n"
 	SHELL_COLOR_VAPORWAVE_PINK		"   _                  _ _      \n"
-	SHELL_COLOR_VAPORWAVE_PURPLE	"  / \\  _ _ __ __ _ __| (_)__ _ \n"
+	SHELL_COLOR_VAPORWAVE_PURPLE	"  /_\\  _ _ __ __ _ __| (_)__ _ \n"
 	SHELL_COLOR_VAPORWAVE_AQUA		" / _ \\| '_/ _/ _` / _` | / _` |\n"
 	SHELL_COLOR_VAPORWAVE_MINT		"/_/ \\_\\_| \\__\\__,_\\__,_|_\\__,_|\n"
 	SHELL_COLOR_RESET;

@@ -595,7 +595,7 @@ uint8_t DRIVE_API_shell_touch(uint8_t argc, char ** argv)
  ****************************************************************************************************/
 uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
 {
-	file_t * p_file;
+	file_t * p_file = NULL;
 
 	if (argc == 1)
 	{

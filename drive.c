@@ -39,12 +39,12 @@ static DRIVE_info_t DRIVE_info;
  ****************************************************************************************************/
 
 static void 		DRIVE_handle_message			(void);
-static bool 		DRIVE_handle_msg_read_nvm		(ARCADIA_msg_t * p_msg);
-static bool 		DRIVE_handle_msg_write_nvm		(ARCADIA_msg_t * p_msg);
-static bool 		DRIVE_handle_msg_erase_nvm		(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_msg_read_nvm		(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_msg_write_nvm		(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_msg_erase_nvm		(ARCADIA_msg_t * p_msg);
 
-static bool 		DRIVE_handle_msg_open_file		(ARCADIA_msg_t * p_msg);
-static bool 		DRIVE_handle_msg_close_file		(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_msg_open_file		(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_msg_close_file		(ARCADIA_msg_t * p_msg);
 
 static file_t * 	DRIVE_allocate_file				(int8_t * pi8_handle);
 static void 		DRIVE_free_file					(file_t * p_file);
@@ -115,8 +115,7 @@ int8_t DRIVE_file_pointer_to_index(file_t *p_file)
  ****************************************************************************************************/
 static void DRIVE_handle_message(void)
 {
-	ARCADIA_msg_t 	msg;
-	bool 			b_handled = false;
+	ARCADIA_msg_t msg;
 
 	if (ARCADIA_receive(&msg))
 	{
@@ -129,23 +128,23 @@ static void DRIVE_handle_message(void)
 				break;
 
 			case ARCADIA_MSG_ID_DRIVE_READ_NVM:
-				b_handled = DRIVE_handle_msg_read_nvm(&msg);
+				DRIVE_handle_msg_read_nvm(&msg);
 				break;
 
 			case ARCADIA_MSG_ID_DRIVE_WRITE_NVM:
-				b_handled = DRIVE_handle_msg_write_nvm(&msg);
+				DRIVE_handle_msg_write_nvm(&msg);
 				break;
 
 			case ARCADIA_MSG_ID_DRIVE_ERASE_NVM:
-				b_handled = DRIVE_handle_msg_erase_nvm(&msg);
+				DRIVE_handle_msg_erase_nvm(&msg);
 				break;
 
 			case ARCADIA_MSG_ID_DRIVE_OPEN_FILE:
-				b_handled = DRIVE_handle_msg_open_file(&msg);
+				DRIVE_handle_msg_open_file(&msg);
 				break;
 
 			case ARCADIA_MSG_ID_DRIVE_CLOSE_FILE:
-				b_handled = DRIVE_handle_msg_close_file(&msg);
+				DRIVE_handle_msg_close_file(&msg);
 				break;
 			
 			default:
@@ -162,7 +161,7 @@ static void DRIVE_handle_message(void)
  * 	@param[in] p_msg A pointer to the received message
  *
  ****************************************************************************************************/
-static bool	DRIVE_handle_msg_read_nvm(ARCADIA_msg_t * p_msg)
+static void	DRIVE_handle_msg_read_nvm(ARCADIA_msg_t * p_msg)
 {
 	uint32_t 	u32_addr = p_msg->payload.drive_payload_read_nvm.u32_addr;
 	uint8_t * 	pc_buffer = (uint8_t *)p_msg->payload.drive_payload_read_nvm.pc_buffer;
@@ -180,8 +179,6 @@ static bool	DRIVE_handle_msg_read_nvm(ARCADIA_msg_t * p_msg)
 
 	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_read_nvm.p_result_status);
-
-	return true;
 }
 
 /****************************************************************************************************
@@ -192,7 +189,7 @@ static bool	DRIVE_handle_msg_read_nvm(ARCADIA_msg_t * p_msg)
  * 	@param[in] p_msg A pointer to the received message
  *
  ****************************************************************************************************/
-static bool DRIVE_handle_msg_write_nvm(ARCADIA_msg_t * p_msg)
+static void DRIVE_handle_msg_write_nvm(ARCADIA_msg_t * p_msg)
 {
 	uint32_t 	u32_addr = p_msg->payload.drive_payload_write_nvm.u32_addr;
 	uint8_t * 	pc_buffer = (uint8_t *)p_msg->payload.drive_payload_write_nvm.kpc_buffer;
@@ -211,8 +208,6 @@ static bool DRIVE_handle_msg_write_nvm(ARCADIA_msg_t * p_msg)
 
 	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_write_nvm.p_result_status);
-
-	return true;
 }
 
 /****************************************************************************************************
@@ -223,7 +218,7 @@ static bool DRIVE_handle_msg_write_nvm(ARCADIA_msg_t * p_msg)
  * 	@param[in] p_msg A pointer to the received message
  *
  ****************************************************************************************************/
-static bool DRIVE_handle_msg_erase_nvm(ARCADIA_msg_t * p_msg)
+static void DRIVE_handle_msg_erase_nvm(ARCADIA_msg_t * p_msg)
 {
 	uint32_t u32_addr = p_msg->payload.drive_payload_erase_nvm.u32_addr;
 
@@ -237,11 +232,9 @@ static bool DRIVE_handle_msg_erase_nvm(ARCADIA_msg_t * p_msg)
 
 	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_erase_nvm.p_result_status);
-
-	return true;
 }
 
-static bool DRIVE_handle_msg_open_file(ARCADIA_msg_t * p_msg)
+static void DRIVE_handle_msg_open_file(ARCADIA_msg_t * p_msg)
 {
 	const char * 	kpc_fname = p_msg->payload.drive_payload_open_file.kpc_fname;
 	int32_t			i32_open_flag = FSIF_open_mode_from_posix_flag(p_msg->payload.drive_payload_open_file.kpc_open_mode);
@@ -256,10 +249,11 @@ static bool DRIVE_handle_msg_open_file(ARCADIA_msg_t * p_msg)
 	{
 		p_msg->payload.drive_payload_open_file.p_file = p_file;
 		*p_msg->payload.drive_payload_open_file.p_result_status = ARCADIA_STATUS_OK;
-		DRIVE_LOG_DBG("Opened file %s with handle %d\n", kpc_fname, i8_handle);
+		DRIVE_LOG_DBG("Opened file \"%s\" with handle %d\n", kpc_fname, i8_handle);
 	}
 	else
 	{
+		DRIVE_free_file(p_file);
 		DRIVE_LOG_WARN("Failed to open file (status: %u)\n", f_result);
 	}
 
@@ -267,11 +261,9 @@ static bool DRIVE_handle_msg_open_file(ARCADIA_msg_t * p_msg)
 
 	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_open_file.p_result_status);
-
-	return true;
 }
 
-static bool DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
+static void DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
 {
 	file_t * 	p_file = p_msg->payload.drive_payload_close_file.p_file;
 	int8_t 		i8_handle = DRIVE_file_pointer_to_index(p_file);
@@ -295,8 +287,6 @@ static bool DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
 
 	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_close_file.p_result_status);
-
-	return true;
 }
 
 static file_t * DRIVE_allocate_file(int8_t * pi8_handle)

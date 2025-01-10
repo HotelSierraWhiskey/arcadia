@@ -46,7 +46,7 @@
 		SHELL_printf(color format SHELL_COLOR_RESET, ##__VA_ARGS__); \
 		if (format[strlen(format) - 1] != '\n') \
 		{ \
-			SHELL_printf("\r\n"); \
+			SHELL_printf("\n"); \
 		} \
 		SHELL_printf("%s", SHELL_PROMPT); \
 	} while(0)
