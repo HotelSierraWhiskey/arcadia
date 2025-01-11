@@ -118,6 +118,15 @@ static const SHELL_command_t kp_command_table[] =
 								),
 	},
 	{
+		.kpc_name 			= "cd",
+		.function 			= DRIVE_API_shell_cd,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tChange the current working directory\n"
+									"\tUsage: cd <dir>\n"
+								),
+	},
+	{
 		.kpc_name 			= "chrono",
 		.function 			= NULL,
 		.kp_command_table 	= kp_chrono_command_table,
@@ -144,6 +153,15 @@ static const SHELL_command_t kp_command_table[] =
 		.kpc_docstring		= 	(
 									"\tList file system contents\n"
 									"\tUsage: ls\n"
+								)
+	},
+	{
+		.kpc_name 			= "pwd",
+		.function 			= DRIVE_API_shell_pwd,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tDisplays the current working directory\n"
+									"\tUsage: pwd\n"
 								)
 	},
 	{

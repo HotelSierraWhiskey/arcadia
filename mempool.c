@@ -81,6 +81,7 @@ MEMPOOL_buffer_t MEMPOOL_alloc(MEMPOOL_buffer_size_id_t buffer_size_id)
 
 	MEMPOOL_semaphore_take();
 
+	MEMPOOL_buffer_t buffer;
 	uint8_t	u8_blocks_required = kpu8_buffer_sizes[buffer_size_id] / MEMPOOL_MINIMUM_BLOCK_SIZE;
 	uint8_t u8_consecutive_free = 0;
 	uint8_t u8_start_index = 0;
@@ -108,7 +109,7 @@ MEMPOOL_buffer_t MEMPOOL_alloc(MEMPOOL_buffer_size_id_t buffer_size_id)
 		return NULL;
 	}
 
-	for (uint8_t i = 0; i < u8_start_index + u8_blocks_required; i++)
+	for (uint8_t i = u8_start_index; i < u8_start_index + u8_blocks_required; i++)
 	{
 		MEMPOOL_alloc_block(i);
 	}
@@ -116,9 +117,11 @@ MEMPOOL_buffer_t MEMPOOL_alloc(MEMPOOL_buffer_size_id_t buffer_size_id)
 	// Store the size allocated in the respective index of the registry
 	MEMPOOL_info.pu32_allocation_registry[u8_start_index] = kpu8_buffer_sizes[buffer_size_id];
 
+	buffer = &MEMPOOL_info.pu8_buffer_pool[u8_start_index * MEMPOOL_MINIMUM_BLOCK_SIZE];
+
 	MEMPOOL_semaphore_give();
 
-	return &MEMPOOL_info.pu8_buffer_pool[u8_start_index * MEMPOOL_MINIMUM_BLOCK_SIZE];
+	return buffer;
 }
 
 /****************************************************************************************************
@@ -129,13 +132,19 @@ MEMPOOL_buffer_t MEMPOOL_alloc(MEMPOOL_buffer_size_id_t buffer_size_id)
  *	@param[in] p_buffer A pointer to the buffer to free
  *
  ****************************************************************************************************/
-void MEMPOOL_free(MEMPOOL_buffer_t p_buffer)
+void MEMPOOL_free(MEMPOOL_buffer_t buffer)
 {
-	ASSERT(p_buffer);
+	ASSERT(buffer);
+
+    // Validate pointer
+    ASSERT((uint8_t *)buffer >= MEMPOOL_info.pu8_buffer_pool && (uint8_t *)buffer < MEMPOOL_info.pu8_buffer_pool + MEMPOOL_SIZE);
+
+    // Check alignment
+    ASSERT(((uint8_t *)buffer - MEMPOOL_info.pu8_buffer_pool) % MEMPOOL_MINIMUM_BLOCK_SIZE == 0);
 
 	MEMPOOL_semaphore_take();
 
-	uint8_t u8_block_index = ((uint8_t *)p_buffer - MEMPOOL_info.pu8_buffer_pool) / MEMPOOL_MINIMUM_BLOCK_SIZE;
+	uint8_t u8_block_index = ((uint8_t *)buffer - MEMPOOL_info.pu8_buffer_pool) / MEMPOOL_MINIMUM_BLOCK_SIZE;
 	uint8_t u8_num_blocks_to_free = (MEMPOOL_info.pu32_allocation_registry[u8_block_index] + MEMPOOL_MINIMUM_BLOCK_SIZE - 1) / MEMPOOL_MINIMUM_BLOCK_SIZE;
 
 	for (uint8_t i = u8_block_index; i < u8_block_index + u8_num_blocks_to_free; i++)

@@ -8,7 +8,7 @@
  ****************************************************************************************************/
 
 #define SHELL_COMMAND_SUCCESS			(0)
-#define	SHELL_SEPARATOR() 				SHELL_printf("----------------------------------------\r\n")
+#define	SHELL_SEPARATOR() 				SHELL_printf("------------------------------------------------------------\r\n")
 #define SHELL_PROMPT					"> "
 
 #define SHELL_COLOR_RESET       		"\033[0m"

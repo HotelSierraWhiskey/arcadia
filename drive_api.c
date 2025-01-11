@@ -471,6 +471,57 @@ uint8_t DRIVE_API_shell_cat(uint8_t argc, char ** argv)
 	return SHELL_COMMAND_SUCCESS;
 }
 
+uint8_t DRIVE_API_shell_pwd(uint8_t argc, char ** argv)
+{
+	MEMPOOL_buffer_t 	buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_256);
+	FRESULT				f_result;
+
+	if (argc == 0)
+	{
+		f_result = f_getcwd((TCHAR *)buffer, 256);
+
+		if (FR_OK == f_result)
+		{
+			SHELL_printf("%s\n", (char *)buffer);
+		}
+		else
+		{
+			SHELL_printf("Couldn't get current working directory (status : %u)\n", f_result);
+		}
+	}
+	else
+	{
+		SHELL_printf("Usage: pwd\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
+
+uint8_t DRIVE_API_shell_cd(uint8_t argc, char ** argv)
+{
+	FRESULT f_result;
+
+	if (argc == 1)
+	{
+		f_result = f_chdir((TCHAR *)argv[0]);
+
+		if (FR_OK == f_result)
+		{
+			SHELL_printf("Ok\n");
+		}
+		else
+		{
+			SHELL_printf("Failed to change directory to %s (status : %u)\n", argv[0], f_result);
+		}
+	}
+	else
+	{
+		SHELL_printf("Usage: cd <dir>\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
+
 /****************************************************************************************************
  *	Shell utility
  *
@@ -681,44 +732,54 @@ uint8_t DRIVE_API_shell_ls(uint8_t argc, char ** argv)
 	DIR			dir_obj;
 	FILINFO 	f_info;
 	uint8_t		u8_num_files = 0;
+	uint8_t		u8_num_dirs = 0;
+	MEMPOOL_buffer_t buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_256);
 
 	if (argc == 0)
 	{
-		f_result = f_findfirst(&dir_obj, &f_info, "", "*.*");
+		f_result = f_getcwd((TCHAR *)buffer, 256);
 
-		SHELL_SEPARATOR();
-		
-		if (f_info.fname[0])
+		if (FR_OK == f_result)
 		{
-			SHELL_printf("%-24s %s\n", "file", "size");
+			f_result = f_opendir(&dir_obj, buffer);
+
+			if (FR_OK == f_result)
+			{
+
+				SHELL_SEPARATOR();
+				SHELL_printf("%-24s %-24s %-24s\n", "name", "size", "type");
+				SHELL_SEPARATOR();
+
+				while (1)
+				{
+					f_result = f_readdir(&dir_obj, &f_info);
+
+					if (f_result != FR_OK || f_info.fname[0] == 0)
+					{
+						break;
+					}
+					else if (f_info.fattrib & AM_DIR)
+					{
+						SHELL_printf("%-24s %-24u %s\n", f_info.fname, 0, "dir");
+						u8_num_dirs++;
+					}
+					else
+					{
+						SHELL_printf("%-24s %-24u %s\n", f_info.fname, f_info.fsize, "file");
+						u8_num_files++;
+					}
+				}
+			}
+
 			SHELL_SEPARATOR();
 		}
-
-		while (f_result == FR_OK && f_info.fname[0])
-		{
-			u8_num_files++;
-			SHELL_printf("%-24s %u\n", f_info.fname, f_info.fsize);
-			f_result = f_findnext(&dir_obj, &f_info);
-		}
-
-		f_closedir(&dir_obj);
-
-		if (u8_num_files > 0)
-		{
-			SHELL_printf("\nTotal: %u\n", u8_num_files);
-		}
-		else
-		{
-			SHELL_printf("%9s%s", "", "(File system empty)\n");
-		}
-
-
-		SHELL_SEPARATOR();
 	}
 	else
 	{
 		SHELL_printf("Usage: ls\n");
 	}
+
+	MEMPOOL_free(buffer);
 
 	return SHELL_COMMAND_SUCCESS;
 }
@@ -768,7 +829,7 @@ uint8_t DRIVE_API_shell_fs_info(uint8_t argc, char ** argv)
 			total_sectors = (fs->n_fatent - 2) * fs->csize;
 			free_sectors = free_clusters * fs->csize;
 
-			// 1Kib / 2 = 512 bytes (sector size), so divide total and free by two
+			// 1Kib / 2 = sector size, so divide total and free by two
 			SHELL_printf("Total drive space: %10lu KiB\n", total_sectors / 2);
 			SHELL_printf("Available space: %10lu KiB\n", free_sectors / 2);
 			SHELL_SEPARATOR();
