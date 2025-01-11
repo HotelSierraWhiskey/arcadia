@@ -185,7 +185,8 @@ static uint8_t 		SD_cmd_read_single_block			(uint32_t u32_block_address);	// CMD
 static uint8_t 		SD_cmd_send_csd						(uint8_t * pu8_csd);			// CMD9
 
 static uint8_t 		SD_transfer							(uint8_t u8_byte);
-static uint8_t 		SD_await_r1_response				(uint8_t u8_expected);
+static uint8_t 		SD_await_r1_response				(void);
+static uint8_t 		SD_await_r7_response				(void);
 static void 		SD_display_info						(void);
 
 /****************************************************************************************************
@@ -264,7 +265,7 @@ bool SD_card_init(void)
 		UNUSED(SD_cmd_read_ocr);
 		UNUSED(SD_cmd_set_blocklen);
 
-		// SPI_set_baud(SPI_CHANNEL_SD_CARD, SPI_BAUD_ID_4MHZ);
+		SPI_set_baud(SPI_CHANNEL_SD_CARD, SPI_BAUD_ID_4MHZ);
 
 		SD_info.b_initialized = true;
 
@@ -432,6 +433,8 @@ uint64_t SD_get_capacity(void)
 /****************************************************************************************************
  *	CMD0 - GO_IDLE_STATE
  *
+ * 	`0x40, 0x00, 0x00, 0x00, 0x00, 0x95`
+ *
  * 	SD software reset command. Places the SD card in an idle state.
  *
  *	@return R1 response
@@ -449,12 +452,14 @@ static uint8_t SD_cmd_go_idle_state(void)
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 
-	return SD_await_r1_response(SD_RESPONSE_IDLE);
+	return SD_await_r1_response();
 }
 
 /****************************************************************************************************
  *	CMD8 - SEND_IF_COND
  *
+ * 	`0x48, 0x00, 0x00, 0x01, 0xAA, 0x87`
+ * 
  * 	Sends SD Memory Card interface condition that includes host supply voltage information and asks the
  *	accessed card whether card can operate in supplied voltage range.
  *
@@ -473,12 +478,14 @@ static uint8_t SD_cmd_send_interface_condition(void)
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 
-	return SD_await_r1_response(SD_RESPONSE_IDLE);
+	return SD_await_r7_response();
 }
 
 /****************************************************************************************************
  *	CMD55 - APP_CMD
  *
+ * 	`0x77, 0x00, 0x00, 0x00, 0x00, 0x65`
+ * 
  * 	@note
  * 	Implements a default RCA (Relative Card Address of 0x00000000). This doesn't matter in
  * 	SPI mode anyway due to slave/ chip select pin.
@@ -500,12 +507,14 @@ static uint8_t SD_cmd_app_cmd(void)
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 
-	return SD_await_r1_response(SD_RESPONSE_IDLE);
+	return SD_await_r1_response();
 }
 
 /****************************************************************************************************
  *	ACMD41 - SD_SEND_OP_COND
  *
+ * 	`0x69, 0x40, 0x00, 0x00, 0x00, 0xFF`
+ * 
  * 	Sends ACMD41 to initialize the SD card and check its readiness.
  *
  * 	@return R1 response (0x00 if the card is ready)
@@ -523,12 +532,14 @@ static uint8_t SD_cmd_send_op_cond(void)
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 
-	return SD_await_r1_response(SD_RESPONSE_READY);
+	return SD_await_r1_response();
 }
 
 /****************************************************************************************************
  *	CMD58 - READ_OCR
  *
+ * 	`0x7A, 0x00, 0x00, 0x00, 0x00, 0xFD`
+ * 
  * 	Reads the OCR register of a card. CCS big is assigned to OCR[30]
  *
  *	@return R3 response
@@ -546,7 +557,7 @@ static uint8_t SD_cmd_read_ocr(void)
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 
-	return SD_await_r1_response(SD_RESPONSE_READY);
+	return SD_await_r1_response();
 }
 
 /****************************************************************************************************
@@ -583,12 +594,14 @@ static uint8_t SD_cmd_set_blocklen(uint32_t u32_blocklen)
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 
-	return SD_await_r1_response(SD_RESPONSE_READY);
+	return SD_await_r1_response();
 }
 
 /****************************************************************************************************
  *	CMD24 - WRITE_SINGLE_BLOCK
  *
+ * 	`0x58 <4 byte address> 0xFF`
+ * 
  * 	Prepares SD card for a block write
  *
  * 	@param[in] u32_block_address The block address at which to write
@@ -618,12 +631,14 @@ static uint8_t SD_cmd_write_single_block(uint32_t u32_block_address)
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 
-	return SD_await_r1_response(SD_RESPONSE_READY);
+	return SD_await_r1_response();
 }
 
 /****************************************************************************************************
  *	CMD17 - READ_SINGLE_BLOCK
  *
+ * 	`0x51 <4 byte address> 0xFF`
+ * 
  * 	Prepares SD card for a block read
  *
  * 	@param[in] u32_block_address The block address from which to read
@@ -653,12 +668,14 @@ static uint8_t SD_cmd_read_single_block(uint32_t u32_block_address)
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 
-	return SD_await_r1_response(SD_RESPONSE_READY);
+	return SD_await_r1_response();
 }
 
 /****************************************************************************************************
  *	CMD9 - SEND_CSD
  *
+ * 	`0x49, 0x00, 0x00, 0x00, 0x00, 0x95`
+ * 
  * 	Reads the card's CSD register into the provided buffer
  *
  * 	@param[out] pu8_csd The buffer in which to store the CSD data
@@ -721,20 +738,33 @@ static uint8_t SD_transfer(uint8_t u8_byte)
  *
  * 	@return An R1 response byte
  ****************************************************************************************************/
-static uint8_t SD_await_r1_response(uint8_t u8_expected)
+static uint8_t SD_await_r1_response(void)
 {
 	uint8_t u8_response = 0xFF;
 
 	SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
 
-	for (uint8_t i = 0; i < 10; i++)
-	{
-		if (u8_expected == SD_transfer(0xFF))
-		{
-			u8_response = u8_expected;
-			break;
-		}
-	}
+	SD_transfer(0xFF);
+
+	u8_response = SD_transfer(0xFF);
+
+	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
+
+	return u8_response;
+}
+
+static uint8_t SD_await_r7_response(void)
+{
+	uint8_t u8_response = 0xFF;
+
+	SPI_ss_pin_low(SPI_CHANNEL_SD_CARD);
+
+	SD_transfer(0xFF);
+	SD_transfer(0xFF);
+	SD_transfer(0xFF);
+	SD_transfer(0xFF);
+	SD_transfer(0xFF);
+	u8_response = SD_transfer(0xFF);
 
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 
@@ -790,9 +820,6 @@ uint8_t SD_shell_read(uint8_t argc, char ** argv)
 				}
 				*pc_char_ptr = '\0';
 				SHELL_printf("%s\n", pc_line);
-
-				// Let printf's buffer flush
-				CHRONO_delay_ms(5);
 			}
 
 			SHELL_SEPARATOR();
@@ -958,6 +985,8 @@ uint8_t SD_shell_wipe(uint8_t argc, char ** argv)
 	{
 		if (SD_is_initialized())
 		{
+			SHELL_printf("This is going to take a long time\n");
+
 			for (uint32_t i = 0; i < SD_get_capacity() / SD_BLOCK_SIZE; i++)
 			{
 				SD_write_block(i * SD_BLOCK_SIZE, kpu8_blank_block);
