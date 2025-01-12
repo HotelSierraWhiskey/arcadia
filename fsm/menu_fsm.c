@@ -10,43 +10,25 @@
 #define MENU_FSM_LOG_DBG(fmt, ...)   		SHELL_printf("\r%-12s" fmt, "[MENU_FSM]", ##__VA_ARGS__)
 #define MENU_FSM_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-12s" fmt, "[MENU_FSM]", ##__VA_ARGS__)
 
-#define MENU_FSM_NUM_MAIN_MENU_LINKS		(2U)
+#define MENU_FSM_VARIABLE_NUM_SUB_MENUS		(-1)
 
-typedef enum _MENU_FSM_menu_id
+typedef enum _MENU_FSM_main_menu_sub_menu_id
 {
-	// Main Menu links
-	MENU_FSM_MENU_ID_MAIN_MENU = 0,
+	MENU_FSM_MAIN_MENU_SUB_MENU_ID_STORIES = 0,
+	MENU_FSM_MAIN_MENU_SUB_MENU_ID_SETTINGS,
 	//////////
-	MENU_FSM_MENU_ID_NUM_MENUS
-} MENU_FSM_menu_id_t;
-
-typedef enum _MENU_FSM_link_id
-{
-	// Main Menu links
-	MENU_FSM_link_ID_MAIN_MENU_STORIES,
-	MENU_FSM_link_ID_MAIN_MENU_SETTINGS,
-	//////////
-	MENU_FSM_link_ID_NUM_LINKS
-} MENU_FSM_link_id_t;
-
-typedef void (* MENU_FSM_selection_callback_t)(void);
-
-typedef struct _MENU_FSM_link
-{
-	MENU_FSM_link_id_t				id;
-	const char * 					kpc_link_name;
-	MENU_FSM_selection_callback_t	on_select;
-	MENU_FSM_link_id_t				next_link_id;
-	MENU_FSM_link_id_t				prev_link_id;
-	MENU_FSM_menu_t *				p_menu;
-} MENU_FSM_link_t;
+	MENU_FSM_MAIN_MENU_NUM_SUB_MENU_IDS
+} MENU_FSM_main_menu_sub_menu_id_t;
 
 typedef struct _MENU_FSM_menu
 {
-	const char * 			kpc_name;
-	MENU_FSM_link_t * 		p_links;
-	uint8_t					u8_num_links;
-	MENU_FSM_link_t *		p_current_link;
+	const char * 				kpc_name;
+	int8_t						i8_num_sub_menus;
+	struct _MENU_FSM_menu **	pp_sub_menus;
+	struct _MENU_FSM_menu *		p_highlighted_sub_menu;
+	struct _MENU_FSM_menu *		p_next_menu;
+	struct _MENU_FSM_menu *		p_prev_menu;
+	struct _MENU_FSM_menu *		p_parent_menu;
 } MENU_FSM_menu_t;
 
 typedef struct _MENU_FSM_state_
@@ -58,51 +40,75 @@ typedef struct _MENU_FSM_state_
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
-static void 	MENU_FSM_next_link						(MENU_FSM_menu_t * p_menu);
-static void 	MENU_FSM_prev_link						(MENU_FSM_menu_t * p_menu);
+static void 	MENU_FSM_go_to_next_menu				(void);
+static void 	MENU_FSM_go_to_prev_menu				(void);
+static void 	MENU_FSM_go_to_parent_menu				(void);
 
 static void 	MENU_FSM_main_menu_stories_selected		(void);
 static void 	MENU_FSM_main_menu_settings_selected	(void);
 
 /****************************************************************************************************
- *	V A R I A B L E S
+ *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
 
+static MENU_FSM_menu_t main_menu;
+static MENU_FSM_menu_t stories_menu;
+static MENU_FSM_menu_t settings_menu;
+
 /**
- *	Main Menu Stuff 
+ *	Stories Menu struct
  */
-const MENU_FSM_link_t k_stories_link =
+static MENU_FSM_menu_t stories_menu =
 {
-	.id 				= MENU_FSM_link_ID_MAIN_MENU_STORIES,
-	.kpc_link_name		= "STORIES",
-	.on_select			= MENU_FSM_main_menu_stories_selected,
-	.next_link_id		= MENU_FSM_link_ID_MAIN_MENU_SETTINGS,
-	.prev_link_id		= MENU_FSM_link_ID_MAIN_MENU_STORIES
+	.kpc_name 				= "STORIES_MENU",
+	.i8_num_sub_menus 		= MENU_FSM_VARIABLE_NUM_SUB_MENUS,
+	.pp_sub_menus			= NULL,
+	.p_highlighted_sub_menu = NULL,
+	.p_next_menu			= &settings_menu,
+	.p_prev_menu			= &stories_menu,
+	.p_parent_menu 			= &main_menu,
 };
 
-const MENU_FSM_link_t k_settings_link =
+/**
+ *	Settings Menu struct
+ */
+static MENU_FSM_menu_t settings_menu =
 {
-	.id 				= MENU_FSM_link_ID_MAIN_MENU_SETTINGS,
-	.kpc_link_name		= "SETTINGS",
-	.on_select			= MENU_FSM_main_menu_settings_selected,
-	.next_link_id		= MENU_FSM_link_ID_MAIN_MENU_SETTINGS,
-	.prev_link_id		= MENU_FSM_link_ID_MAIN_MENU_STORIES
+	.kpc_name 				= "SETTINGS_MENU",
+	.i8_num_sub_menus 		= 0,
+	.pp_sub_menus			= NULL,
+	.p_highlighted_sub_menu = NULL,
+	.p_next_menu			= &settings_menu,
+	.p_prev_menu			= &stories_menu,
+	.p_parent_menu 			= &main_menu
 };
 
-MENU_FSM_link_t p_main_menu_links[MENU_FSM_NUM_MAIN_MENU_LINKS] =
+/**
+ *	Main Menu sub-menus
+ */
+static const MENU_FSM_menu_t * const pp_main_menu_sub_menus[MENU_FSM_MAIN_MENU_NUM_SUB_MENU_IDS] =
 {
-	k_stories_link,
-	k_settings_link
+	[MENU_FSM_MAIN_MENU_SUB_MENU_ID_STORIES] 	= &stories_menu,
+	[MENU_FSM_MAIN_MENU_SUB_MENU_ID_SETTINGS]	= &settings_menu
 };
 
-MENU_FSM_menu_t main_menu =
+/**
+ *	Main Menu struct
+ */
+static MENU_FSM_menu_t main_menu =
 {
-	.kpc_name 			= "MAIN_MENU",
-	.u8_num_links 		= MENU_FSM_NUM_MAIN_MENU_LINKS,
-	.p_links			= p_main_menu_links,
-	.p_current_link		= (MENU_FSM_link_t *)&k_settings_link
+	.kpc_name 				= "MAIN_MENU",
+	.i8_num_sub_menus		= MENU_FSM_MAIN_MENU_NUM_SUB_MENU_IDS,
+	.pp_sub_menus			= pp_main_menu_sub_menus,
+	.p_highlighted_sub_menu	= &stories_menu,
+	.p_next_menu			= NULL,
+	.p_prev_menu			= NULL,
+	.p_parent_menu			= &main_menu
 };
 
+/**
+ *	Main Menu FSM state struct
+ */
 MENU_FSM_state_t MENU_FSM_state;
 
 /****************************************************************************************************
@@ -120,12 +126,12 @@ void MENU_FSM_handle_menu_event(FSM_EVENT_t event)
 	{
 		case FSM_EVENT_BUTTON_UP_PRESSED:
 		{
-			MENU_FSM_next_link(MENU_FSM_state.p_current_menu);
+			MENU_FSM_go_to_prev_menu();
 			break;
 		}
 		case FSM_EVENT_BUTTON_DOWN_PRESSED:
 		{
-			MENU_FSM_prev_link(MENU_FSM_state.p_current_menu);
+			MENU_FSM_go_to_next_menu();
 			break;
 		}
 		case FSM_EVENT_BUTTON_RIGHT_PRESSED:
@@ -138,57 +144,50 @@ void MENU_FSM_handle_menu_event(FSM_EVENT_t event)
 		}
 		case FSM_EVENT_BUTTON_A_PRESSED:
 		{
-			MENU_FSM_state.p_current_menu->p_current_link->on_select();
 			break;
 		}
 		case FSM_EVENT_BUTTON_B_PRESSED:
 		{
+			MENU_FSM_go_to_parent_menu();
 			break;
 		}
 		case FSM_EVENT_BUTTON_MENU_PRESSED:
 		{
+			// Only if there's a story being processed
 			APP_FSM_switch_to_fsm(APP_FSM_ID_STORY);
 			break;
 		}
 	}
 }
 
-static void MENU_FSM_next_link(MENU_FSM_menu_t * p_menu)
+static void MENU_FSM_go_to_next_menu(void)
 {
-	MENU_FSM_link_id_t next_link_id = p_menu->p_current_link->next_link_id;
+	MENU_FSM_menu_t * p_menu = MENU_FSM_state.p_current_menu;
 
-	for (uint8_t i = 0; i < p_menu->u8_num_links; i++)
-	{
-		if (p_menu->p_links[i].id == next_link_id)
-		{
-			p_menu->p_current_link = &p_menu->p_links[i];
+	p_menu->p_highlighted_sub_menu = p_menu->p_highlighted_sub_menu->p_next_menu;
 
-			MENU_FSM_LOG_DBG("Current Menu: %s, Highlighted Link: %s\n", 
-				MENU_FSM_state.p_current_menu->kpc_name, p_menu->p_current_link->kpc_link_name);
-
-			return;
-		}
-	}
-	ASSERT(0);
+	MENU_FSM_LOG_DBG("Current Menu: %s, Highlighted Sub-menu: %s\n", 
+		MENU_FSM_state.p_current_menu->kpc_name, p_menu->p_highlighted_sub_menu->kpc_name);
 }
 
-static void MENU_FSM_prev_link(MENU_FSM_menu_t * p_menu)
+static void MENU_FSM_go_to_prev_menu(void)
 {
-	MENU_FSM_link_id_t prev_link_id = p_menu->p_current_link->prev_link_id;
+	MENU_FSM_menu_t * p_menu = MENU_FSM_state.p_current_menu;
 
-	for (uint8_t i = 0; i < p_menu->u8_num_links; i++)
-	{
-		if (p_menu->p_links[i].id == prev_link_id)
-		{
-			p_menu->p_current_link = &p_menu->p_links[i];
+	p_menu->p_highlighted_sub_menu = p_menu->p_highlighted_sub_menu->p_prev_menu;
 
-			MENU_FSM_LOG_DBG("Current Menu: %s, Highlighted Link: %s\n", 
-				MENU_FSM_state.p_current_menu->kpc_name, p_menu->p_current_link->kpc_link_name);
+	MENU_FSM_LOG_DBG("Current Menu: %s, Highlighted Sub-menu: %s\n", 
+		MENU_FSM_state.p_current_menu->kpc_name, p_menu->p_highlighted_sub_menu->kpc_name);
+}
 
-			return;
-		}
-	}
-	ASSERT(0);
+static void MENU_FSM_go_to_parent_menu(void)
+{
+	MENU_FSM_menu_t * p_menu = MENU_FSM_state.p_current_menu;
+
+	p_menu = p_menu->p_parent_menu;
+
+	MENU_FSM_LOG_DBG("Current Menu: %s, Highlighted Sub-menu: %s\n", 
+		MENU_FSM_state.p_current_menu->kpc_name, p_menu->p_highlighted_sub_menu->kpc_name);
 }
 
 static void MENU_FSM_main_menu_stories_selected(void)
