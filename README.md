@@ -28,6 +28,7 @@ New firmware features:<br>
 - Directory navigation
 - Story structure implementation
 - Story recognition and processing development
+- "Mirrored Interface" Development
 
 ---
 
