@@ -9,13 +9,14 @@
 #include "chrono.h"
 #include "spi.h"
 #include "sd.h"
+#include "app_fsm.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define SHELL_LOG_DBG(fmt, ...)   					SHELL_printf("\r%-10s" fmt, "[SHELL]", ##__VA_ARGS__)
-#define SHELL_LOG_WARN(fmt, ...)   					SHELL_PRINT_WARNING("\r%-10s" fmt, "[SHELL]", ##__VA_ARGS__)
+#define SHELL_LOG_DBG(fmt, ...)   					SHELL_printf("\r%-12s" fmt, "[SHELL]", ##__VA_ARGS__)
+#define SHELL_LOG_WARN(fmt, ...)   					SHELL_PRINT_WARNING("\r%-12s" fmt, "[SHELL]", ##__VA_ARGS__)
 
 #define SHELL_COMMAND_BUFFER_SIZE	(512)
 #define SHELL_CRLF					"\r\n"
@@ -54,12 +55,13 @@ typedef struct _SHELL_info
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
-static void 	SHELL_flush_buffer		(void);
-static void 	SHELL_handle_command	(void);
-static void 	SHELL_handle_msg		(void);
-static void 	SHELL_help				(const SHELL_command_t * p_table);
+static void 	SHELL_flush_buffer			(void);
+static void 	SHELL_handle_msg			(void);
+static void 	SHELL_handle_esc_sequence	(void);
+static void 	SHELL_handle_command		(void);
+static void 	SHELL_help					(const SHELL_command_t * p_table);
 
-uint8_t 		SHELL_shell_help		(uint8_t argc, char ** argv);
+uint8_t 		SHELL_shell_help			(uint8_t argc, char ** argv);
 
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
@@ -630,6 +632,8 @@ void SHELL_init(void)
 
 	SHELL_display_banner();
 
+	APP_FSM_init();
+
 	SHELL_printf("%s", SHELL_PROMPT);
 }
 
@@ -671,6 +675,28 @@ void SHELL_task(void * p_params)
 				}
 
 				SHELL_flush_buffer();
+			}
+
+			else if (c == '\033')
+			{
+				SHELL_handle_esc_sequence();
+				continue;
+			}
+
+			else if (c == '[')
+			{
+				APP_FSM_handle_event(FSM_EVENT_BUTTON_A_PRESSED);
+				continue;
+			}
+			else if (c == ']')
+			{
+				APP_FSM_handle_event(FSM_EVENT_BUTTON_B_PRESSED);
+				continue;
+			}
+			else if (c == '\\')
+			{
+				APP_FSM_handle_event(FSM_EVENT_BUTTON_MENU_PRESSED);
+				continue;
 			}
 
 			// Handle backspace/ delete keys
@@ -750,6 +776,40 @@ static void SHELL_handle_msg(void)
 			
 			default:
 				SHELL_LOG_DBG("Unexpected message: %u\n", msg.id);
+		}
+	}
+}
+
+static void SHELL_handle_esc_sequence(void)
+{
+	char esc_seq[3];
+
+	// UART_rx_char is non blocking and will immediately return the current character in its buffer.
+	// We could be reading the buffer before the character arrives, which is bad. So, add a slight delay here.
+	CHRONO_delay_ms(2);
+
+	esc_seq[0] = UART_rx_char(UART_CHANNEL_SHELL);
+	esc_seq[1] = UART_rx_char(UART_CHANNEL_SHELL);
+	esc_seq[2] = '\0';
+
+	if (esc_seq[0] == '[')
+	{
+		switch (esc_seq[1])
+		{
+			case 'A':
+				APP_FSM_handle_event(FSM_EVENT_BUTTON_UP_PRESSED);
+				break;
+			case 'B':
+				APP_FSM_handle_event(FSM_EVENT_BUTTON_DOWN_PRESSED);
+				break;
+			case 'C':
+				APP_FSM_handle_event(FSM_EVENT_BUTTON_RIGHT_PRESSED);
+				break;
+			case 'D':
+				APP_FSM_handle_event(FSM_EVENT_BUTTON_LEFT_PRESSED);
+				break;
+			default:
+				break;
 		}
 	}
 }
