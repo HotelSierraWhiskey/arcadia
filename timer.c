@@ -9,7 +9,7 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define TIMER_LOG_DBG(fmt, ...)   			SHELL_printf("\r%-10s" fmt, "[TIMER]", ##__VA_ARGS__)
+#define TIMER_LOG_DBG(fmt, ...)   			SHELL_printf("\r%-12s" fmt, "[TIMER]", ##__VA_ARGS__)
 
 #define TIMER_CTRLA_ENABLE					(TC_CTRLA_MODE_COUNT16 | TC_CTRLA_PRESCALER_DIV1024 | TC_CTRLA_ENABLE(1))
 #define TIMER_CTRLA_DISABLE					(TC_CTRLA_ENABLE(0))

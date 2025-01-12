@@ -10,8 +10,8 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define FSIF_LOG_DBG(fmt, ...)   		SHELL_printf("\r%-10s" fmt, "[FSIF]", ##__VA_ARGS__)
-#define FSIF_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-10s" fmt, "[FSIF]", ##__VA_ARGS__)
+#define FSIF_LOG_DBG(fmt, ...)   		SHELL_printf("\r%-12s" fmt, "[FSIF]", ##__VA_ARGS__)
+#define FSIF_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-12s" fmt, "[FSIF]", ##__VA_ARGS__)
 
 #define FSIF_VOLUME_LABEL				"ARCADIA"
 #define FSIF_DEFAULT_DRIVE_PATH			""

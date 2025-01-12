@@ -8,8 +8,8 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define SD_LOG_DBG(fmt, ...)   			SHELL_printf("\r%-10s" fmt, "[SD]", ##__VA_ARGS__)
-#define SD_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-10s" fmt, "[SD]", ##__VA_ARGS__)
+#define SD_LOG_DBG(fmt, ...)   			SHELL_printf("\r%-12s" fmt, "[SD]", ##__VA_ARGS__)
+#define SD_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-12s" fmt, "[SD]", ##__VA_ARGS__)
 
 #define SD_CMD_LEN						(6)
 #define SD_RESPONSE_IDLE 				(0x01)

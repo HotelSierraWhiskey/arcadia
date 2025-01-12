@@ -13,8 +13,8 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define DRIVE_LOG_DBG(fmt, ...)   		SHELL_printf("\r%-10s" fmt, "[DRIVE]", ##__VA_ARGS__)
-#define DRIVE_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-10s" fmt, "[DRIVE]", ##__VA_ARGS__)
+#define DRIVE_LOG_DBG(fmt, ...)   		SHELL_printf("\r%-12s" fmt, "[DRIVE]", ##__VA_ARGS__)
+#define DRIVE_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-12s" fmt, "[DRIVE]", ##__VA_ARGS__)
 
 #define DRIVE_MAX_OPEN_FILES			(3U)
 
