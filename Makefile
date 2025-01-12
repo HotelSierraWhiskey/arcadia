@@ -36,6 +36,7 @@ APP_INC = 	-I./ \
 			-Ilib/CMSIS_5/CMSIS/Core/Include \
 			-Ilib/samc21/include \
 			-I/usr/local/arm-gnu-toolchain-13.2.Rel1-x86_64-arm-none-eabi/include \
+			-I./fsm \
 			$(FREERTOS_INC) \
 			$(FATFS_INC)
 
@@ -58,7 +59,10 @@ APP_VPATH = 	main.c  \
 				spi.c \
 				sd.c \
 				fsif.c \
-				mempool.c
+				mempool.c \
+				fsm/app_fsm.c \
+				fsm/menu_fsm.c \
+				fsm/story_fsm.c
 
 # Matching .o files from APP_VPATH, and .o files from FreeRTOS and FatFs
 APP_OBJECTS = 	$(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(wildcard $(APP_VPATH)))) $(FREERTOS_OBJECTS) $(FATFS_OBJECTS)
@@ -124,7 +128,12 @@ $(APP_BUILD_DIR)/%.o: %.c | $(APP_BUILD_DIR)
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
 # .c files in common for app/build
-$(APP_BUILD_DIR)/%.o: $(COMMON_DIR)/%.c | $(APP_BUILD_DIR)
+$(APP_BUILD_DIR)/%.o: /%.c | $(APP_BUILD_DIR)
+	@echo $@
+	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
+
+# fsm .c files in common for app/build
+$(APP_BUILD_DIR)/%.o: fsm/%.c | $(APP_BUILD_DIR)
 	@echo $@
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
