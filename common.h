@@ -1,6 +1,8 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#define COMMON_MAX_FNAME_SIZE	(128U)
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
