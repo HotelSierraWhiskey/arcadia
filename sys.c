@@ -415,17 +415,17 @@ uint8_t SYS_shell_delay(uint8_t argc, char ** argv)
  *
  *	@return `SHELL_COMMAND_SUCCESS`
  ****************************************************************************************************/
-#include "sd.h"
 uint8_t SYS_shell_info(uint8_t argc, char ** argv)
 {
+	// Uptime stuff
+	uint32_t u32_uptime_s 	= CHRONO_get_ticks() / 1000;
+	uint32_t u32_hours 		= u32_uptime_s / 3600;
+	uint32_t u32_minutes 	= (u32_uptime_s % 3600) / 60;
+	uint32_t u32_seconds 	= u32_uptime_s % 60;
+	char pc_time_buffer[12];
+
 	if (argc == 0)
 	{
-		// Uptime stuff
-		uint32_t u32_uptime_s 	= CHRONO_get_ticks() / 1000;
-		uint32_t u32_hours 		= u32_uptime_s / 3600;
-		uint32_t u32_minutes 	= (u32_uptime_s % 3600) / 60;
-		uint32_t u32_seconds 	= u32_uptime_s % 60;
-		char pc_time_buffer[12];
 		sprintf(pc_time_buffer, "%02lu:%02lu:%02lu", u32_hours, u32_minutes, u32_seconds);
 
 		// Serial number stuff
