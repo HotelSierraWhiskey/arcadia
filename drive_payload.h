@@ -43,4 +43,13 @@ typedef struct _DRIVE_PAYLOAD_close_file
 	ARCADIA_status_t *	p_result_status;
 } DRIVE_PAYLOAD_close_file_t;
 
+typedef struct _DRIVE_PAYLOAD_fetch_fnames
+{
+	uint8_t				u8_num_fnames;
+	uint8_t 			u8_start_index;
+	char ** 			ppc_buffer;
+	uint8_t * 			pu8_num_found;
+	ARCADIA_status_t *	p_result_status;
+} DRIVE_PAYLOAD_fetch_fnames_t;
+
 #endif // DRIVE_PAYLOAD_H

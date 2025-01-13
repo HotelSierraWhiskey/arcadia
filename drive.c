@@ -45,6 +45,7 @@ static void 		DRIVE_handle_msg_erase_nvm		(ARCADIA_msg_t * p_msg);
 
 static void 		DRIVE_handle_msg_open_file		(ARCADIA_msg_t * p_msg);
 static void 		DRIVE_handle_msg_close_file		(ARCADIA_msg_t * p_msg);
+static void			DRIVE_handle_msg_fetch_fnames	(ARCADIA_msg_t * p_msg);
 
 static file_t * 	DRIVE_allocate_file				(int8_t * pi8_handle);
 static void 		DRIVE_free_file					(file_t * p_file);
@@ -145,6 +146,10 @@ static void DRIVE_handle_message(void)
 
 			case ARCADIA_MSG_ID_DRIVE_CLOSE_FILE:
 				DRIVE_handle_msg_close_file(&msg);
+				break;
+
+			case ARCADIA_MSG_ID_DRIVE_FETCH_FNAMES:
+				DRIVE_handle_msg_fetch_fnames(&msg);
 				break;
 			
 			default:
@@ -287,6 +292,42 @@ static void DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
 
 	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_close_file.p_result_status);
+}
+
+static void	DRIVE_handle_msg_fetch_fnames(ARCADIA_msg_t * p_msg)
+{
+	uint8_t * 	pu8_num_found = p_msg->payload.drive_payload_fetch_fnames.pu8_num_found;
+	FRESULT		f_result;
+	DIR			dir_obj;
+	FILINFO 	f_info;
+
+	*pu8_num_found = 0;
+
+	f_result = f_opendir(&dir_obj, "");
+
+	if (FR_OK == f_result)
+	{
+		while (1)
+		{
+			f_result = f_readdir(&dir_obj, &f_info);
+
+			if (f_result != FR_OK || f_info.fname[0] == 0)
+			{
+				break;
+			}
+			else
+			{
+				strncpy(p_msg->payload.drive_payload_fetch_fnames.ppc_buffer[(*pu8_num_found)++], f_info.fname, COMMON_MAX_FNAME_SIZE);
+			}
+		}
+	}
+
+	*p_msg->payload.drive_payload_fetch_fnames.p_result_status = ARCADIA_STATUS_OK;
+
+	ARCADIA_semaphore_give(p_msg->semaphore);
+
+	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
+				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_fetch_fnames.p_result_status);
 }
 
 static file_t * DRIVE_allocate_file(int8_t * pi8_handle)

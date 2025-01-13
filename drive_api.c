@@ -206,6 +206,43 @@ ARCADIA_status_t DRIVE_API_close_file(file_t * p_file)
 	return status;
 }
 
+ARCADIA_status_t DRIVE_API_fetch_fnames(uint8_t u8_num_fnames, uint8_t u8_start_index, char ** ppc_buffer, uint8_t * pu8_num_found)
+{
+	ASSERT(ppc_buffer);
+	ASSERT(pu8_num_found);
+
+	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
+
+	DRIVE_PAYLOAD_fetch_fnames_t payload =
+	{
+		.u8_num_fnames 		= u8_num_fnames,
+		.u8_start_index 	= u8_start_index,
+		.ppc_buffer 		= ppc_buffer,
+		.pu8_num_found 		= pu8_num_found,
+		.p_result_status 	= &status
+	};
+
+	ARCADIA_msg_t msg =
+	{
+		.id = ARCADIA_MSG_ID_DRIVE_FETCH_FNAMES,
+		.from = ARCADIA_get_current_task_id(),
+		.payload.drive_payload_fetch_fnames = payload
+	};
+	
+	msg.semaphore = ARCADIA_semaphore_alloc(&msg.semaphore_buffer);
+
+	ARCADIA_send(ARCADIA_TASK_ID_DRIVE, &msg);
+
+	if (!ARCADIA_semaphore_take(msg.semaphore))
+	{
+		status = ARCADIA_STATUS_API_TIMEOUT;
+	}
+
+	ARCADIA_semaphore_free(msg.semaphore);
+
+	return status;
+}
+
 /****************************************************************************************************
  *	S H E L L   F U N C T I O N S
  ****************************************************************************************************/
@@ -298,7 +335,7 @@ uint8_t DRIVE_API_shell_read_nvm(uint8_t argc, char ** argv)
 		SHELL_printf("Usage: drive nvm read <row_id>\n");
 	}
 
-	MEMPOOL_free(&buffer);
+	MEMPOOL_free(buffer);
 
 	return SHELL_COMMAND_SUCCESS;
 }
