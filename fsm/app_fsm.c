@@ -67,6 +67,8 @@ static APP_FSM_info_t APP_FSM_info;
 
 void APP_FSM_init(void)
 {
+	UNUSED(kpc_event_descriptors);
+
 	MENU_FSM_init();
 	STORY_FSM_init();
 
@@ -76,7 +78,6 @@ void APP_FSM_init(void)
 void APP_FSM_handle_event(FSM_EVENT_t event)
 {
 	ASSERT(event < FSM_EVENT_NUM_EVENTS);
-	// APP_FSM_LOG_DBG("%s\n", kpc_event_descriptors[event]);
 	APP_FSM_info.p_fsm->event_handler(event);
 }
 
