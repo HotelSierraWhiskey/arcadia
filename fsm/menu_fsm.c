@@ -14,12 +14,21 @@
 
 #define MENU_FSM_NUM_ON_SCREEN_TITLES		(5U)
 
+typedef enum _MENU_FSM_state
+{
+	MENU_FSM_STATE_WAIT_FOR_MENU_EVENT = 0,
+	MENU_FSM_STATE_WAIT_FOR_COMPONENT_EVENT,
+	//////////
+	MENU_FSM_STATE_NUM_STATES
+} MENU_FSM_state_t;
+
 typedef enum _MENU_FSM_menu_id
 {
 	MENU_FSM_MENU_ID_MAIN_MENU = 0,
 	MENU_FSM_MENU_ID_MAIN_STORIES,
 	MENU_FSM_MENU_ID_MAIN_SETTINGS
 } MENU_FSM_menu_id_t;
+
 typedef enum _MENU_FSM_main_menu_sub_menu_id
 {
 	MENU_FSM_MAIN_MENU_SUB_MENU_ID_STORIES = 0,
@@ -42,11 +51,11 @@ typedef struct _MENU_FSM_menu
 	uint8_t						u8_num_components;
 } MENU_FSM_menu_t;
 
-typedef struct _MENU_FSM_state_
+typedef struct _MENU_FSM_info_
 {
-	MENU_FSM_menu_t * p_current_menu;
-	char ppc_on_screen_titles_buffer[MENU_FSM_NUM_ON_SCREEN_TITLES][COMMON_MAX_FNAME_SIZE];
-} MENU_FSM_state_t;
+	MENU_FSM_state_t 	state;
+	MENU_FSM_menu_t * 	p_current_menu;
+} MENU_FSM_info_t;
 
 /****************************************************************************************************
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
@@ -131,98 +140,138 @@ static MENU_FSM_menu_t main_menu =
 /**
  *	Main Menu FSM state struct
  */
-MENU_FSM_state_t MENU_FSM_state;
+MENU_FSM_info_t MENU_FSM_info;
 
 /****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
+
 void MENU_FSM_init(void)
 {
-	// uint8_t u8_num_found;
-	
-	MENU_FSM_state.p_current_menu = &main_menu;
-
-	// how many stories are there? load up to on-screen max into the stories menu components
-
-	// stories_menu.p_components
+	MENU_FSM_info.p_current_menu = &main_menu;
+	MENU_FSM_info.state = MENU_FSM_STATE_WAIT_FOR_MENU_EVENT;
 }
 
-void MENU_FSM_handle_menu_event(FSM_EVENT_t event)
+void MENU_FSM_handle_event(FSM_EVENT_t event)
 {
-	switch (event)
+	switch (MENU_FSM_info.state)
 	{
-		case FSM_EVENT_BUTTON_UP_PRESSED:
+		case MENU_FSM_STATE_WAIT_FOR_MENU_EVENT:
 		{
-			MENU_FSM_go_to_prev_menu();
-			break;
+			switch (event)
+			{
+				case FSM_EVENT_BUTTON_UP_PRESSED:
+				{
+					MENU_FSM_go_to_prev_menu();
+					break;
+				}
+				case FSM_EVENT_BUTTON_DOWN_PRESSED:
+				{
+					MENU_FSM_go_to_next_menu();
+					break;
+				}
+				case FSM_EVENT_BUTTON_RIGHT_PRESSED:
+				{
+					break;
+				}
+				case FSM_EVENT_BUTTON_LEFT_PRESSED:
+				{
+					break;
+				}
+				case FSM_EVENT_BUTTON_A_PRESSED:
+				{
+					MENU_FSM_step_into_sub_menu();
+					break;
+				}
+				case FSM_EVENT_BUTTON_B_PRESSED:
+				{
+					MENU_FSM_go_to_parent_menu();
+					break;
+				}
+				case FSM_EVENT_BUTTON_MENU_PRESSED:
+				{
+					// Only if there's a story being processed
+					APP_FSM_switch_to_fsm(APP_FSM_ID_STORY);
+					break;
+				}
+			}
 		}
-		case FSM_EVENT_BUTTON_DOWN_PRESSED:
+
+		case MENU_FSM_STATE_WAIT_FOR_COMPONENT_EVENT:
 		{
-			MENU_FSM_go_to_next_menu();
-			break;
-		}
-		case FSM_EVENT_BUTTON_RIGHT_PRESSED:
-		{
-			break;
-		}
-		case FSM_EVENT_BUTTON_LEFT_PRESSED:
-		{
-			break;
-		}
-		case FSM_EVENT_BUTTON_A_PRESSED:
-		{
-			MENU_FSM_step_into_sub_menu();
-			break;
-		}
-		case FSM_EVENT_BUTTON_B_PRESSED:
-		{
-			MENU_FSM_go_to_parent_menu();
-			break;
-		}
-		case FSM_EVENT_BUTTON_MENU_PRESSED:
-		{
-			// Only if there's a story being processed
-			APP_FSM_switch_to_fsm(APP_FSM_ID_STORY);
-			break;
+			switch (event)
+			{
+				case FSM_EVENT_BUTTON_UP_PRESSED:
+				{
+					break;
+				}
+				case FSM_EVENT_BUTTON_DOWN_PRESSED:
+				{
+					break;
+				}
+				case FSM_EVENT_BUTTON_RIGHT_PRESSED:
+				{
+					break;
+				}
+				case FSM_EVENT_BUTTON_LEFT_PRESSED:
+				{
+					break;
+				}
+				case FSM_EVENT_BUTTON_A_PRESSED:
+				{
+					break;
+				}
+				case FSM_EVENT_BUTTON_B_PRESSED:
+				{
+					MENU_FSM_go_to_parent_menu();
+					break;
+				}
+				case FSM_EVENT_BUTTON_MENU_PRESSED:
+				{
+					break;
+				}
+			}
 		}
 	}
 }
 
 static void MENU_FSM_go_to_next_menu(void)
 {
-	MENU_FSM_menu_t * p_menu = MENU_FSM_state.p_current_menu;
+	MENU_FSM_menu_t * p_menu = MENU_FSM_info.p_current_menu;
 
 	p_menu->p_highlighted_sub_menu = p_menu->p_highlighted_sub_menu->p_next_menu;
 
 	MENU_FSM_LOG_DBG("Current Menu: %s, Highlighted Sub-menu: %s\n", 
-		MENU_FSM_state.p_current_menu->kpc_name, p_menu->p_highlighted_sub_menu->kpc_name);
+		MENU_FSM_info.p_current_menu->kpc_name, p_menu->p_highlighted_sub_menu->kpc_name);
 }
 
 static void MENU_FSM_go_to_prev_menu(void)
 {
-	MENU_FSM_menu_t * p_menu = MENU_FSM_state.p_current_menu;
+	MENU_FSM_menu_t * p_menu = MENU_FSM_info.p_current_menu;
 
 	p_menu->p_highlighted_sub_menu = p_menu->p_highlighted_sub_menu->p_prev_menu;
 
 	MENU_FSM_LOG_DBG("Current Menu: %s, Highlighted Sub-menu: %s\n", 
-		MENU_FSM_state.p_current_menu->kpc_name, p_menu->p_highlighted_sub_menu->kpc_name);
+		MENU_FSM_info.p_current_menu->kpc_name, p_menu->p_highlighted_sub_menu->kpc_name);
 }
 
 static void MENU_FSM_go_to_parent_menu(void)
 {
-	MENU_FSM_menu_t * p_menu = MENU_FSM_state.p_current_menu;
+	MENU_FSM_menu_t * p_menu = MENU_FSM_info.p_current_menu;
 
-	p_menu = p_menu->p_parent_menu;
+	MENU_FSM_info.state = MENU_FSM_STATE_WAIT_FOR_MENU_EVENT;
+
+	MENU_FSM_info.p_current_menu = p_menu->p_parent_menu;
 
 	MENU_FSM_LOG_DBG("Current Menu: %s, Highlighted Sub-menu: %s\n", 
-		MENU_FSM_state.p_current_menu->kpc_name, p_menu->p_highlighted_sub_menu->kpc_name);
+		MENU_FSM_info.p_current_menu->kpc_name, p_menu->p_highlighted_sub_menu->kpc_name);
 }
 
 static void MENU_FSM_step_into_sub_menu(void)
 {
-	MENU_FSM_state.p_current_menu = MENU_FSM_state.p_current_menu->p_highlighted_sub_menu;
+	MENU_FSM_info.p_current_menu = MENU_FSM_info.p_current_menu->p_highlighted_sub_menu;
 
-	switch (MENU_FSM_state.p_current_menu->id)
+	switch (MENU_FSM_info.p_current_menu->id)
 	{
 		case MENU_FSM_MENU_ID_MAIN_MENU:
 		{
@@ -246,6 +295,8 @@ static void MENU_FSM_on_stories_menu_selected(void)
 	ARCADIA_status_t 	status = ARCADIA_STATUS_FAILED;
 	char * 				ppc_buffer_pointers[MENU_FSM_NUM_ON_SCREEN_TITLES];
 
+	MENU_FSM_info.state = MENU_FSM_STATE_WAIT_FOR_COMPONENT_EVENT;
+
 	for (uint8_t i = 0; i < MENU_FSM_NUM_ON_SCREEN_TITLES; i++)
 	{
         ppc_buffer_pointers[i] = p_on_screen_titles[i].story.pc_title;
@@ -255,19 +306,15 @@ static void MENU_FSM_on_stories_menu_selected(void)
 	
 	status = DRIVE_API_fetch_fnames(MENU_FSM_NUM_ON_SCREEN_TITLES, 0, ppc_buffer_pointers, &u8_num_found);
 
-	if (ARCADIA_STATUS_OK == status)
-	{
-
-	}
-	else
+	if (status != ARCADIA_STATUS_OK)
 	{
 		MENU_FSM_LOG_WARN("Unable to retrieve file names (status: %u)\n", status);
 	}
-
-	SHELL_printf("Num found: %u\n", u8_num_found);
+	
+	MENU_FSM_LOG_DBG("Stories found: %u\n", u8_num_found);
 
 	for (uint8_t i = 0; i < u8_num_found; i++)
 	{
-		SHELL_printf("pc_title: %s\n", p_on_screen_titles[i].story.pc_title);
+		MENU_FSM_LOG_DBG("Title [%u]: %s\n", i, p_on_screen_titles[i].story.pc_title);
 	}
 }

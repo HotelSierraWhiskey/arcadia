@@ -50,12 +50,12 @@ static APP_FSM_t p_fsms[APP_FSM_ID_NUM_FSM_IDS] =
 	[APP_FSM_ID_MENU] = 
 	{
 		.kpc_name 		= "MENU_FSM",
-		.event_handler 	= MENU_FSM_handle_menu_event,
+		.event_handler 	= MENU_FSM_handle_event,
 	},
 	[APP_FSM_ID_STORY] =
 	{
 		.kpc_name 		= "STORY_FSM",
-		.event_handler 	= STORY_FSM_handle_story_event,
+		.event_handler 	= STORY_FSM_handle_event,
 	}
 };
 

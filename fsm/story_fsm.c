@@ -19,7 +19,7 @@ void STORY_FSM_init(void)
 	
 }
 
-void STORY_FSM_handle_story_event(FSM_EVENT_t event)
+void STORY_FSM_handle_event(FSM_EVENT_t event)
 {
 	switch (event)
 	{
