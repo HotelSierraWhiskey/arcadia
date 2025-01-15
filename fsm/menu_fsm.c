@@ -263,8 +263,14 @@ static void MENU_FSM_go_to_parent_menu(void)
 
 	MENU_FSM_info.p_current_menu = p_menu->p_parent_menu;
 
+	// Restore the default highlighted sub-menu (will always be the first one)
+	if (MENU_FSM_info.p_current_menu->pp_sub_menus)
+	{
+		MENU_FSM_info.p_current_menu->p_highlighted_sub_menu = MENU_FSM_info.p_current_menu->pp_sub_menus[0];
+	}
+
 	MENU_FSM_LOG_DBG("Current Menu: %s, Highlighted Sub-menu: %s\n", 
-		MENU_FSM_info.p_current_menu->kpc_name, p_menu->p_highlighted_sub_menu->kpc_name);
+		MENU_FSM_info.p_current_menu->kpc_name, MENU_FSM_info.p_current_menu->p_highlighted_sub_menu->kpc_name);
 }
 
 static void MENU_FSM_step_into_sub_menu(void)
