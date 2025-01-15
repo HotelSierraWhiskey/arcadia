@@ -1,4 +1,9 @@
-# Roadmap to Arcadia 1.0.0 Beta
+# Arcadia
+
+## Documentation Quick Links
+- [Arcfile Specification](docs/arcfile-spec.md)
+
+## Roadmap to Arcadia 1.0.0 Beta
 
 ### ☑️ version 0.5.0
 Hardware:
