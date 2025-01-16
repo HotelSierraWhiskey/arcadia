@@ -797,7 +797,7 @@ uint8_t DRIVE_API_shell_ls(uint8_t argc, char ** argv)
 					}
 					else if (f_info.fattrib & AM_DIR)
 					{
-						SHELL_printf("%-24s %-24u %s\n", f_info.fname, 0, "dir");
+						SHELL_printf("%-24s %-24s %s\n", f_info.fname, "--", "dir");
 						u8_num_dirs++;
 					}
 					else

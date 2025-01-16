@@ -22,6 +22,14 @@ typedef enum _MENU_FSM_state
 	MENU_FSM_STATE_NUM_STATES
 } MENU_FSM_state_t;
 
+typedef enum _MENU_FSM_direction
+{
+	MENU_FSM_DIRECTION_NEXT = 0,
+	MENU_FSM_DIRECTION_PREV,
+	//////////
+	MENU_FSM_DIRECTION_NUM_DIRECTIONS
+} MENU_FSM_direction_t;
+
 typedef enum _MENU_FSM_menu_id
 {
 	MENU_FSM_MENU_ID_MAIN_MENU = 0,
@@ -39,16 +47,20 @@ typedef enum _MENU_FSM_main_menu_sub_menu_id
 
 typedef struct _MENU_FSM_menu
 {
+	// Menu- & sub-menu-specific members
 	MENU_FSM_menu_id_t			id;
 	const char * 				kpc_name;
 	int8_t						i8_num_sub_menus;
-	struct _MENU_FSM_menu **	pp_sub_menus;
+	struct _MENU_FSM_menu *		p_sub_menus;
 	struct _MENU_FSM_menu *		p_highlighted_sub_menu;
 	struct _MENU_FSM_menu *		p_next_menu;
 	struct _MENU_FSM_menu *		p_prev_menu;
 	struct _MENU_FSM_menu *		p_parent_menu;
-	MENU_COMPONENT_t **			pp_components;
+
+	// Component-specific members
 	uint8_t						u8_num_components;
+	MENU_COMPONENT_t *			p_components;
+	uint8_t						u8_highlighted_component_index;
 } MENU_FSM_menu_t;
 
 typedef struct _MENU_FSM_info_
@@ -66,6 +78,8 @@ static void 	MENU_FSM_go_to_prev_menu				(void);
 static void 	MENU_FSM_go_to_parent_menu				(void);
 static void		MENU_FSM_step_into_sub_menu				(void);
 
+static void 	MENU_FSM_go_to_component				(MENU_FSM_direction_t direction);
+
 static void 	MENU_FSM_on_stories_menu_selected		(void);
 
 /****************************************************************************************************
@@ -79,23 +93,24 @@ static MENU_FSM_menu_t settings_menu;
 /**
  *	Stories Menu components
  */
-static MENU_COMPONENT_t p_on_screen_titles[MENU_FSM_NUM_ON_SCREEN_TITLES];
+static MENU_COMPONENT_t p_on_screen_titles_components[MENU_FSM_NUM_ON_SCREEN_TITLES];
 
 /**
  *	Stories Menu struct
  */
 static MENU_FSM_menu_t stories_menu =
 {
-	.id						= MENU_FSM_MENU_ID_MAIN_STORIES,
-	.kpc_name 				= "STORIES_MENU",
-	.i8_num_sub_menus 		= 0,
-	.pp_sub_menus			= NULL,
-	.p_highlighted_sub_menu = NULL,
-	.p_next_menu			= &settings_menu,
-	.p_prev_menu			= &stories_menu,
-	.p_parent_menu 			= &main_menu,
-	.pp_components			= (MENU_COMPONENT_t **)&p_on_screen_titles,
-	.u8_num_components		= MENU_FSM_NUM_ON_SCREEN_TITLES,
+	.id								= MENU_FSM_MENU_ID_MAIN_STORIES,
+	.kpc_name 						= "STORIES_MENU",
+	.i8_num_sub_menus 				= 0,
+	.p_sub_menus					= NULL,
+	.p_highlighted_sub_menu 		= NULL,
+	.p_next_menu					= &settings_menu,
+	.p_prev_menu					= &stories_menu,
+	.p_parent_menu 					= &main_menu,
+	.u8_num_components				= MENU_FSM_NUM_ON_SCREEN_TITLES,
+	.p_components					= p_on_screen_titles_components,
+	.u8_highlighted_component_index = 0
 };
 
 /**
@@ -106,7 +121,7 @@ static MENU_FSM_menu_t settings_menu =
 	.id						= MENU_FSM_MENU_ID_MAIN_SETTINGS,
 	.kpc_name 				= "SETTINGS_MENU",
 	.i8_num_sub_menus 		= 0,
-	.pp_sub_menus			= NULL,
+	.p_sub_menus			= NULL,
 	.p_highlighted_sub_menu = NULL,
 	.p_next_menu			= &settings_menu,
 	.p_prev_menu			= &stories_menu,
@@ -116,11 +131,7 @@ static MENU_FSM_menu_t settings_menu =
 /**
  *	Main Menu sub-menus
  */
-static const MENU_FSM_menu_t * const pp_main_menu_sub_menus[MENU_FSM_MAIN_MENU_NUM_SUB_MENU_IDS] =
-{
-	[MENU_FSM_MAIN_MENU_SUB_MENU_ID_STORIES] 	= &stories_menu,
-	[MENU_FSM_MAIN_MENU_SUB_MENU_ID_SETTINGS]	= &settings_menu
-};
+static MENU_FSM_menu_t p_main_menu_sub_menus[MENU_FSM_MAIN_MENU_NUM_SUB_MENU_IDS];
 
 /**
  *	Main Menu struct
@@ -130,7 +141,7 @@ static MENU_FSM_menu_t main_menu =
 	.id						= MENU_FSM_MENU_ID_MAIN_MENU,
 	.kpc_name 				= "MAIN_MENU",
 	.i8_num_sub_menus		= MENU_FSM_MAIN_MENU_NUM_SUB_MENU_IDS,
-	.pp_sub_menus			= (MENU_FSM_menu_t **)pp_main_menu_sub_menus,
+	.p_sub_menus			= p_main_menu_sub_menus,
 	.p_highlighted_sub_menu	= &stories_menu,
 	.p_next_menu			= NULL,
 	.p_prev_menu			= NULL,
@@ -148,6 +159,10 @@ MENU_FSM_info_t MENU_FSM_info;
 
 void MENU_FSM_init(void)
 {
+	// Initialize Main Menu's sub-menus
+	p_main_menu_sub_menus[MENU_FSM_MAIN_MENU_SUB_MENU_ID_STORIES] = stories_menu;
+	p_main_menu_sub_menus[MENU_FSM_MAIN_MENU_SUB_MENU_ID_SETTINGS] = settings_menu;
+
 	MENU_FSM_info.p_current_menu = &main_menu;
 	MENU_FSM_info.state = MENU_FSM_STATE_WAIT_FOR_MENU_EVENT;
 }
@@ -196,6 +211,7 @@ void MENU_FSM_handle_event(FSM_EVENT_t event)
 				}
 			}
 		}
+		break;
 
 		case MENU_FSM_STATE_WAIT_FOR_COMPONENT_EVENT:
 		{
@@ -203,10 +219,12 @@ void MENU_FSM_handle_event(FSM_EVENT_t event)
 			{
 				case FSM_EVENT_BUTTON_UP_PRESSED:
 				{
+					MENU_FSM_go_to_component(MENU_FSM_DIRECTION_PREV);
 					break;
 				}
 				case FSM_EVENT_BUTTON_DOWN_PRESSED:
 				{
+					MENU_FSM_go_to_component(MENU_FSM_DIRECTION_NEXT);
 					break;
 				}
 				case FSM_EVENT_BUTTON_RIGHT_PRESSED:
@@ -235,6 +253,10 @@ void MENU_FSM_handle_event(FSM_EVENT_t event)
 	}
 }
 
+/****************************************************************************************************
+ *	M E N U   N A V I G A T I O N
+ ****************************************************************************************************/
+
 static void MENU_FSM_go_to_next_menu(void)
 {
 	MENU_FSM_menu_t * p_menu = MENU_FSM_info.p_current_menu;
@@ -242,7 +264,7 @@ static void MENU_FSM_go_to_next_menu(void)
 	p_menu->p_highlighted_sub_menu = p_menu->p_highlighted_sub_menu->p_next_menu;
 
 	MENU_FSM_LOG_DBG("Current Menu: %s, Highlighted Sub-menu: %s\n", 
-		MENU_FSM_info.p_current_menu->kpc_name, p_menu->p_highlighted_sub_menu->kpc_name);
+		p_menu->kpc_name, p_menu->p_highlighted_sub_menu->kpc_name);
 }
 
 static void MENU_FSM_go_to_prev_menu(void)
@@ -252,21 +274,27 @@ static void MENU_FSM_go_to_prev_menu(void)
 	p_menu->p_highlighted_sub_menu = p_menu->p_highlighted_sub_menu->p_prev_menu;
 
 	MENU_FSM_LOG_DBG("Current Menu: %s, Highlighted Sub-menu: %s\n", 
-		MENU_FSM_info.p_current_menu->kpc_name, p_menu->p_highlighted_sub_menu->kpc_name);
+		p_menu->kpc_name, p_menu->p_highlighted_sub_menu->kpc_name);
 }
 
 static void MENU_FSM_go_to_parent_menu(void)
 {
 	MENU_FSM_menu_t * p_menu = MENU_FSM_info.p_current_menu;
 
+	// Restore the highlighted component
+	if (p_menu->p_components)
+	{
+		MENU_FSM_info.p_current_menu->u8_highlighted_component_index = 0;
+	}
+
 	MENU_FSM_info.state = MENU_FSM_STATE_WAIT_FOR_MENU_EVENT;
 
 	MENU_FSM_info.p_current_menu = p_menu->p_parent_menu;
 
 	// Restore the default highlighted sub-menu (will always be the first one)
-	if (MENU_FSM_info.p_current_menu->pp_sub_menus)
+	if (MENU_FSM_info.p_current_menu->p_sub_menus)
 	{
-		MENU_FSM_info.p_current_menu->p_highlighted_sub_menu = MENU_FSM_info.p_current_menu->pp_sub_menus[0];
+		MENU_FSM_info.p_current_menu->p_highlighted_sub_menu = &MENU_FSM_info.p_current_menu->p_sub_menus[0];
 	}
 
 	MENU_FSM_LOG_DBG("Current Menu: %s, Highlighted Sub-menu: %s\n", 
@@ -305,8 +333,9 @@ static void MENU_FSM_on_stories_menu_selected(void)
 
 	for (uint8_t i = 0; i < MENU_FSM_NUM_ON_SCREEN_TITLES; i++)
 	{
-        ppc_buffer_pointers[i] = p_on_screen_titles[i].story.pc_title;
-    }
+		p_on_screen_titles_components[i].type = MENU_COMPONENT_TYPE_STORY;
+		ppc_buffer_pointers[i] = p_on_screen_titles_components[i].component.story.pc_title;
+	}
 
 	MENU_FSM_LOG_DBG("Stories Menu Selected\n");
 	
@@ -321,6 +350,46 @@ static void MENU_FSM_on_stories_menu_selected(void)
 
 	for (uint8_t i = 0; i < u8_num_found; i++)
 	{
-		MENU_FSM_LOG_DBG("Title [%u]: %s\n", i, p_on_screen_titles[i].story.pc_title);
+		MENU_FSM_LOG_DBG("Title [%u]: %s\n", i, MENU_FSM_info.p_current_menu->p_components[i].component.story.pc_title);
+	}
+}
+
+/****************************************************************************************************
+ *	C O M P O N E N T   N A V I G A T I O N
+ ****************************************************************************************************/
+
+static void MENU_FSM_go_to_component(MENU_FSM_direction_t direction)
+{
+	uint8_t u8_num_components 	= MENU_FSM_info.p_current_menu->u8_num_components;
+	uint8_t * pu8_index 		= &MENU_FSM_info.p_current_menu->u8_highlighted_component_index;
+
+	switch (MENU_FSM_info.p_current_menu->p_components[*pu8_index].type)
+	{
+		case MENU_COMPONENT_TYPE_STORY:
+		{
+			if (MENU_FSM_info.p_current_menu->p_components[(*pu8_index) + 1].component.story.pc_title[0] == '\0')
+			{
+				*pu8_index = 0;
+			}
+			else
+			{
+				if (direction == MENU_FSM_DIRECTION_NEXT)
+				{
+					if (*pu8_index < u8_num_components - 1)
+					{
+						(*pu8_index)++;
+					}
+				}
+				else if (direction == MENU_FSM_DIRECTION_PREV)
+				{
+					if (*pu8_index > 0)
+					{
+						(*pu8_index)--;
+					}
+				}
+			}
+			MENU_FSM_LOG_DBG("Story[%u]: %s\n", *pu8_index, MENU_FSM_info.p_current_menu->p_components[*pu8_index].component.story.pc_title);
+			break;
+		}
 	}
 }
