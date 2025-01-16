@@ -206,7 +206,7 @@ ARCADIA_status_t DRIVE_API_close_file(file_t * p_file)
 	return status;
 }
 
-ARCADIA_status_t DRIVE_API_fetch_fnames(uint8_t u8_num_fnames, uint8_t u8_start_index, char ** ppc_buffer, uint8_t * pu8_num_found)
+ARCADIA_status_t DRIVE_API_fetch_fnames(uint8_t u8_num_fnames, const char * kpc_filter, uint8_t u8_start_index, char ** ppc_buffer, uint8_t * pu8_num_found)
 {
 	ASSERT(ppc_buffer);
 	ASSERT(pu8_num_found);
@@ -216,6 +216,7 @@ ARCADIA_status_t DRIVE_API_fetch_fnames(uint8_t u8_num_fnames, uint8_t u8_start_
 	DRIVE_PAYLOAD_fetch_fnames_t payload =
 	{
 		.u8_num_fnames 		= u8_num_fnames,
+		.kpc_filter			= kpc_filter,
 		.u8_start_index 	= u8_start_index,
 		.ppc_buffer 		= ppc_buffer,
 		.pu8_num_found 		= pu8_num_found,

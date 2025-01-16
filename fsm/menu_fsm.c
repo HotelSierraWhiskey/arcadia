@@ -13,6 +13,7 @@
 #define MENU_FSM_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-12s" fmt, "[MENU_FSM]", ##__VA_ARGS__)
 
 #define MENU_FSM_NUM_ON_SCREEN_TITLES		(5U)
+#define MENU_FSM_ARC_PROJECT_FILTER			"*.arc"
 
 typedef enum _MENU_FSM_state
 {
@@ -339,7 +340,7 @@ static void MENU_FSM_on_stories_menu_selected(void)
 
 	MENU_FSM_LOG_DBG("Stories Menu Selected\n");
 	
-	status = DRIVE_API_fetch_fnames(MENU_FSM_NUM_ON_SCREEN_TITLES, 0, ppc_buffer_pointers, &u8_num_found);
+	status = DRIVE_API_fetch_fnames(MENU_FSM_NUM_ON_SCREEN_TITLES, MENU_FSM_ARC_PROJECT_FILTER, 0, ppc_buffer_pointers, &u8_num_found);
 
 	if (status != ARCADIA_STATUS_OK)
 	{
@@ -367,27 +368,22 @@ static void MENU_FSM_go_to_component(MENU_FSM_direction_t direction)
 	{
 		case MENU_COMPONENT_TYPE_STORY:
 		{
-			if (MENU_FSM_info.p_current_menu->p_components[(*pu8_index) + 1].component.story.pc_title[0] == '\0')
+
+			if (direction == MENU_FSM_DIRECTION_NEXT)
 			{
-				*pu8_index = 0;
-			}
-			else
-			{
-				if (direction == MENU_FSM_DIRECTION_NEXT)
+				if (*pu8_index < u8_num_components - 1)
 				{
-					if (*pu8_index < u8_num_components - 1)
-					{
-						(*pu8_index)++;
-					}
-				}
-				else if (direction == MENU_FSM_DIRECTION_PREV)
-				{
-					if (*pu8_index > 0)
-					{
-						(*pu8_index)--;
-					}
+					(*pu8_index)++;
 				}
 			}
+			else if (direction == MENU_FSM_DIRECTION_PREV)
+			{
+				if (*pu8_index > 0)
+				{
+					(*pu8_index)--;
+				}
+			}
+
 			MENU_FSM_LOG_DBG("Story[%u]: %s\n", *pu8_index, MENU_FSM_info.p_current_menu->p_components[*pu8_index].component.story.pc_title);
 			break;
 		}

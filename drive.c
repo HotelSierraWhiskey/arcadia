@@ -296,31 +296,24 @@ static void DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
 
 static void	DRIVE_handle_msg_fetch_fnames(ARCADIA_msg_t * p_msg)
 {
-	uint8_t * 	pu8_num_found = p_msg->payload.drive_payload_fetch_fnames.pu8_num_found;
-	FRESULT		f_result;
-	DIR			dir_obj;
-	FILINFO 	f_info;
+	uint8_t * 		pu8_num_found = p_msg->payload.drive_payload_fetch_fnames.pu8_num_found;
+	const char * 	kpc_filter = p_msg->payload.drive_payload_fetch_fnames.kpc_filter;
+	FRESULT			f_result;
+	DIR				dir_obj;
+	FILINFO 		f_info;
 
 	*pu8_num_found = 0;
 
-	f_result = f_opendir(&dir_obj, "");
+	// Hardcoded to top level directory
+	f_result = f_findfirst(&dir_obj, &f_info, "", kpc_filter);
 
-	if (FR_OK == f_result)
+    while (f_result == FR_OK && f_info.fname[0])
 	{
-		while (1)
-		{
-			f_result = f_readdir(&dir_obj, &f_info);
+		strncpy(p_msg->payload.drive_payload_fetch_fnames.ppc_buffer[(*pu8_num_found)++], f_info.fname, COMMON_MAX_FNAME_SIZE);
+        f_result = f_findnext(&dir_obj, &f_info);
+    }
 
-			if (f_result != FR_OK || f_info.fname[0] == 0)
-			{
-				break;
-			}
-			else
-			{
-				strncpy(p_msg->payload.drive_payload_fetch_fnames.ppc_buffer[(*pu8_num_found)++], f_info.fname, COMMON_MAX_FNAME_SIZE);
-			}
-		}
-	}
+    f_closedir(&dir_obj);
 
 	*p_msg->payload.drive_payload_fetch_fnames.p_result_status = ARCADIA_STATUS_OK;
 

@@ -46,6 +46,7 @@ typedef struct _DRIVE_PAYLOAD_close_file
 typedef struct _DRIVE_PAYLOAD_fetch_fnames
 {
 	uint8_t				u8_num_fnames;
+	const char *		kpc_filter;
 	uint8_t 			u8_start_index;
 	char ** 			ppc_buffer;
 	uint8_t * 			pu8_num_found;
