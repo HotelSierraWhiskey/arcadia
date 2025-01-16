@@ -1,5 +1,5 @@
-#ifndef FSM_EVENT
-#define FSM_EVENT
+#ifndef FSM_EVENT_H
+#define FSM_EVENT_H
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -18,4 +18,4 @@ typedef enum _FSM_EVENT
 	FSM_EVENT_NUM_EVENTS
 } FSM_EVENT_t;
 
-#endif // FSM_EVENT
+#endif // FSM_EVENT_H

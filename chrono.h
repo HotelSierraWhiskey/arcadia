@@ -1,5 +1,5 @@
-#ifndef SYS_TIME_H
-#define SYS_TIME_H
+#ifndef CHRONO_H
+#define CHRONO_H
 
 #include "common.h"
 #include "timer.h"

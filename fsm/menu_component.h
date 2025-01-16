@@ -12,18 +12,17 @@ typedef enum _MENU_COMPONENT_type
 
 typedef struct _MENU_COMPONENT_story
 {
-	char					pc_title[COMMON_MAX_FNAME_SIZE];
+	char	pc_title[COMMON_MAX_FNAME_SIZE];
 } MENU_COMPONENT_story_t;
-
 
 
 typedef struct _MENU_COMPONENT
 {
-	MENU_COMPONENT_type_t	type;
+	MENU_COMPONENT_type_t type;
 	union
 	{
-		MENU_COMPONENT_story_t	story;
+		MENU_COMPONENT_story_t story;
 	} component;
 } MENU_COMPONENT_t;
 
-#endif // MENU_COMPONENT
+#endif // MENU_COMPONENT_H
