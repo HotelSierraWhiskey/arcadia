@@ -8,9 +8,6 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-// #define APP_FSM_LOG_DBG(fmt, ...)   		SHELL_printf("\r%-12s" fmt, "[APP_FSM]", ##__VA_ARGS__)
-// #define APP_FSM_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-12s" fmt, "[APP_FSM]", ##__VA_ARGS__)
-
 typedef void (* APP_FSM_event_handler_t)(FSM_EVENT_t);
 
 typedef struct _APP_FSM
