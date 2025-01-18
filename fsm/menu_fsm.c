@@ -77,6 +77,7 @@ static void 	MENU_FSM_go_to_parent_menu				(void);
 static void		MENU_FSM_step_into_sub_menu				(void);
 
 static void 	MENU_FSM_go_to_component				(MENU_FSM_direction_t direction);
+static void 	MENU_FSM_handle_component_selected		(void);
 
 static void 	MENU_FSM_on_stories_menu_selected		(void);
 
@@ -229,6 +230,7 @@ void MENU_FSM_handle_event(FSM_EVENT_t event)
 				}
 				case FSM_EVENT_BUTTON_A_PRESSED:
 				{
+					MENU_FSM_handle_component_selected();
 					break;
 				}
 				case FSM_EVENT_BUTTON_B_PRESSED:
@@ -359,14 +361,14 @@ static void MENU_FSM_go_to_component(MENU_FSM_direction_t direction)
 				break;
 			}
 
-			if (direction == MENU_FSM_DIRECTION_NEXT)
+			if (MENU_FSM_DIRECTION_NEXT == direction)
 			{
 				if (*pu8_index < u8_num_components - 1 && MENU_FSM_info.p_current_menu->p_components[(*pu8_index) + 1].component.story.pc_title[0] != '\0')
 				{
 					(*pu8_index)++;
 				}
 			}
-			else if (direction == MENU_FSM_DIRECTION_PREV)
+			else if (MENU_FSM_DIRECTION_PREV == direction)
 			{
 				if (*pu8_index > 0)
 				{
@@ -375,6 +377,21 @@ static void MENU_FSM_go_to_component(MENU_FSM_direction_t direction)
 			}
 
 			MENU_FSM_LOG_DBG("Story[%u]: %s\n", *pu8_index, MENU_FSM_info.p_current_menu->p_components[*pu8_index].component.story.pc_title);
+			break;
+		}
+	}
+}
+
+static void MENU_FSM_handle_component_selected(void)
+{
+	uint8_t * pu8_index = &MENU_FSM_info.p_current_menu->u8_highlighted_component_index;
+
+	switch (MENU_FSM_info.p_current_menu->p_components[*pu8_index].type)
+	{
+		case MENU_COMPONENT_TYPE_STORY:
+		{
+			MENU_FSM_LOG_DBG("Selected story: %s\n", MENU_FSM_info.p_current_menu->p_components[*pu8_index].component.story.pc_title);
+			APP_FSM_switch_to_fsm(APP_FSM_ID_STORY);
 			break;
 		}
 	}
