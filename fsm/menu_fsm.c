@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "menu_component.h"
 #include "drive_api.h"
+#include "story_fsm.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -328,7 +329,7 @@ static void MENU_FSM_on_stories_menu_selected(void)
 	for (uint8_t i = 0; i < MENU_FSM_NUM_ON_SCREEN_TITLES; i++)
 	{
 		p_on_screen_titles_components[i].type = MENU_COMPONENT_TYPE_STORY;
-		ppc_buffer_pointers[i] = p_on_screen_titles_components[i].component.story.pc_title;
+		ppc_buffer_pointers[i] = p_on_screen_titles_components[i].component.story.pc_fname;
 	}
 
 	MENU_FSM_LOG_DBG("Stories Menu Selected\n");
@@ -340,7 +341,7 @@ static void MENU_FSM_on_stories_menu_selected(void)
 		MENU_FSM_LOG_WARN("Unable to retrieve file names (status: %u)\n", status);
 	}
 	
-	MENU_FSM_LOG_DBG("Stories found: %u\n", u8_num_found);
+	MENU_FSM_LOG_DBG("Arcprojects found: %u\n", u8_num_found);
 }
 
 /****************************************************************************************************
@@ -363,7 +364,7 @@ static void MENU_FSM_go_to_component(MENU_FSM_direction_t direction)
 
 			if (MENU_FSM_DIRECTION_NEXT == direction)
 			{
-				if (*pu8_index < u8_num_components - 1 && MENU_FSM_info.p_current_menu->p_components[(*pu8_index) + 1].component.story.pc_title[0] != '\0')
+				if (*pu8_index < u8_num_components - 1 && MENU_FSM_info.p_current_menu->p_components[(*pu8_index) + 1].component.story.pc_fname[0] != '\0')
 				{
 					(*pu8_index)++;
 				}
@@ -376,7 +377,7 @@ static void MENU_FSM_go_to_component(MENU_FSM_direction_t direction)
 				}
 			}
 
-			MENU_FSM_LOG_DBG("Story[%u]: %s\n", *pu8_index, MENU_FSM_info.p_current_menu->p_components[*pu8_index].component.story.pc_title);
+			MENU_FSM_LOG_DBG("Arcproject[%u]: %s\n", *pu8_index, MENU_FSM_info.p_current_menu->p_components[*pu8_index].component.story.pc_fname);
 			break;
 		}
 	}
@@ -384,13 +385,15 @@ static void MENU_FSM_go_to_component(MENU_FSM_direction_t direction)
 
 static void MENU_FSM_handle_component_selected(void)
 {
-	uint8_t * pu8_index = &MENU_FSM_info.p_current_menu->u8_highlighted_component_index;
+	uint8_t * 		pu8_index = &MENU_FSM_info.p_current_menu->u8_highlighted_component_index;
+	const char * 	kpc_fname = MENU_FSM_info.p_current_menu->p_components[*pu8_index].component.story.pc_fname;
 
 	switch (MENU_FSM_info.p_current_menu->p_components[*pu8_index].type)
 	{
 		case MENU_COMPONENT_TYPE_STORY:
 		{
-			MENU_FSM_LOG_DBG("Selected story: %s\n", MENU_FSM_info.p_current_menu->p_components[*pu8_index].component.story.pc_title);
+			MENU_FSM_LOG_DBG("Selected file: %s\n", MENU_FSM_info.p_current_menu->p_components[*pu8_index].component.story.pc_fname);
+			STORY_FSM_load_file(kpc_fname);
 			APP_FSM_switch_to_fsm(APP_FSM_ID_STORY);
 			break;
 		}
