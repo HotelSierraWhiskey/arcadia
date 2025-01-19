@@ -37,6 +37,8 @@ APP_INC = 	-I./ \
 			-Ilib/samc21/include \
 			-I/usr/local/arm-gnu-toolchain-13.2.Rel1-x86_64-arm-none-eabi/include \
 			-I./fsm \
+			-I./json \
+			-I./json/jsmn \
 			$(FREERTOS_INC) \
 			$(FATFS_INC)
 
