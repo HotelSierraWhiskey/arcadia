@@ -15,8 +15,8 @@
 
 #define FSIF_VOLUME_LABEL				"ARCADIA"
 #define FSIF_DEFAULT_DRIVE_PATH			""
-#define FSIF_DISK_RW_RETRIES			(5)
-#define FSIF_FS_LABEL_NAME_LEN_MAX		(12)
+#define FSIF_DISK_RW_RETRIES			(5U)
+#define FSIF_FS_LABEL_NAME_LEN_MAX		(12U)
 #define FSIF_NUM_OPEN_FLAGS				(8U)
 
 typedef enum _FSIF_fs_type_id
@@ -137,7 +137,7 @@ DSTATUS disk_initialize(BYTE pdrv)
  *
  * 	@param[in] pdrv The drive index (unused)
  * 
- * 	@return 0 always
+ * 	@return 0 if the drive is initialized, else `STA_NOINIT`
  * 
  ****************************************************************************************************/
 DSTATUS disk_status(BYTE pdrv)
