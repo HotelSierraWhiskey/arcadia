@@ -8,7 +8,7 @@ Stories are processed by Arcadia as collections of arcfiles. Each arcfile repres
 
 Beyond arcfiles, the .arc project extension, and the content directory therein, writers are encouraged to develop their own naming conventions. That is, provided the names of arcfiles and content files are unique, writers may use whatever names they see fit.
 
-Arcadia does not parse JSONC or other supersets of JSON. Similarly, Arcadia does parse JSON data beyond the keys documented below. A valid arcfile is a JSON file that adheres to the specifications outlined in this document.
+Arcadia does not parse JSONC or other supersets of JSON. Similarly, Arcadia does not parse JSON data beyond the what's documented below. A valid arcfile is a JSON file that adheres to the specifications outlined in this document.
 
 Below is a minimal project's directory tree:
 ```
@@ -25,9 +25,6 @@ my_story.arc/
 
 Each arcfile consists of the following keys:
 
-- `id` <b>(Integer, Required)</b><br>
-Represents the unique identifier for the node. Must be a non-negative integer. ID values do not need to be sequential, however they must be unique.
-
 - `content` <b>(String, Required)</b><br>
 Specifies the path to the content file associated with the node relative to the content subdirectory. A content file contains the text presented to the user at this node. Only .txt files are supported.
 
@@ -36,11 +33,10 @@ Defines the available choices at this node and their corresponding links to othe
 
 ### Arcfile Example
 
-This basic arcfile example might be named node_0.arc.json. Its node ID is 0, its content is located at content/text_0.txt. All content must be located inside a subdirectory named content. Thus, only the actual name of the .txt file is required.
+The node ID of an arcfile is encoded in the arcfile's name. All arcfiles must be named node_[n].arc.json where n is the UID of the node. This naming scheme makes it possible to search for nodes without opening any files. This basic arcfile example might be named node_0.arc.json. Its node ID is 0, its content is located at content/text_0.txt. All content must be located inside a subdirectory named content. Thus, only the actual name of the .txt file is required.
 
 ```json
 {
-	"id": 0,
 	"content": "text_0.txt",
 	"choices":
 	{
