@@ -6,6 +6,9 @@ CC = gcc
 
 COMMON_FLAGS = \
 	-Wall \
+	-DUNIT_TEST
+
+COMMON_INC = -I../../
 
 ##################################################
 # Unity & Test Stuff
@@ -43,14 +46,25 @@ UNITY_OBJS = $(TEST_SRCS:.c=.o)
 ##################################################
 
 UNIT_ARCFILE = unit_arcfile
+UNIT_ARCFILE_INC = $(TEST_INC) -I../ -I../json -I../json/jsmn
+JSON_DIR = ../json
+JSON_SRCS = $(JSON_DIR)/json.c
+UNIT_ARCFILE = unit_arcfile
+UNIT_ARCFILE_SRCS = $(UNIT_TESTS_DIR)/$(UNIT_ARCFILE).c $(JSON_SRCS)
 
-$(UNIT_ARCFILE).o: $(UNIT_TESTS_DIR)/$(UNIT_ARCFILE).c
-	$(CC) $(COMMON_FLAGS) $(TEST_FLAGS) $(UNITY_INC) -c $< -o $@
+# Rule for JSON stuff
+$(JSON_DIR)/%.o: $(JSON_DIR)/%.c
+	$(CC) $(COMMON_FLAGS) $(UNIT_ARCFILE_INC) -c $< -o $@
 
-$(UNIT_ARCFILE): $(UNIT_ARCFILE).o $(UNITY_OBJS)
-	$(CC) $^ -o $@
+# Rule for the unit test object file
+$(UNIT_ARCFILE).o: $(UNIT_TESTS_DIR)/$(UNIT_ARCFILE).c $(JSON_SRCS)
+	$(CC) $(COMMON_FLAGS) $(TEST_FLAGS) $(UNITY_INC) $(UNIT_ARCFILE_INC) -c $< -o $@
+
+# Rule for the unit test binary
+$(UNIT_ARCFILE): $(UNIT_ARCFILE).o $(UNITY_OBJS) $(JSON_SRCS:.c=.o)
+	$(CC) $^ -o $@ && ./$(UNIT_ARCFILE)
 
 
 .PHONY:
 clean:
-	rm *.o $(TARGETS)
+	rm *.o $(JSON_DIR)/*.o $(TARGETS)
