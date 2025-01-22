@@ -2,6 +2,7 @@
 #define UTILS_H
 
 #include "common.h"
+#include <assert.h>
 #include "shell.h"
 
 /****************************************************************************************************
@@ -15,6 +16,9 @@
 #define UNUSED(x)			(void)(x)
 #define BYTES_TO_WORDS(x)	((uint32_t)(x / 4))
 
+#ifdef UNIT_TEST
+#define ASSERT(x) assert(x)
+#else
 #define ASSERT(x) do { \
 	if (!(x)) \
 	{ \
@@ -22,6 +26,7 @@
 		UTILS_error_crash(); \
 	} \
 } while (0)
+#endif // UNIT_TEST
 
 /****************************************************************************************************
  *	F U N C T I O N S
