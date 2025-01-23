@@ -2,26 +2,46 @@
 #include "jsmn.h"
 #include "utils.h"
 
-const char * const kpc_json_keys[JSON_KEY_NUM_KEYS] =
+/****************************************************************************************************
+ *	P R I V A T E   V A R I A B L E S
+ ****************************************************************************************************/
+
+/**
+ *	JSON key_id constants
+ */
+static const char * const kpc_json_keys[JSON_KEY_ID_NUM_KEYS] =
 {
-	[JSON_KEY_ARCFILE_KEY_CONTENT]	= "content",
-	[JSON_KEY_ARCFILE_KEY_CHOICES]	= "choices",
-	[JSON_KEY_BOOKMARK_KEY_NODE]	= "node",
-	[JSON_KEY_BOOKMARK_KEY_PAGE]	= "page",
+	[JSON_KEY_ID_ARCFILE_KEY_CONTENT]	= "content",
+	[JSON_KEY_ID_ARCFILE_KEY_CHOICES]	= "choices",
+	[JSON_KEY_ID_BOOKMARK_KEY_NODE]		= "node",
+	[JSON_KEY_ID_BOOKMARK_KEY_PAGE]		= "page",
 };
 
 /****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-int32_t JSON_read_value(JSON_key_t key, JSON_value_type_t type, const char * kpc_json, void * p_val)
+/****************************************************************************************************
+ *	Extracts the value of the supplied key ID
+ *
+ * 	The supplied type ID determines how the data will be written to the supplied buffer.
+ *
+ * 	@param[in] 		key_id The id of the key at whose value to write
+ * 	@param[in] 		type The type of the value to at which to write
+ * 	@param[in] 		kpc_json The source json data
+ * 	@param[out] 	p_val the data to write
+ * 
+ *	@return `i32_num_tokens` if the data was written, otherwise -1
+ ****************************************************************************************************/
+int32_t JSON_read_value(JSON_key_id_t key_id, JSON_value_type_t type, const char * kpc_json, void * p_val)
 {
-	ASSERT(key < JSON_KEY_NUM_KEYS);
+	ASSERT(key_id < JSON_KEY_ID_NUM_KEYS);
+	ASSERT(type < JSON_VALUE_TYPE_NUM_TYPES);
 
 	jsmn_parser 	parser;
 	jsmntok_t 		p_tokens[JSON_MAX_TOKENS];
 	int32_t 		i32_num_tokens;
-	const char *	kpc_key_str = kpc_json_keys[key];
+	const char *	kpc_key_str = kpc_json_keys[key_id];
 	char 			p_val_str[JSON_MAX_KEY_SIZE];
 	bool			b_res = false;
 
@@ -66,14 +86,28 @@ int32_t JSON_read_value(JSON_key_t key, JSON_value_type_t type, const char * kpc
 	return b_res ? i32_num_tokens : -1;
 }
 
-int32_t JSON_write_value(JSON_key_t key, JSON_value_type_t type, char * kpc_json, void * p_val)
+/****************************************************************************************************
+ *	Writes data to the value of a given key.
+ *
+ * 	The supplied type ID determines how the input data will be encoded. Ensure the type of the input
+ * 	data is compatible with the given type ID.
+ *
+ * 	@param[in] 		key_id The id of the key at whose value to write
+ * 	@param[in] 		type The type of the value to at which to write
+ * 	@param[in, out] pc_json The source json data
+ * 	@param[in] 		p_val the data to write
+ * 
+ *	@return 0 if the data was written, otherwise -1
+ ****************************************************************************************************/
+int32_t JSON_write_value(JSON_key_id_t key_id, JSON_value_type_t type, char * pc_json, void * p_val)
 {
-	ASSERT(key < JSON_KEY_NUM_KEYS);
+	ASSERT(key_id < JSON_KEY_ID_NUM_KEYS);
+	ASSERT(type < JSON_VALUE_TYPE_NUM_TYPES);
 
 	jsmn_parser 	parser;
 	jsmntok_t 		p_tokens[JSON_MAX_TOKENS];
 	int32_t 		i32_num_p_tokens;
-	const char *	kpc_key_str = kpc_json_keys[key];
+	const char *	kpc_key_str = kpc_json_keys[key_id];
 	char 			pc_new_value_str[JSON_MAX_KEY_SIZE] = {0};
 	int32_t 		value_start;
 	int32_t 		value_end;
@@ -82,14 +116,14 @@ int32_t JSON_write_value(JSON_key_t key, JSON_value_type_t type, char * kpc_json
 	bool 			b_res = false;
 
 	jsmn_init(&parser);
-	i32_num_p_tokens = jsmn_parse(&parser, kpc_json, strlen(kpc_json), p_tokens, JSON_MAX_TOKENS);
+	i32_num_p_tokens = jsmn_parse(&parser, pc_json, strlen(pc_json), p_tokens, JSON_MAX_TOKENS);
 
 	if (i32_num_p_tokens > 0)
 	{
 		for (int32_t i = 0; i < i32_num_p_tokens; i++)
 		{
 			if (p_tokens[i].type == JSMN_STRING &&
-				(strncmp(kpc_json + p_tokens[i].start, kpc_key_str, p_tokens[i].end - p_tokens[i].start) == 0) &&
+				(strncmp(pc_json + p_tokens[i].start, kpc_key_str, p_tokens[i].end - p_tokens[i].start) == 0) &&
 				(strlen(kpc_key_str) == (size_t)(p_tokens[i].end - p_tokens[i].start)))
 			{
 				switch (type)
@@ -109,10 +143,10 @@ int32_t JSON_write_value(JSON_key_t key, JSON_value_type_t type, char * kpc_json
 
 				if (new_value_len <= old_value_len)
 				{
-					strncpy(kpc_json + value_start, pc_new_value_str, new_value_len);
+					strncpy(pc_json + value_start, pc_new_value_str, new_value_len);
 					if (new_value_len < old_value_len)
 					{
-						memmove(kpc_json + value_start + new_value_len, kpc_json + value_end, strlen(kpc_json + value_end) + 1);
+						memmove(pc_json + value_start + new_value_len, pc_json + value_end, strlen(pc_json + value_end) + 1);
 					}
 					b_res = true;
 					break;
