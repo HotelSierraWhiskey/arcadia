@@ -1,4 +1,12 @@
-# Arcadia
+<pre>
+<code style="color:#FF97D2">	_                  _ _</code>
+<code style="color:#8787AF">   /_\  _ _ __ __ _ __| (_)__ _ </code>
+<code style="color:#33CCFF">  / _ \| '_/ _/ _` / _` | / _` |</code>
+<code style="color:#87D787"> /_/ \_\_| \__\__,_\__,_|_\__,_|</code>
+</pre>
+                           
+
+![Version](https://img.shields.io/badge/version-0.3-orange)
 
 ## Documentation Quick Links
 - [Arcfile Specification](docs/arcproject-spec.md)
