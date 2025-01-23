@@ -34,7 +34,7 @@ New firmware features:<br>
 - Story structure implementation
 - Story recognition and processing development
 - "Mirrored Interface" Development
-- JSON decoding
+- JSON encoding/ decoding interface
 
 ---
 
