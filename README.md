@@ -1,7 +1,7 @@
 # Arcadia
 
 ## Documentation Quick Links
-- [Arcfile Specification](docs/arcfile-spec.md)
+- [Arcfile Specification](docs/arcproject-spec.md)
 
 ## Roadmap to Arcadia 1.0.0 Beta
 
