@@ -87,6 +87,13 @@ $(UNIT_BOOKMARK): $(UNIT_BOOKMARK).o $(UNITY_OBJS) $(JSON_SRCS:.c=.o)
 	$(CC) $^ -o $@ && ./$(UNIT_BOOKMARK)
 
 
+##################################################
+# Top-Level Commands
+##################################################
+
+.PHONY:
+all: $(TARGETS)
+
 .PHONY:
 clean:
-	rm *.o $(JSON_DIR)/*.o $(TARGETS)
+	rm -f *.o $(JSON_DIR)/*.o $(TARGETS)
