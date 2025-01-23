@@ -129,7 +129,7 @@ int32_t JSON_write_value(JSON_key_id_t key_id, JSON_value_type_t type, char * pc
 				switch (type)
 				{
 					case JSON_VALUE_TYPE_INT:
-						snprintf(pc_new_value_str, JSON_MAX_KEY_SIZE, "%d", *((int32_t *)p_val));
+						snprintf(pc_new_value_str, JSON_MAX_KEY_SIZE, "%ld", *((int32_t *)p_val));
 						break;
 					case JSON_VALUE_TYPE_STRING:
 						snprintf(pc_new_value_str, JSON_MAX_KEY_SIZE, "\"%s\"", (char *)p_val);
