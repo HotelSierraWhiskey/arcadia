@@ -1,7 +1,7 @@
 # Arcadia
                            
 
-![Version](https://img.shields.io/badge/version-0.3-orange)
+![Version](https://img.shields.io/badge/version-0.3.0-orange)
 
 ## Documentation Quick Links
 - [Arcfile Specification](docs/arcproject-spec.md)
