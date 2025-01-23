@@ -20,10 +20,19 @@ typedef enum _JSON_key
 	JSON_KEY_NUM_KEYS
 } JSON_key_t;
 
+typedef enum _JSON_value_type
+{
+	JSON_VALUE_TYPE_INT = 0,
+	JSON_VALUE_TYPE_STRING,
+	//////////
+	JSON_VALUE_TYPE_NUM_TYPES
+} JSON_value_type_t;
+
 /****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-int32_t 	JSON_value_from_key		(JSON_key_t key, const char * kpc_json, uint32_t u32_json_size, char * pc_buffer);
+int32_t 	JSON_read_value		(JSON_key_t key, JSON_value_type_t type, const char * kpc_json, void * p_val);
+int32_t 	JSON_write_value	(JSON_key_t key, JSON_value_type_t type, char * kpc_json, void * p_val);
 
 #endif // JSON_H
