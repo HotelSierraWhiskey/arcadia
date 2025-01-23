@@ -12,13 +12,14 @@
 #include <ctype.h>
 
 #ifndef UNIT_TEST
+// Do not reorder. FreeRTOS must be included before task.h
+#include <FreeRTOS.h>
 #include <task.h>
 #include <queue.h>
 #include <timers.h>
 #include <semphr.h>
 #include "samc21e18a.h"
 #include "core_cm0plus.h"
-#include <FreeRTOS.h>
 #endif // UNIT_TEST
 
 #endif // COMMON_H
