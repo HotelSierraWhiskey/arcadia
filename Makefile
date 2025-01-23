@@ -1,3 +1,7 @@
+# **************************************************************************** #
+#	Compiler settings and build tools
+# **************************************************************************** #
+
 CC = arm-none-eabi-gcc
 CCLD = arm-none-eabi-ld
 SIZE = arm-none-eabi-size
@@ -13,12 +17,11 @@ COMMON_FLAGS = \
 	-fstack-usage
 
 # **************************************************************************** #
-#	A P P   S T U F F
+#	App paths, includes, C files, and objects
 # **************************************************************************** #
 
 APP_BASENAME = app
 APP_BUILD_DIR = build
-
 
 # App compiler flags
 APP_CFLAGS = 	$(COMMON_FLAGS) \
@@ -62,6 +65,7 @@ APP_VPATH = 	main.c  \
 				sd.c \
 				fsif.c \
 				mempool.c \
+				json/json.c \
 				fsm/app_fsm.c \
 				fsm/menu_fsm.c \
 				fsm/story_fsm.c
@@ -69,6 +73,8 @@ APP_VPATH = 	main.c  \
 # Matching .o files from APP_VPATH, and .o files from FreeRTOS and FatFs
 APP_OBJECTS = 	$(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(wildcard $(APP_VPATH)))) $(FREERTOS_OBJECTS) $(FATFS_OBJECTS)
 
+# **************************************************************************** #
+#	FreeRTOS includes, C files, and objects
 # **************************************************************************** #
 
 # FreeRTOS Includes
@@ -103,6 +109,8 @@ $(APP_BUILD_DIR)/%.o: FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/MemMang/%.c
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
 # **************************************************************************** #
+#	FatFs includes, C files, and objects
+# **************************************************************************** #
 
 # FatFs Includes
 FATFS_INC = 	-Iff15a/source
@@ -119,6 +127,8 @@ $(APP_BUILD_DIR)/%.o: ff15a/source/%.c
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
 # **************************************************************************** #
+#	Application build rules
+# **************************************************************************** #
 
 # Rule for app/build
 $(APP_BUILD_DIR):
@@ -129,8 +139,8 @@ $(APP_BUILD_DIR)/%.o: %.c | $(APP_BUILD_DIR)
 	@echo $@
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
-# .c files in common for app/build
-$(APP_BUILD_DIR)/%.o: /%.c | $(APP_BUILD_DIR)
+# .c files in json for app/build
+$(APP_BUILD_DIR)/%.o: json/%.c | $(APP_BUILD_DIR)
 	@echo $@
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
@@ -152,7 +162,11 @@ $(APP_BUILD_DIR)/$(APP_BASENAME).elf: $(APP_OBJECTS)
 # alias for above
 $(APP_BASENAME).elf: $(APP_BUILD_DIR)/$(APP_BASENAME).elf
 
-# alias for above
+# **************************************************************************** #
+#	Top-level targets
+# **************************************************************************** #
+
+# alias for app/build/app.elf
 .PHONY:
 compile_app: $(APP_BASENAME).elf
 
