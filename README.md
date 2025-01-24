@@ -6,3 +6,5 @@
 ## Quick Links
 - [Current Release Roadmap](docs/roadmap.md)
 - [Arcfile Specification](docs/arcproject-spec.md)
+
+<p align="center">© 2025 Henry Wynberg. All Rights Reserved.</p>
