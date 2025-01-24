@@ -10,16 +10,6 @@
 #define JSON_MAX_TOKENS 	(32U)
 #define JSON_MAX_KEY_SIZE	(255U)
 
-typedef enum _JSON_key_id
-{
-	JSON_KEY_ID_ARCFILE_KEY_CONTENT = 0,
-	JSON_KEY_ID_ARCFILE_KEY_CHOICES,
-	JSON_KEY_ID_BOOKMARK_KEY_NODE,
-	JSON_KEY_ID_BOOKMARK_KEY_PAGE,
-	//////////
-	JSON_KEY_ID_NUM_KEYS
-} JSON_key_id_t;
-
 typedef enum _JSON_value_type
 {
 	JSON_VALUE_TYPE_INT = 0,
@@ -32,7 +22,7 @@ typedef enum _JSON_value_type
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-int32_t 	JSON_read_value		(JSON_key_id_t key_id, JSON_value_type_t type, const char * kpc_json, void * p_val);
-int32_t 	JSON_write_value	(JSON_key_id_t key_id, JSON_value_type_t type, char * pc_json, void * p_val);
+int32_t 	JSON_read_value		(const char * kpc_key, JSON_value_type_t type, const char * kpc_json, void * p_val);
+int32_t 	JSON_write_value	(const char * kpc_key, JSON_value_type_t type, char * pc_json, void * p_val);
 
 #endif // JSON_H

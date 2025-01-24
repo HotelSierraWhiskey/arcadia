@@ -1,7 +1,7 @@
 #include "unity.h"
 #include "unity_fixture.h"
 #include "json.h"
-#include <string.h>
+#include "arcproject.h"
 
 /****************************************************************************************************
  *	S C A F F O L D I N G
@@ -33,12 +33,12 @@ TEST(unit_bookmark, decode_bookmark_keys_nominal)
 		"\"page\": 13"
 	"}";
 
-	i32_num_tokens = JSON_read_value(JSON_KEY_ID_BOOKMARK_KEY_NODE, JSON_VALUE_TYPE_INT, kpc_json, &u32_value);
+	i32_num_tokens = JSON_read_value(ARCPROJECT_JSON_KEY_BOOKMARK_KEY_NODE_STR, JSON_VALUE_TYPE_INT, kpc_json, &u32_value);
 
 	TEST_ASSERT_EQUAL(5, i32_num_tokens);
 	TEST_ASSERT_EQUAL(8, u32_value);
 
-	JSON_read_value(JSON_KEY_ID_BOOKMARK_KEY_PAGE, JSON_VALUE_TYPE_INT, kpc_json, &u32_value);
+	JSON_read_value(ARCPROJECT_JSON_KEY_BOOKMARK_KEY_PAGE_STR, JSON_VALUE_TYPE_INT, kpc_json, &u32_value);
 
 	TEST_ASSERT_EQUAL(13, u32_value);
 }
@@ -53,24 +53,24 @@ TEST(unit_bookmark, update_bookmark_keys_nominal)
 		"\"page\": 0"
 	"}";
 
-	i32_num_tokens = JSON_read_value(JSON_KEY_ID_BOOKMARK_KEY_NODE, JSON_VALUE_TYPE_INT, pc_json, &u32_value);
+	i32_num_tokens = JSON_read_value(ARCPROJECT_JSON_KEY_BOOKMARK_KEY_NODE_STR, JSON_VALUE_TYPE_INT, pc_json, &u32_value);
 	TEST_ASSERT_EQUAL(5, i32_num_tokens);
 	TEST_ASSERT_EQUAL(0, u32_value);
 
-	JSON_read_value(JSON_KEY_ID_BOOKMARK_KEY_PAGE, JSON_VALUE_TYPE_INT, pc_json, &u32_value);
+	JSON_read_value(ARCPROJECT_JSON_KEY_BOOKMARK_KEY_PAGE_STR, JSON_VALUE_TYPE_INT, pc_json, &u32_value);
 	TEST_ASSERT_EQUAL(0, u32_value);
 
 	u32_value++;
 
-	JSON_write_value(JSON_KEY_ID_BOOKMARK_KEY_NODE, JSON_VALUE_TYPE_INT, pc_json, &u32_value);
-	JSON_write_value(JSON_KEY_ID_BOOKMARK_KEY_PAGE, JSON_VALUE_TYPE_INT, pc_json, &u32_value);
+	JSON_write_value(ARCPROJECT_JSON_KEY_BOOKMARK_KEY_NODE_STR, JSON_VALUE_TYPE_INT, pc_json, &u32_value);
+	JSON_write_value(ARCPROJECT_JSON_KEY_BOOKMARK_KEY_PAGE_STR, JSON_VALUE_TYPE_INT, pc_json, &u32_value);
 
-	JSON_read_value(JSON_KEY_ID_BOOKMARK_KEY_NODE, JSON_VALUE_TYPE_INT, pc_json, &u32_value);
+	JSON_read_value(ARCPROJECT_JSON_KEY_BOOKMARK_KEY_NODE_STR, JSON_VALUE_TYPE_INT, pc_json, &u32_value);
 	TEST_ASSERT_EQUAL(1, u32_value);
 
 	u32_value = 0;
 
-	JSON_read_value(JSON_KEY_ID_BOOKMARK_KEY_PAGE, JSON_VALUE_TYPE_INT, pc_json, &u32_value);
+	JSON_read_value(ARCPROJECT_JSON_KEY_BOOKMARK_KEY_PAGE_STR, JSON_VALUE_TYPE_INT, pc_json, &u32_value);
 	TEST_ASSERT_EQUAL(1, u32_value);
 }
 

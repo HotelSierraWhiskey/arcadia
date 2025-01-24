@@ -1,7 +1,7 @@
 #include "unity.h"
 #include "unity_fixture.h"
 #include "json.h"
-#include <string.h>
+#include "arcproject.h"
 
 /****************************************************************************************************
  *	S C A F F O L D I N G
@@ -37,12 +37,12 @@ TEST(unit_arcfile, decode_arcfile_keys_nominal)
 		"}"
 	"}";
 
-	i32_num_tokens = JSON_read_value(JSON_KEY_ID_ARCFILE_KEY_CONTENT, JSON_VALUE_TYPE_STRING, pc_json, pc_buffer);
+	i32_num_tokens = JSON_read_value(ARCPROJECT_JSON_KEY_ARCFILE_KEY_CONTENT_STR, JSON_VALUE_TYPE_STRING, pc_json, pc_buffer);
 
 	TEST_ASSERT_EQUAL(9, i32_num_tokens);
 	TEST_ASSERT_EQUAL_STRING("text_0.txt", pc_buffer);
 
-	JSON_read_value(JSON_KEY_ID_ARCFILE_KEY_CHOICES, JSON_VALUE_TYPE_STRING, pc_json, pc_buffer);
+	JSON_read_value(ARCPROJECT_JSON_KEY_ARCFILE_KEY_CHOICES_STR, JSON_VALUE_TYPE_STRING, pc_json, pc_buffer);
 
 	TEST_ASSERT_EQUAL_STRING("{\"choice_one\": 42,\"choice_two\": 1}", pc_buffer);
 }

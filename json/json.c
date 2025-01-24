@@ -3,21 +3,6 @@
 #include "utils.h"
 
 /****************************************************************************************************
- *	P R I V A T E   V A R I A B L E S
- ****************************************************************************************************/
-
-/**
- *	JSON key_id constants
- */
-static const char * const kpc_json_keys[JSON_KEY_ID_NUM_KEYS] =
-{
-	[JSON_KEY_ID_ARCFILE_KEY_CONTENT]	= "content",
-	[JSON_KEY_ID_ARCFILE_KEY_CHOICES]	= "choices",
-	[JSON_KEY_ID_BOOKMARK_KEY_NODE]		= "node",
-	[JSON_KEY_ID_BOOKMARK_KEY_PAGE]		= "page",
-};
-
-/****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
 
@@ -33,15 +18,13 @@ static const char * const kpc_json_keys[JSON_KEY_ID_NUM_KEYS] =
  * 
  *	@return `i32_num_tokens` if the data was written, otherwise -1
  ****************************************************************************************************/
-int32_t JSON_read_value(JSON_key_id_t key_id, JSON_value_type_t type, const char * kpc_json, void * p_val)
+int32_t JSON_read_value(const char * kpc_key, JSON_value_type_t type, const char * kpc_json, void * p_val)
 {
-	ASSERT(key_id < JSON_KEY_ID_NUM_KEYS);
 	ASSERT(type < JSON_VALUE_TYPE_NUM_TYPES);
 
 	jsmn_parser 	parser;
 	jsmntok_t 		p_tokens[JSON_MAX_TOKENS];
 	int32_t 		i32_num_tokens;
-	const char *	kpc_key_str = kpc_json_keys[key_id];
 	char 			p_val_str[JSON_MAX_KEY_SIZE];
 	bool			b_res = false;
 
@@ -53,8 +36,8 @@ int32_t JSON_read_value(JSON_key_id_t key_id, JSON_value_type_t type, const char
 		for (int32_t i = 0; i < i32_num_tokens; i++)
 		{
 			if (p_tokens[i].type == JSMN_STRING && 
-				(strncmp(kpc_json + p_tokens[i].start, kpc_key_str, p_tokens[i].end - p_tokens[i].start) == 0) &&
-				(strlen(kpc_key_str) == (size_t)(p_tokens[i].end - p_tokens[i].start)))
+				(strncmp(kpc_json + p_tokens[i].start, kpc_key, p_tokens[i].end - p_tokens[i].start) == 0) &&
+				(strlen(kpc_key) == (size_t)(p_tokens[i].end - p_tokens[i].start)))
 			{
 				int32_t value_len = p_tokens[i + 1].end - p_tokens[i + 1].start;
 
@@ -99,15 +82,13 @@ int32_t JSON_read_value(JSON_key_id_t key_id, JSON_value_type_t type, const char
  * 
  *	@return 0 if the data was written, otherwise -1
  ****************************************************************************************************/
-int32_t JSON_write_value(JSON_key_id_t key_id, JSON_value_type_t type, char * pc_json, void * p_val)
+int32_t JSON_write_value(const char * kpc_key, JSON_value_type_t type, char * pc_json, void * p_val)
 {
-	ASSERT(key_id < JSON_KEY_ID_NUM_KEYS);
 	ASSERT(type < JSON_VALUE_TYPE_NUM_TYPES);
 
 	jsmn_parser 	parser;
 	jsmntok_t 		p_tokens[JSON_MAX_TOKENS];
 	int32_t 		i32_num_p_tokens;
-	const char *	kpc_key_str = kpc_json_keys[key_id];
 	char 			pc_new_value_str[JSON_MAX_KEY_SIZE] = {0};
 	int32_t 		value_start;
 	int32_t 		value_end;
@@ -123,13 +104,13 @@ int32_t JSON_write_value(JSON_key_id_t key_id, JSON_value_type_t type, char * pc
 		for (int32_t i = 0; i < i32_num_p_tokens; i++)
 		{
 			if (p_tokens[i].type == JSMN_STRING &&
-				(strncmp(pc_json + p_tokens[i].start, kpc_key_str, p_tokens[i].end - p_tokens[i].start) == 0) &&
-				(strlen(kpc_key_str) == (size_t)(p_tokens[i].end - p_tokens[i].start)))
+				(strncmp(pc_json + p_tokens[i].start, kpc_key, p_tokens[i].end - p_tokens[i].start) == 0) &&
+				(strlen(kpc_key) == (size_t)(p_tokens[i].end - p_tokens[i].start)))
 			{
 				switch (type)
 				{
 					case JSON_VALUE_TYPE_INT:
-						snprintf(pc_new_value_str, JSON_MAX_KEY_SIZE, "%ld", *((int32_t *)p_val));
+						snprintf(pc_new_value_str, JSON_MAX_KEY_SIZE, "%" PRId32, *((int32_t *)p_val));
 						break;
 					case JSON_VALUE_TYPE_STRING:
 						snprintf(pc_new_value_str, JSON_MAX_KEY_SIZE, "\"%s\"", (char *)p_val);

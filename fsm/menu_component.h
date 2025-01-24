@@ -3,6 +3,10 @@
 
 #include "common.h"
 
+/****************************************************************************************************
+ *	D E F I N E S   &   T Y P E D E F S
+ ****************************************************************************************************/
+
 typedef enum _MENU_COMPONENT_type
 {
 	MENU_COMPONENT_TYPE_STORY = 0,
@@ -14,7 +18,6 @@ typedef struct _MENU_COMPONENT_story
 {
 	char	pc_fname[COMMON_MAX_FNAME_SIZE];
 } MENU_COMPONENT_story_t;
-
 
 typedef struct _MENU_COMPONENT
 {

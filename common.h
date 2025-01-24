@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <inttypes.h>
 
 #ifndef UNIT_TEST
 // Do not reorder. FreeRTOS must be included before task.h
