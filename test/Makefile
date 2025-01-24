@@ -10,17 +10,18 @@ COMMON_FLAGS = \
 	-DUNIT_TEST \
 
 COMMON_INC = 	-I../ \
-				-I../json \
-				-I../json/jsmn \
-				-I../fsm \
+				-I../src \
+				-I../src/json \
+				-I../src/json/jsmn \
+				-I../src/fsm \
 
-COMMON_SRCS = ../json/json.c
+COMMON_SRCS = ../src/json/json.c
 
 ##################################################
 # Common Rules
 ##################################################
 
-JSON_DIR = ../json
+JSON_DIR = ../src/json
 
 # Rule for JSON stuff
 $(JSON_DIR)/%.o: $(JSON_DIR)/%.c
