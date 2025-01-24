@@ -29,15 +29,15 @@ APP_CFLAGS = 	$(COMMON_FLAGS) \
 				-fdata-sections \
 				-nostartfiles \
 				--specs=nosys.specs \
-				-T toolchain/linkerscript.ld \
+				-T ../toolchain/linkerscript.ld \
 				-Wno-switch \
 				-Wno-main \
 				-Wl,--print-memory-usage
 
 # App include paths
 APP_INC = 	-I./ \
-			-Ilib/CMSIS_5/CMSIS/Core/Include \
-			-Ilib/samc21/include \
+			-I../lib/CMSIS_5/CMSIS/Core/Include \
+			-I../lib/samc21/include \
 			-I/usr/local/arm-gnu-toolchain-13.2.Rel1-x86_64-arm-none-eabi/include \
 			-I./fsm \
 			-I./json \
@@ -78,33 +78,34 @@ APP_OBJECTS = 	$(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(wildcard $(APP_VPA
 # **************************************************************************** #
 
 # FreeRTOS Includes
-FREERTOS_INC = 	-IFreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel \
-				-IFreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/include \
-				-IFreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0 \
+FREERTOS_INC = 	-I../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel \
+				-I../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/include \
+				-I../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0 \
 
 # FreeRTOS C files
-FREERTOS_VPATH = 	FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/list.c \
-					FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/queue.c \
-					FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/tasks.c \
-					FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/port.c \
-					FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/portasm.c \
-					FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/mpu_wrappers_v2_asm.c \
+FREERTOS_VPATH = 	../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/list.c \
+					../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/queue.c \
+					../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/tasks.c \
+					../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/port.c \
+					../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/portasm.c \
+					../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/mpu_wrappers_v2_asm.c \
 
 # Matching .o files from FREERTOS_VPATH
 FREERTOS_OBJECTS = $(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(FREERTOS_VPATH)))
+# FREERTOS_OBJECTS = $(patsubst ../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/%.c, $(APP_BUILD_DIR)/%.o, $(FREERTOS_VPATH))
 
 # Build rule for FreeRTOS kernel files
-$(APP_BUILD_DIR)/%.o: FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/%.c
+$(APP_BUILD_DIR)/%.o: ../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/%.c
 	@echo $@
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
 # Build rule for FreeRTOS arch-specific files
-$(APP_BUILD_DIR)/%.o: FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/%.c
+$(APP_BUILD_DIR)/%.o: ../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/%.c
 	@echo $@
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
 # Build rule for FreeRTOS memory management files
-$(APP_BUILD_DIR)/%.o: FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/MemMang/%.c
+$(APP_BUILD_DIR)/%.o: ../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/MemMang/%.c
 	@echo $@
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
@@ -113,16 +114,16 @@ $(APP_BUILD_DIR)/%.o: FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/MemMang/%.c
 # **************************************************************************** #
 
 # FatFs Includes
-FATFS_INC = 	-Iff15a/source
+FATFS_INC = 	-I../lib/ff15a/source
 # FatFs C files
-FATFS_VPATH = 	ff15a/source/ff.c \
-				ff15a/source/ffunicode.c \
+FATFS_VPATH = 	../lib/ff15a/source/ff.c \
+				../lib/ff15a/source/ffunicode.c \
 
 # Matching .o files from FATFS_VPATH
 FATFS_OBJECTS = $(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(FATFS_VPATH)))
 
 # Build rule for FatFs implementation files
-$(APP_BUILD_DIR)/%.o: ff15a/source/%.c
+$(APP_BUILD_DIR)/%.o: ../lib/ff15a/source/%.c
 	@echo $@
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
