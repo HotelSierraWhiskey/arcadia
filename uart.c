@@ -55,6 +55,12 @@ static const uint32_t kpu8_baud_descriptors[UART_BAUD_RATE_ID_NUM_BAUD_RATES] =
 
 /**
  *	Canned values to write in the SERCOM's BAUD register
+ *
+ * 	TODO:
+ * 	These should be clock frequency agnostic. Right now they only work at 48MHz
+ *
+ * 	Formula for the baud register value is:
+ * 	65536 - (65536 * 16 * u32_baud_rate) / SYS_CLOCK_FREQ
  */
 static const uint32_t kpu32_pre_calculated_baud_register_values[UART_BAUD_RATE_ID_NUM_BAUD_RATES] =
 {
