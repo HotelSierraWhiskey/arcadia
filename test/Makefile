@@ -9,13 +9,35 @@ COMMON_FLAGS = \
 	-Wno-switch \
 	-DUNIT_TEST \
 
-COMMON_INC = -I../../
+COMMON_INC = 	-I../ \
+				-I../json \
+				-I../json/jsmn \
+				-I../fsm \
+
+COMMON_SRCS = ../json/json.c
+
+##################################################
+# Common Rules
+##################################################
+
+JSON_DIR = ../json
+
+# Rule for JSON stuff
+$(JSON_DIR)/%.o: $(JSON_DIR)/%.c
+	$(CC) $(COMMON_FLAGS) $(COMMON_INC) -c $< -o $@
 
 ##################################################
 # Unity & Test Stuff
 ##################################################
 
-TARGETS = $(UNIT_ARCFILE) $(UNIT_BOOKMARK)
+TARGETS =	$(BUILD_DIR)/$(UNIT_ARCFILE) \
+			$(BUILD_DIR)/$(UNIT_BOOKMARK)
+
+# Where unit test binaries and object files are placed
+BUILD_DIR = build
+
+$(BUILD_DIR):
+	mkdir $(BUILD_DIR)
 
 # Unity flags, includes, srcs
 UNITY_FLAGS = -DUNITY_SKIP_DEFAULT_RUNNER -DUNITY_INCLUDE_PRINT_FORMATTED -DUNITY_OUTPUT_COLOR
@@ -47,45 +69,40 @@ UNITY_OBJS = $(TEST_SRCS:.c=.o)
 ##################################################
 
 UNIT_ARCFILE = unit_arcfile
-UNIT_ARCFILE_INC = $(TEST_INC) -I../ -I../json -I../json/jsmn
-JSON_DIR = ../json
-JSON_SRCS = $(JSON_DIR)/json.c
-UNIT_ARCFILE_SRCS = $(UNIT_TESTS_DIR)/$(UNIT_ARCFILE).c $(JSON_SRCS)
-
-# Rule for JSON stuff
-$(JSON_DIR)/%.o: $(JSON_DIR)/%.c
-	$(CC) $(COMMON_FLAGS) $(UNIT_ARCFILE_INC) -c $< -o $@
+UNIT_ARCFILE_INC = $(COMMON_INC) $(TEST_INC)
+UNIT_ARCFILE_SRCS = $(UNIT_TESTS_DIR)/$(UNIT_ARCFILE).c $(COMMON_SRCS)
 
 # Rule for the unit test object file
-$(UNIT_ARCFILE).o: $(UNIT_TESTS_DIR)/$(UNIT_ARCFILE).c $(JSON_SRCS)
-	$(CC) $(COMMON_FLAGS) $(TEST_FLAGS) $(UNITY_INC) $(UNIT_ARCFILE_INC) -c $< -o $@
+$(BUILD_DIR)/$(UNIT_ARCFILE).o: $(UNIT_ARCFILE_SRCS) $(BUILD_DIR)
+	$(CC) $(COMMON_FLAGS) $(TEST_FLAGS) $(UNIT_ARCFILE_INC) -c $< -o $@
 
 # Rule for the unit test binary
-$(UNIT_ARCFILE): $(UNIT_ARCFILE).o $(UNITY_OBJS) $(JSON_SRCS:.c=.o)
-	$(CC) $^ -o $@ && ./$(UNIT_ARCFILE)
+$(BUILD_DIR)/$(UNIT_ARCFILE): $(BUILD_DIR)/$(UNIT_ARCFILE).o $(UNITY_OBJS) $(COMMON_SRCS:.c=.o)
+	$(CC) $^ -o $@ && ./$(BUILD_DIR)/$(UNIT_ARCFILE)
+
+.PHONY: unit_arcfile
+unit_arcfile: $(BUILD_DIR)/$(UNIT_ARCFILE)
+	./$(BUILD_DIR)/$(UNIT_ARCFILE)
 
 ##################################################
 # Unit Bookmark
 ##################################################
 
 UNIT_BOOKMARK = unit_bookmark
-UNIT_BOOKMARK_INC = $(TEST_INC) -I../ -I../json -I../json/jsmn
-JSON_DIR = ../json
-JSON_SRCS = $(JSON_DIR)/json.c
-UNIT_BOOKMARK_SRCS = $(UNIT_TESTS_DIR)/$(UNIT_BOOKMARK).c $(JSON_SRCS)
-
-# Rule for JSON stuff
-$(JSON_DIR)/%.o: $(JSON_DIR)/%.c
-	$(CC) $(COMMON_FLAGS) $(UNIT_BOOKMARK_INC) -c $< -o $@
+UNIT_BOOKMARK_INC = $(COMMON_INC) $(TEST_INC)
+UNIT_BOOKMARK_SRCS = $(UNIT_TESTS_DIR)/$(UNIT_BOOKMARK).c $(COMMON_SRCS)
 
 # Rule for the unit test object file
-$(UNIT_BOOKMARK).o: $(UNIT_TESTS_DIR)/$(UNIT_BOOKMARK).c $(JSON_SRCS)
-	$(CC) $(COMMON_FLAGS) $(TEST_FLAGS) $(UNITY_INC) $(UNIT_BOOKMARK_INC) -c $< -o $@
+$(BUILD_DIR)/$(UNIT_BOOKMARK).o: $(UNIT_BOOKMARK_SRCS) $(BUILD_DIR)
+	$(CC) $(COMMON_FLAGS) $(TEST_FLAGS) $(UNIT_BOOKMARK_INC) -c $< -o $@
 
 # Rule for the unit test binary
-$(UNIT_BOOKMARK): $(UNIT_BOOKMARK).o $(UNITY_OBJS) $(JSON_SRCS:.c=.o)
-	$(CC) $^ -o $@ && ./$(UNIT_BOOKMARK)
+$(BUILD_DIR)/$(UNIT_BOOKMARK): $(BUILD_DIR)/$(UNIT_BOOKMARK).o $(UNITY_OBJS) $(COMMON_SRCS:.c=.o)
+	$(CC) $^ -o $@ && ./$(BUILD_DIR)/$(UNIT_BOOKMARK)
 
+.PHONY: unit_bookmark
+unit_bookmark: $(BUILD_DIR)/$(UNIT_BOOKMARK)
+	./$(BUILD_DIR)/$(UNIT_BOOKMARK)
 
 ##################################################
 # Top-Level Commands
@@ -96,4 +113,4 @@ all: $(TARGETS)
 
 .PHONY:
 clean:
-	rm -f *.o $(JSON_DIR)/*.o $(TARGETS)
+	rm -rf *.o $(JSON_DIR)/*.o $(BUILD_DIR)
