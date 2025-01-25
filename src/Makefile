@@ -92,7 +92,6 @@ FREERTOS_VPATH = 	../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/list.c \
 
 # Matching .o files from FREERTOS_VPATH
 FREERTOS_OBJECTS = $(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(FREERTOS_VPATH)))
-# FREERTOS_OBJECTS = $(patsubst ../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/%.c, $(APP_BUILD_DIR)/%.o, $(FREERTOS_VPATH))
 
 # Build rule for FreeRTOS kernel files
 $(APP_BUILD_DIR)/%.o: ../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/%.c
@@ -174,7 +173,7 @@ compile_app: $(APP_BASENAME).elf
 # cleans out app/build
 .PHONY:
 clean_app:
-	rm -rf $(APP_BUILD_DIR)/*
+	rm -rf $(APP_BUILD_DIR)
 
 .PHONY:
 size:
@@ -188,7 +187,7 @@ elf:
 # compile and upload
 .PHONY:
 upload_app:
-	make compile_app && $(JLINK) -CommanderScript toolchain/upload.jlink
+	make compile_app && $(JLINK) -CommanderScript ../toolchain/upload.jlink
 
 .PHONY:
 gdb_server:
