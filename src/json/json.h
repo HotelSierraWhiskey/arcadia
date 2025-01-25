@@ -7,8 +7,8 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define JSON_MAX_TOKENS 	(32U)
-#define JSON_MAX_KEY_SIZE	(255U)
+#define JSON_MAX_TOKENS 		(32U)
+#define JSON_BUFFER_MAX_SIZE	(255U)
 
 typedef enum _JSON_value_type
 {
@@ -22,7 +22,8 @@ typedef enum _JSON_value_type
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-int32_t 	JSON_read_value		(const char * kpc_key, JSON_value_type_t type, const char * kpc_json, void * p_val);
-int32_t 	JSON_write_value	(const char * kpc_key, JSON_value_type_t type, char * pc_json, void * p_val);
+int32_t 	JSON_read_value			(const char * kpc_key, JSON_value_type_t type, const char * kpc_json, void * p_val);
+int32_t 	JSON_write_value		(const char * kpc_key, JSON_value_type_t type, char * pc_json, void * p_val);
+bool 		JSON_get_num_objects	(const char * kpc_key, const char * kpc_json, uint8_t * pu8_num_objects);
 
 #endif // JSON_H

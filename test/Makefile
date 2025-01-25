@@ -71,14 +71,19 @@ UNITY_OBJS = $(TEST_SRCS:.c=.o)
 
 UNIT_ARCFILE = unit_arcfile
 UNIT_ARCFILE_INC = $(COMMON_INC) $(TEST_INC)
-UNIT_ARCFILE_SRCS = $(UNIT_TESTS_DIR)/$(UNIT_ARCFILE).c $(COMMON_SRCS)
+UNIT_ARCFILE_SRCS =	$(UNIT_TESTS_DIR)/$(UNIT_ARCFILE).c \
+					$(COMMON_SRCS) \
+					../src/fsm/arcproject.c
+
+$(BUILD_DIR)/arcproject.o: ../src/fsm/arcproject.c $(BUILD_DIR)
+	$(CC) $(COMMON_FLAGS) $(UNIT_ARCFILE_INC) -c $< -o $@
 
 # Rule for the unit test object file
 $(BUILD_DIR)/$(UNIT_ARCFILE).o: $(UNIT_ARCFILE_SRCS) $(BUILD_DIR)
 	$(CC) $(COMMON_FLAGS) $(TEST_FLAGS) $(UNIT_ARCFILE_INC) -c $< -o $@
 
 # Rule for the unit test binary
-$(BUILD_DIR)/$(UNIT_ARCFILE): $(BUILD_DIR)/$(UNIT_ARCFILE).o $(UNITY_OBJS) $(COMMON_SRCS:.c=.o)
+$(BUILD_DIR)/$(UNIT_ARCFILE): $(BUILD_DIR)/$(UNIT_ARCFILE).o $(BUILD_DIR)/arcproject.o $(UNITY_OBJS) $(COMMON_SRCS:.c=.o)
 	$(CC) $^ -o $@ && ./$(BUILD_DIR)/$(UNIT_ARCFILE)
 
 .PHONY: unit_arcfile
