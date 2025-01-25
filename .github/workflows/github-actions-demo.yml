@@ -6,4 +6,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          cd test && make all
+          cd ${{ github.workspace }}/test && make all
