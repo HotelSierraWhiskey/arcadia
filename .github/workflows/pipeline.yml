@@ -1,9 +1,14 @@
 name: Arcadia Pipeline
 run-name: Pipeline triggered by ${{ github.actor }}
 on: [push]
+
 jobs:
   Unit_Tests:
     runs-on: ubuntu-latest
     steps:
-      - run: |
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Unit Tests
+        run: |
           cd ${{ github.workspace }}/test && make all
