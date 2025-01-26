@@ -7,14 +7,14 @@
  *	S C A F F O L D I N G
  ****************************************************************************************************/
 
-TEST_GROUP(unit_arcfile);
+TEST_GROUP(unit_arcproject);
 
-TEST_SETUP(unit_arcfile)
+TEST_SETUP(unit_arcproject)
 {
 	// Nothing
 }
 
-TEST_TEAR_DOWN(unit_arcfile)
+TEST_TEAR_DOWN(unit_arcproject)
 {
 	UnityConcludeTest(); 
 }
@@ -26,7 +26,7 @@ TEST_TEAR_DOWN(unit_arcfile)
 /**
  *	Tests decoding the content file nominally
  */
-TEST(unit_arcfile, decode_arcfile_content_file_name_nominal)
+TEST(unit_arcproject, decode_arcfile_content_file_name_nominal)
 {
 	char 			pc_buffer[JSON_BUFFER_MAX_SIZE];
 	const char * 	kpc_json = 
@@ -47,7 +47,7 @@ TEST(unit_arcfile, decode_arcfile_content_file_name_nominal)
  *	Tests decoding the content file when the key itself is missing
  *	`ARCPROJECT_arcfile_get_content_file_name` should fail.
  */
-TEST(unit_arcfile, decode_arcfile_content_file_name_key_missing)
+TEST(unit_arcproject, decode_arcfile_content_file_name_key_missing)
 {
 	char 			pc_buffer[JSON_BUFFER_MAX_SIZE];
 	const char * 	kpc_json = 
@@ -66,7 +66,7 @@ TEST(unit_arcfile, decode_arcfile_content_file_name_key_missing)
  *	Tests decoding content file when the content file is an empty string
  *	`ARCPROJECT_arcfile_get_content_file_name` should fail.
  */
-TEST(unit_arcfile, decode_arcfile_content_file_name_empty_string)
+TEST(unit_arcproject, decode_arcfile_content_file_name_empty_string)
 {
 	char 			pc_buffer[JSON_BUFFER_MAX_SIZE];
 	const char * 	kpc_json = 
@@ -80,7 +80,7 @@ TEST(unit_arcfile, decode_arcfile_content_file_name_empty_string)
 /**
  *	Tests decoding choices nominally
  */
-TEST(unit_arcfile, decode_arcfile_num_choices_nominal)
+TEST(unit_arcproject, decode_arcfile_num_choices_nominal)
 {
 	uint8_t 		u8_num_choices = 0;
 	const char * 	kpc_json = 
@@ -102,7 +102,7 @@ TEST(unit_arcfile, decode_arcfile_num_choices_nominal)
 /**
  *	Tests decoding choices when no choices exist
  */
-TEST(unit_arcfile, decode_arcfile_num_choices_no_choices_exist)
+TEST(unit_arcproject, decode_arcfile_num_choices_no_choices_exist)
 {
 	uint8_t 		u8_num_choices = 0;
 	const char * 	kpc_json = 
@@ -117,7 +117,7 @@ TEST(unit_arcfile, decode_arcfile_num_choices_no_choices_exist)
 /**
  *	Tests decoding choices when the choices key is an empty object
  */
-TEST(unit_arcfile, decode_arcfile_num_choices_empty_object)
+TEST(unit_arcproject, decode_arcfile_num_choices_empty_object)
 {
 	uint8_t 		u8_num_choices = 0;
 	const char * 	kpc_json = 
@@ -135,7 +135,7 @@ TEST(unit_arcfile, decode_arcfile_num_choices_empty_object)
 /**
  *	Tests indexing choice text and node entries nominally
  */
-TEST(unit_arcfile, decode_arcfile_index_choices_nominal)
+TEST(unit_arcproject, decode_arcfile_index_choices_nominal)
 {
 	uint8_t 		u8_num_choices = 0;
 	char 			pc_choice_text[JSON_BUFFER_MAX_SIZE];
@@ -179,7 +179,7 @@ TEST(unit_arcfile, decode_arcfile_index_choices_nominal)
 /**
  *	Tests decoding bookmark nominal
  */
-TEST(unit_arcfile, decode_bookmark_nominal)
+TEST(unit_arcproject, decode_bookmark_nominal)
 {
 	int32_t			i32_node = 0;
 	int32_t			i32_page = 0;
@@ -203,18 +203,18 @@ TEST(unit_arcfile, decode_bookmark_nominal)
 static void run_all_tests(void)
 {
 	// Arcfile content file decoding tests
-	RUN_TEST_CASE(unit_arcfile, decode_arcfile_content_file_name_nominal);
-	RUN_TEST_CASE(unit_arcfile, decode_arcfile_content_file_name_key_missing);
-	RUN_TEST_CASE(unit_arcfile, decode_arcfile_content_file_name_empty_string);
+	RUN_TEST_CASE(unit_arcproject, decode_arcfile_content_file_name_nominal);
+	RUN_TEST_CASE(unit_arcproject, decode_arcfile_content_file_name_key_missing);
+	RUN_TEST_CASE(unit_arcproject, decode_arcfile_content_file_name_empty_string);
 
 	// Arcfile choices decoding tests
-	RUN_TEST_CASE(unit_arcfile, decode_arcfile_num_choices_nominal);
-	RUN_TEST_CASE(unit_arcfile, decode_arcfile_num_choices_no_choices_exist);
-	RUN_TEST_CASE(unit_arcfile, decode_arcfile_num_choices_empty_object);
-	RUN_TEST_CASE(unit_arcfile, decode_arcfile_index_choices_nominal);
+	RUN_TEST_CASE(unit_arcproject, decode_arcfile_num_choices_nominal);
+	RUN_TEST_CASE(unit_arcproject, decode_arcfile_num_choices_no_choices_exist);
+	RUN_TEST_CASE(unit_arcproject, decode_arcfile_num_choices_empty_object);
+	RUN_TEST_CASE(unit_arcproject, decode_arcfile_index_choices_nominal);
 
-	// Bookmark decoding tests
-	RUN_TEST_CASE(unit_arcfile, decode_bookmark_nominal);
+	// Move this to unit_bookmark
+	RUN_TEST_CASE(unit_arcproject, decode_bookmark_nominal);
 }
 
 int main(int argc, const char ** argv)

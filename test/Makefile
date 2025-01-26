@@ -31,8 +31,7 @@ $(JSON_DIR)/%.o: $(JSON_DIR)/%.c
 # Unity & Test Stuff
 ##################################################
 
-TARGETS =	$(BUILD_DIR)/$(UNIT_ARCFILE) \
-			$(BUILD_DIR)/$(UNIT_BOOKMARK)
+TARGETS =	$(BUILD_DIR)/$(UNIT_ARCPROJECT) \
 
 # Where unit test binaries and object files are placed
 BUILD_DIR = build
@@ -66,49 +65,29 @@ UNITY_OBJS = $(TEST_SRCS:.c=.o)
 	$(CC) $(COMMON_FLAGS) $(TEST_FLAGS) $(TEST_INC) -c $< -o $@
 
 ##################################################
-# Unit Arcfile
+# Unit Arcproject
 ##################################################
 
-UNIT_ARCFILE = unit_arcfile
-UNIT_ARCFILE_INC = $(COMMON_INC) $(TEST_INC)
-UNIT_ARCFILE_SRCS =	$(UNIT_TESTS_DIR)/$(UNIT_ARCFILE).c \
+UNIT_ARCPROJECT = unit_arcproject
+UNIT_ARCPROJECT_INC = $(COMMON_INC) $(TEST_INC)
+UNIT_ARCPROJECT_SRCS =	$(UNIT_TESTS_DIR)/$(UNIT_ARCPROJECT).c \
 					$(COMMON_SRCS) \
 					../src/fsm/arcproject.c
 
 $(BUILD_DIR)/arcproject.o: ../src/fsm/arcproject.c $(BUILD_DIR)
-	$(CC) $(COMMON_FLAGS) $(UNIT_ARCFILE_INC) -c $< -o $@
+	$(CC) $(COMMON_FLAGS) $(UNIT_ARCPROJECT_INC) -c $< -o $@
 
 # Rule for the unit test object file
-$(BUILD_DIR)/$(UNIT_ARCFILE).o: $(UNIT_ARCFILE_SRCS) $(BUILD_DIR)
-	$(CC) $(COMMON_FLAGS) $(TEST_FLAGS) $(UNIT_ARCFILE_INC) -c $< -o $@
+$(BUILD_DIR)/$(UNIT_ARCPROJECT).o: $(UNIT_ARCPROJECT_SRCS) $(BUILD_DIR)
+	$(CC) $(COMMON_FLAGS) $(TEST_FLAGS) $(UNIT_ARCPROJECT_INC) -c $< -o $@
 
 # Rule for the unit test binary
-$(BUILD_DIR)/$(UNIT_ARCFILE): $(BUILD_DIR)/$(UNIT_ARCFILE).o $(BUILD_DIR)/arcproject.o $(UNITY_OBJS) $(COMMON_SRCS:.c=.o)
+$(BUILD_DIR)/$(UNIT_ARCPROJECT): $(BUILD_DIR)/$(UNIT_ARCPROJECT).o $(BUILD_DIR)/arcproject.o $(UNITY_OBJS) $(COMMON_SRCS:.c=.o)
 	$(CC) $^ -o $@
 
-.PHONY: unit_arcfile
-unit_arcfile: $(BUILD_DIR)/$(UNIT_ARCFILE)
-	./$(BUILD_DIR)/$(UNIT_ARCFILE)
-
-##################################################
-# Unit Bookmark
-##################################################
-
-UNIT_BOOKMARK = unit_bookmark
-UNIT_BOOKMARK_INC = $(COMMON_INC) $(TEST_INC)
-UNIT_BOOKMARK_SRCS = $(UNIT_TESTS_DIR)/$(UNIT_BOOKMARK).c $(COMMON_SRCS)
-
-# Rule for the unit test object file
-$(BUILD_DIR)/$(UNIT_BOOKMARK).o: $(UNIT_BOOKMARK_SRCS) $(BUILD_DIR)
-	$(CC) $(COMMON_FLAGS) $(TEST_FLAGS) $(UNIT_BOOKMARK_INC) -c $< -o $@
-
-# Rule for the unit test binary
-$(BUILD_DIR)/$(UNIT_BOOKMARK): $(BUILD_DIR)/$(UNIT_BOOKMARK).o $(UNITY_OBJS) $(COMMON_SRCS:.c=.o)
-	$(CC) $^ -o $@
-
-.PHONY: unit_bookmark
-unit_bookmark: $(BUILD_DIR)/$(UNIT_BOOKMARK)
-	./$(BUILD_DIR)/$(UNIT_BOOKMARK)
+.PHONY: unit_arcproject
+unit_arcproject: $(BUILD_DIR)/$(UNIT_ARCPROJECT)
+	./$(BUILD_DIR)/$(UNIT_ARCPROJECT)
 
 ##################################################
 # Top-Level Commands
@@ -116,8 +95,7 @@ unit_bookmark: $(BUILD_DIR)/$(UNIT_BOOKMARK)
 
 .PHONY:
 all:
-	@make unit_arcfile
-	@make unit_bookmark
+	@make unit_arcproject
 
 .PHONY:
 clean:
