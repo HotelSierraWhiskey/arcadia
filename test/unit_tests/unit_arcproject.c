@@ -179,21 +179,30 @@ TEST(unit_arcproject, decode_arcfile_index_choices_nominal)
 /**
  *	Tests decoding bookmark nominal
  */
-TEST(unit_arcproject, decode_bookmark_nominal)
+TEST(unit_arcproject, decode_and_update_bookmark_nominal)
 {
 	int32_t			i32_node = 0;
 	int32_t			i32_page = 0;
-	const char * 	kpc_json = 
+	char 			pc_json[] = 
 	"{"
 		"\"node\": 1,"
 		"\"page\": 2"
 	"}";
 
-	TEST_ASSERT_TRUE(ARCPROJECT_bookmark_get_node(kpc_json, &i32_node));
+	TEST_ASSERT_TRUE(ARCPROJECT_bookmark_get_node(pc_json, &i32_node));
 	TEST_ASSERT_EQUAL(1, i32_node);
 
-	TEST_ASSERT_TRUE(ARCPROJECT_bookmark_get_page(kpc_json, &i32_page));
+	TEST_ASSERT_TRUE(ARCPROJECT_bookmark_get_page(pc_json, &i32_page));
 	TEST_ASSERT_EQUAL(2, i32_page);
+
+	TEST_ASSERT_TRUE(ARCPROJECT_bookmark_set_node(pc_json, i32_node + 10));
+	TEST_ASSERT_TRUE(ARCPROJECT_bookmark_set_page(pc_json, i32_page + 10));
+	
+	TEST_ASSERT_TRUE(ARCPROJECT_bookmark_get_node(pc_json, &i32_node));
+	TEST_ASSERT_EQUAL(11, i32_node);
+
+	TEST_ASSERT_TRUE(ARCPROJECT_bookmark_get_page(pc_json, &i32_page));
+	TEST_ASSERT_EQUAL(12, i32_page);
 }
 
 /****************************************************************************************************
@@ -214,7 +223,7 @@ static void run_all_tests(void)
 	RUN_TEST_CASE(unit_arcproject, decode_arcfile_index_choices_nominal);
 
 	// Move this to unit_bookmark
-	RUN_TEST_CASE(unit_arcproject, decode_bookmark_nominal);
+	RUN_TEST_CASE(unit_arcproject, decode_and_update_bookmark_nominal);
 }
 
 int main(int argc, const char ** argv)

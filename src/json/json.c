@@ -18,9 +18,9 @@
  * 
  *	@return `i32_num_tokens` if the data was written, otherwise -1
  ****************************************************************************************************/
-int32_t JSON_read_value(const char * kpc_key, JSON_value_type_t type, const char * kpc_json, void * p_val)
+int32_t JSON_read_value(const char * kpc_key, JSON_type_t type, const char * kpc_json, void * p_val)
 {
-	ASSERT(type < JSON_VALUE_TYPE_NUM_TYPES);
+	ASSERT(type < JSON_TYPE_NUM_TYPES);
 
 	jsmn_parser 	parser;
 	jsmntok_t 		p_tokens[JSON_MAX_TOKENS];
@@ -45,7 +45,7 @@ int32_t JSON_read_value(const char * kpc_key, JSON_value_type_t type, const char
 				{
 					switch (type)
 					{
-						case JSON_VALUE_TYPE_INT:
+						case JSON_TYPE_INT:
 						{
 							strncpy(p_val_str, kpc_json + p_tokens[i + 1].start, value_len);
 							p_val_str[value_len] = '\0';
@@ -53,7 +53,7 @@ int32_t JSON_read_value(const char * kpc_key, JSON_value_type_t type, const char
 							b_res = true;
 							break;
 						}
-						case JSON_VALUE_TYPE_STRING:
+						case JSON_TYPE_STRING:
 						{
 							strncpy(p_val, kpc_json + p_tokens[i + 1].start, value_len);
 							((char *)p_val)[value_len] = '\0';
@@ -80,11 +80,11 @@ int32_t JSON_read_value(const char * kpc_key, JSON_value_type_t type, const char
  * 	@param[in, out] pc_json The source json data
  * 	@param[in] 		p_val the data to write
  * 
- *	@return 0 if the data was written, otherwise -1
+ *	@return `true` if the data was written, otherwise `false`
  ****************************************************************************************************/
-int32_t JSON_write_value(const char * kpc_key, JSON_value_type_t type, char * pc_json, void * p_val)
+bool JSON_write_value(const char * kpc_key, JSON_type_t type, char * pc_json, void * p_val)
 {
-	ASSERT(type < JSON_VALUE_TYPE_NUM_TYPES);
+	ASSERT(type < JSON_TYPE_NUM_TYPES);
 
 	jsmn_parser 	parser;
 	jsmntok_t 		p_tokens[JSON_MAX_TOKENS];
@@ -101,42 +101,55 @@ int32_t JSON_write_value(const char * kpc_key, JSON_value_type_t type, char * pc
 
 	if (i32_num_p_tokens > 0)
 	{
-		for (int32_t i = 0; i < i32_num_p_tokens; i++)
+		for (int32_t i = 0; i < i32_num_p_tokens - 1; i++)
 		{
 			if (p_tokens[i].type == JSMN_STRING &&
-				(strncmp(pc_json + p_tokens[i].start, kpc_key, p_tokens[i].end - p_tokens[i].start) == 0) &&
-				(strlen(kpc_key) == (size_t)(p_tokens[i].end - p_tokens[i].start)))
+				strncmp(pc_json + p_tokens[i].start, kpc_key, p_tokens[i].end - p_tokens[i].start) == 0 &&
+				strlen(kpc_key) == (size_t)(p_tokens[i].end - p_tokens[i].start))
 			{
 				switch (type)
 				{
-					case JSON_VALUE_TYPE_INT:
+					case JSON_TYPE_INT:
 						snprintf(pc_new_value_str, JSON_BUFFER_MAX_SIZE, "%" PRId32, *((int32_t *)p_val));
 						break;
-					case JSON_VALUE_TYPE_STRING:
+					case JSON_TYPE_STRING:
 						snprintf(pc_new_value_str, JSON_BUFFER_MAX_SIZE, "\"%s\"", (char *)p_val);
 						break;
+					default:
+						return false;
 				}
-				
+
 				value_start = p_tokens[i + 1].start;
 				value_end = p_tokens[i + 1].end;
 				old_value_len = value_end - value_start;
 				new_value_len = strlen(pc_new_value_str);
 
-				if (new_value_len <= old_value_len)
+				if (new_value_len != old_value_len)
 				{
-					strncpy(pc_json + value_start, pc_new_value_str, new_value_len);
-					if (new_value_len < old_value_len)
-					{
-						memmove(pc_json + value_start + new_value_len, pc_json + value_end, strlen(pc_json + value_end) + 1);
-					}
-					b_res = true;
-					break;
+					memmove(pc_json + value_start + new_value_len,
+							pc_json + value_end,
+							strlen(pc_json + value_end) + 1);
 				}
+
+				strncpy(pc_json + value_start, pc_new_value_str, new_value_len);
+
+				if (pc_json[value_start + new_value_len] != ',' &&
+					pc_json[value_start + new_value_len] != '}' &&
+					pc_json[value_start + new_value_len] != '\0')
+				{
+					memmove(pc_json + value_start + new_value_len + 1,
+							pc_json + value_start + new_value_len,
+							strlen(pc_json + value_start + new_value_len) + 1);
+					pc_json[value_start + new_value_len] = ',';
+				}
+
+				b_res = true;
+				break;
 			}
 		}
 	}
 
-	return b_res ? 0 : -1;
+	return b_res;
 }
 
 /****************************************************************************************************
@@ -281,7 +294,7 @@ bool JSON_get_key_from_index(const char * kpc_key, const char * kpc_json, uint8_
  * 
  *	@return `true` if the value was successfully retrieved, otherwise `false`
  ****************************************************************************************************/
-bool JSON_get_value_from_index(const char * kpc_key, const char * kpc_json, uint8_t u8_index, JSON_value_type_t type, void * p_val)
+bool JSON_get_value_from_index(const char * kpc_key, const char * kpc_json, uint8_t u8_index, JSON_type_t type, void * p_val)
 {
 	ASSERT(kpc_json);
 	ASSERT(kpc_key);
@@ -310,7 +323,7 @@ bool JSON_get_value_from_index(const char * kpc_key, const char * kpc_json, uint
 					{
 						if (u32_count == u8_index)
 						{
-							if (type == JSON_VALUE_TYPE_INT)
+							if (type == JSON_TYPE_INT)
 							{
 								*(int32_t *)p_val = strtol(kpc_json + p_tokens[j + 1].start, NULL, 10);
 								return true;

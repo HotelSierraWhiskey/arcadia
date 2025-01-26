@@ -22,6 +22,8 @@ bool        ARCPROJECT_arcfile_get_num_choices          (const char * kpc_json, 
 bool        ARCPROJECT_arcfile_get_choice_text          (const char * kpc_json, uint8_t u8_choice, char * pc_buffer);
 bool 		ARCPROJECT_arcfile_get_choice_node			(const char * kpc_json, uint8_t u8_choice, int32_t * pi32_node);
 bool        ARCPROJECT_bookmark_get_node                (const char * kpc_json, int32_t * pi32_node);
+bool        ARCPROJECT_bookmark_set_node                (char * pc_json, int32_t i32_node);
 bool        ARCPROJECT_bookmark_get_page                (const char * kpc_json, int32_t * pi32_page);
+bool        ARCPROJECT_bookmark_set_page                (char * pc_json, int32_t i32_page);
 
 #endif // ARCPROJECT_H

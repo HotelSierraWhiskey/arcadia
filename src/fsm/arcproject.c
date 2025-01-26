@@ -18,7 +18,7 @@ bool ARCPROJECT_arcfile_get_content_file_name(const char * kpc_json, char * pc_b
 	ASSERT(kpc_json);
 	ASSERT(pc_buffer);
 
-	int32_t i32_bytes_read = JSON_read_value(ARCPROJECT_JSON_KEY_ARCFILE_KEY_CONTENT_STR, JSON_VALUE_TYPE_STRING, kpc_json, pc_buffer);
+	int32_t i32_bytes_read = JSON_read_value(ARCPROJECT_JSON_KEY_ARCFILE_KEY_CONTENT_STR, JSON_TYPE_STRING, kpc_json, pc_buffer);
 	
 	if (i32_bytes_read > 0 && strlen(pc_buffer) > 0)
 	{
@@ -94,7 +94,7 @@ bool ARCPROJECT_arcfile_get_choice_node(const char * kpc_json, uint8_t u8_choice
 	{
 		if (u8_choice < u8_num_choices)
 		{
-			if (JSON_get_value_from_index(ARCPROJECT_JSON_KEY_ARCFILE_KEY_CHOICES_STR, kpc_json, u8_choice, JSON_VALUE_TYPE_INT, &value))
+			if (JSON_get_value_from_index(ARCPROJECT_JSON_KEY_ARCFILE_KEY_CHOICES_STR, kpc_json, u8_choice, JSON_TYPE_INT, &value))
 			{
 				*pi32_node = (uint32_t)value;
 				return true;
@@ -120,7 +120,7 @@ bool ARCPROJECT_bookmark_get_node(const char * kpc_json, int32_t * pi32_node)
 	ASSERT(kpc_json);
 	ASSERT(pi32_node);
 
-	int32_t i32_bytes_read = JSON_read_value(ARCPROJECT_JSON_KEY_BOOKMARK_KEY_NODE_STR, JSON_VALUE_TYPE_INT, kpc_json, pi32_node);
+	int32_t i32_bytes_read = JSON_read_value(ARCPROJECT_JSON_KEY_BOOKMARK_KEY_NODE_STR, JSON_TYPE_INT, kpc_json, pi32_node);
 
 	return i32_bytes_read > 0 ? true : false;
 }
@@ -141,7 +141,21 @@ bool ARCPROJECT_bookmark_get_page(const char * kpc_json, int32_t * pi32_page)
 	ASSERT(kpc_json);
 	ASSERT(pi32_page);
 
-	int32_t i32_bytes_read = JSON_read_value(ARCPROJECT_JSON_KEY_BOOKMARK_KEY_PAGE_STR, JSON_VALUE_TYPE_INT, kpc_json, pi32_page);
+	int32_t i32_bytes_read = JSON_read_value(ARCPROJECT_JSON_KEY_BOOKMARK_KEY_PAGE_STR, JSON_TYPE_INT, kpc_json, pi32_page);
 
 	return i32_bytes_read > 0 ? true : false;
+}
+
+bool ARCPROJECT_bookmark_set_node(char * pc_json, int32_t i32_node)
+{
+	ASSERT(pc_json);
+
+	return JSON_write_value(ARCPROJECT_JSON_KEY_BOOKMARK_KEY_NODE_STR, JSON_TYPE_INT, pc_json, &i32_node);
+}
+
+bool ARCPROJECT_bookmark_set_page(char * pc_json, int32_t i32_page)
+{
+	ASSERT(pc_json);
+
+	return JSON_write_value(ARCPROJECT_JSON_KEY_BOOKMARK_KEY_PAGE_STR, JSON_TYPE_INT, pc_json, &i32_page);
 }
