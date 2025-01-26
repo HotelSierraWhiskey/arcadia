@@ -84,7 +84,7 @@ $(BUILD_DIR)/$(UNIT_ARCFILE).o: $(UNIT_ARCFILE_SRCS) $(BUILD_DIR)
 
 # Rule for the unit test binary
 $(BUILD_DIR)/$(UNIT_ARCFILE): $(BUILD_DIR)/$(UNIT_ARCFILE).o $(BUILD_DIR)/arcproject.o $(UNITY_OBJS) $(COMMON_SRCS:.c=.o)
-	$(CC) $^ -o $@ && ./$(BUILD_DIR)/$(UNIT_ARCFILE)
+	$(CC) $^ -o $@
 
 .PHONY: unit_arcfile
 unit_arcfile: $(BUILD_DIR)/$(UNIT_ARCFILE)
@@ -104,7 +104,7 @@ $(BUILD_DIR)/$(UNIT_BOOKMARK).o: $(UNIT_BOOKMARK_SRCS) $(BUILD_DIR)
 
 # Rule for the unit test binary
 $(BUILD_DIR)/$(UNIT_BOOKMARK): $(BUILD_DIR)/$(UNIT_BOOKMARK).o $(UNITY_OBJS) $(COMMON_SRCS:.c=.o)
-	$(CC) $^ -o $@ && ./$(BUILD_DIR)/$(UNIT_BOOKMARK)
+	$(CC) $^ -o $@
 
 .PHONY: unit_bookmark
 unit_bookmark: $(BUILD_DIR)/$(UNIT_BOOKMARK)
@@ -115,7 +115,9 @@ unit_bookmark: $(BUILD_DIR)/$(UNIT_BOOKMARK)
 ##################################################
 
 .PHONY:
-all: $(TARGETS)
+all:
+	@make unit_arcfile
+	@make unit_bookmark
 
 .PHONY:
 clean:
