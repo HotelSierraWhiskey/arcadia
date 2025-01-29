@@ -393,7 +393,13 @@ static void MENU_FSM_handle_component_selected(void)
 		case MENU_COMPONENT_TYPE_STORY:
 		{
 			MENU_FSM_LOG_DBG("Selected file: %s\n", MENU_FSM_info.p_current_menu->p_components[*pu8_index].component.story.pc_fname);
-			STORY_FSM_load_file(kpc_fname);
+
+			// Don't really like having to do this, but can't think of a better way atm.
+			STORY_FSM_load_arcproject(kpc_fname);
+
+			MENU_FSM_info.state = MENU_FSM_STATE_WAIT_FOR_MENU_EVENT;
+			MENU_FSM_info.p_current_menu = &main_menu;
+
 			APP_FSM_switch_to_fsm(APP_FSM_ID_STORY);
 			break;
 		}

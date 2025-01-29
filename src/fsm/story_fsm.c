@@ -17,7 +17,7 @@ typedef struct _STORY_FSM_info_
 {
 	MEMPOOL_buffer_t 	p_buffer;
 	file_t *			p_file;
-	char 				pc_fname[COMMON_MAX_FNAME_SIZE];
+	char 				pc_arcproject[COMMON_MAX_FNAME_SIZE];
 } STORY_FSM_info_t;
 
 /****************************************************************************************************
@@ -77,23 +77,23 @@ void STORY_FSM_handle_event(FSM_EVENT_t event)
 	}
 }
 
-void STORY_FSM_load_file(const char * kpc_fname)
+void STORY_FSM_load_arcproject(const char * kpc_arcproject)
 {
-	ASSERT(kpc_fname);
+	ASSERT(kpc_arcproject);
 
-	// ARCADIA_status_t status;
+	ARCADIA_status_t status;
 
-	// strncpy(STORY_FSM_info.pc_fname, kpc_fname, COMMON_MAX_FNAME_SIZE);
+	strncpy(STORY_FSM_info.pc_arcproject, kpc_arcproject, COMMON_MAX_FNAME_SIZE);
 
-	// status = DRIVE_API_open_file(STORY_FSM_info.p_file, STORY_FSM_info.pc_fname, "r");
+	status = DRIVE_API_chdir(STORY_FSM_info.pc_arcproject);
 
-	// if (status != ARCADIA_STATUS_OK)
-	// {
-	// 	STORY_FSM_LOG_WARN("Unable to load %s (status: %u)\n", STORY_FSM_info.pc_fname, status);
-	// 	return;
-	// }
+	if (status != ARCADIA_STATUS_OK)
+	{
+		STORY_FSM_LOG_WARN("Unable to load %s (status: %u)\n", STORY_FSM_info.pc_arcproject, status);
+		return;
+	}
 
-	// STORY_FSM_LOG_DBG("Loaded file: %s\n", STORY_FSM_info.pc_fname);
+	STORY_FSM_LOG_DBG("Loaded file: %s\n", STORY_FSM_info.pc_arcproject);
 }
 
 static void STORY_FSM_advance(void)
