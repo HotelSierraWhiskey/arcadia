@@ -311,6 +311,41 @@ ARCADIA_status_t DRIVE_API_write(file_t * p_file, const char * kpc_data)
 	return status;
 }
 
+ARCADIA_status_t DRIVE_API_read(file_t * p_file, char * pc_data, uint32_t u32_bytes_to_read)
+{
+	ASSERT(p_file);
+
+	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
+
+	DRIVE_PAYLOAD_read_t payload =
+	{
+		.p_file = p_file,
+		.pc_data = pc_data,
+		.u32_bytes_to_read = u32_bytes_to_read,
+		.p_result_status = &status
+	};
+
+	ARCADIA_msg_t msg =
+	{
+		.id = ARCADIA_MSG_ID_DRIVE_READ,
+		.from = ARCADIA_get_current_task_id(),
+		.payload.drive_payload_read = payload
+	};
+
+	msg.semaphore = ARCADIA_semaphore_alloc(&msg.semaphore_buffer);
+
+	ARCADIA_send(ARCADIA_TASK_ID_DRIVE, &msg);
+
+	if (!ARCADIA_semaphore_take(msg.semaphore))
+	{
+		status = ARCADIA_STATUS_API_TIMEOUT;
+	}
+
+	ARCADIA_semaphore_free(msg.semaphore);
+
+	return status;
+}
+
 /****************************************************************************************************
  *	S H E L L   F U N C T I O N S
  ****************************************************************************************************/

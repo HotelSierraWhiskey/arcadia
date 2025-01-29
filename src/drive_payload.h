@@ -66,4 +66,12 @@ typedef struct _DRIVE_PAYLOAD_write
 	ARCADIA_status_t *	p_result_status;
 } DRIVE_PAYLOAD_write_t;
 
+typedef struct _DRIVE_PAYLOAD_read
+{
+	file_t *			p_file;
+	char *				pc_data;
+	uint32_t			u32_bytes_to_read;
+	ARCADIA_status_t *	p_result_status;
+} DRIVE_PAYLOAD_read_t;
+
 #endif // DRIVE_PAYLOAD_H
