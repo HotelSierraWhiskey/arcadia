@@ -8,6 +8,7 @@
 #include "drive_payload.h"
 #include "spi.h"
 #include "fsif.h"
+#include "mempool.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -45,6 +46,7 @@ static void 		DRIVE_handle_msg_erase_nvm		(ARCADIA_msg_t * p_msg);
 
 static void 		DRIVE_handle_msg_open_file		(ARCADIA_msg_t * p_msg);
 static void 		DRIVE_handle_msg_close_file		(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_msg_chdir			(ARCADIA_msg_t * p_msg);
 static void			DRIVE_handle_msg_fetch_fnames	(ARCADIA_msg_t * p_msg);
 
 static file_t * 	DRIVE_allocate_file				(int8_t * pi8_handle);
@@ -146,6 +148,10 @@ static void DRIVE_handle_message(void)
 
 			case ARCADIA_MSG_ID_DRIVE_CLOSE_FILE:
 				DRIVE_handle_msg_close_file(&msg);
+				break;
+
+			case ARCADIA_MSG_ID_DRIVE_CHDIR:
+				DRIVE_handle_msg_chdir(&msg);
 				break;
 
 			case ARCADIA_MSG_ID_DRIVE_FETCH_FNAMES:
@@ -292,6 +298,44 @@ static void DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
 
 	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_close_file.p_result_status);
+}
+
+static void	DRIVE_handle_msg_chdir(ARCADIA_msg_t * p_msg)
+{
+	const char * kpc_dirname = p_msg->payload.drive_payload_chdir.kpc_dirname;
+	MEMPOOL_buffer_t buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_512);
+
+	ASSERT(buffer);
+
+	FRESULT f_result = f_chdir(kpc_dirname);
+
+	if (FR_OK == f_result)
+	{
+		f_result = f_getcwd((TCHAR *)buffer, MEMPOOL_BUFFER_SIZE_512);
+
+		if (FR_OK == f_result)
+		{
+			DRIVE_LOG_DBG("Changed to directory: %s\n", (char *)buffer);
+		}
+		else
+		{
+			DRIVE_LOG_WARN("Couldn't retrieve current directory\n");
+		}
+
+		*p_msg->payload.drive_payload_chdir.p_result_status = ARCADIA_STATUS_OK;
+	}
+	else
+	{
+		DRIVE_LOG_WARN("Failed to change directory to %s (status: %u)\n", kpc_dirname, f_result);
+		*p_msg->payload.drive_payload_chdir.p_result_status = ARCADIA_STATUS_DIRECTORY_ERROR;
+	}
+
+	MEMPOOL_free(buffer);
+
+	ARCADIA_semaphore_give(p_msg->semaphore);
+
+	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
+			ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_chdir.p_result_status);
 }
 
 static void	DRIVE_handle_msg_fetch_fnames(ARCADIA_msg_t * p_msg)

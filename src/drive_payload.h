@@ -53,4 +53,10 @@ typedef struct _DRIVE_PAYLOAD_fetch_fnames
 	ARCADIA_status_t *	p_result_status;
 } DRIVE_PAYLOAD_fetch_fnames_t;
 
+typedef struct _DRIVE_PAYLOAD_chdir
+{
+	const char *		kpc_dirname;
+	ARCADIA_status_t *	p_result_status;
+} DRIVE_PAYLOAD_chdir_t;
+
 #endif // DRIVE_PAYLOAD_H
