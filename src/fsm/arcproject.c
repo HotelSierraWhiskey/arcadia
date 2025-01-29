@@ -159,3 +159,8 @@ bool ARCPROJECT_bookmark_set_page(char * pc_json, int32_t i32_page)
 
 	return JSON_write_value(ARCPROJECT_JSON_KEY_BOOKMARK_KEY_PAGE_STR, JSON_TYPE_INT, pc_json, &i32_page);
 }
+
+int32_t	ARCPROJECT_get_node_from_arcfile(const char * kpc_fname)
+{
+	
+}

@@ -47,6 +47,7 @@ static void 		DRIVE_handle_msg_erase_nvm		(ARCADIA_msg_t * p_msg);
 static void 		DRIVE_handle_msg_open_file		(ARCADIA_msg_t * p_msg);
 static void 		DRIVE_handle_msg_close_file		(ARCADIA_msg_t * p_msg);
 static void 		DRIVE_handle_msg_chdir			(ARCADIA_msg_t * p_msg);
+static void			DRIVE_handle_msg_write			(ARCADIA_msg_t * p_msg);
 static void			DRIVE_handle_msg_fetch_fnames	(ARCADIA_msg_t * p_msg);
 
 static file_t * 	DRIVE_allocate_file				(int8_t * pi8_handle);
@@ -152,6 +153,10 @@ static void DRIVE_handle_message(void)
 
 			case ARCADIA_MSG_ID_DRIVE_CHDIR:
 				DRIVE_handle_msg_chdir(&msg);
+				break;
+
+			case ARCADIA_MSG_ID_DRIVE_WRITE:
+				DRIVE_handle_msg_write(&msg);
 				break;
 
 			case ARCADIA_MSG_ID_DRIVE_FETCH_FNAMES:
@@ -336,6 +341,35 @@ static void	DRIVE_handle_msg_chdir(ARCADIA_msg_t * p_msg)
 
 	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
 			ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_chdir.p_result_status);
+}
+
+static void	DRIVE_handle_msg_write(ARCADIA_msg_t * p_msg)
+{
+	file_t * 			p_file = p_msg->payload.drive_payload_write.p_file;
+	const char * 		kpc_data = p_msg->payload.drive_payload_write.kpc_data;
+	uint32_t			u32_bytes_to_write = strlen(kpc_data);
+	uint32_t			u32_bytes_written = 0;
+	MEMPOOL_buffer_t 	buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_256);
+
+	FRESULT f_result = f_write(p_file, kpc_data, u32_bytes_to_write, (UINT *)&u32_bytes_written);
+
+	if (FR_OK == f_result && u32_bytes_to_write == u32_bytes_written)
+	{
+		DRIVE_LOG_DBG("Wrote %u bytes to file\n", u32_bytes_written);
+		*p_msg->payload.drive_payload_write.p_result_status = ARCADIA_STATUS_OK;
+	}
+	else
+	{
+		DRIVE_LOG_WARN("Failed to write data to file (status: %u)\n", f_result);
+		*p_msg->payload.drive_payload_write.p_result_status = ARCADIA_STATUS_FAILED;
+	}
+
+	MEMPOOL_free(buffer);
+
+	ARCADIA_semaphore_give(p_msg->semaphore);
+
+	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
+			ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_write.p_result_status);
 }
 
 static void	DRIVE_handle_msg_fetch_fnames(ARCADIA_msg_t * p_msg)

@@ -59,4 +59,11 @@ typedef struct _DRIVE_PAYLOAD_chdir
 	ARCADIA_status_t *	p_result_status;
 } DRIVE_PAYLOAD_chdir_t;
 
+typedef struct _DRIVE_PAYLOAD_write
+{
+	file_t *			p_file;
+	const char *		kpc_data;
+	ARCADIA_status_t *	p_result_status;
+} DRIVE_PAYLOAD_write_t;
+
 #endif // DRIVE_PAYLOAD_H

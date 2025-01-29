@@ -277,6 +277,40 @@ ARCADIA_status_t DRIVE_API_chdir(const char * kpc_dirname)
 	return status;
 }
 
+ARCADIA_status_t DRIVE_API_write(file_t * p_file, const char * kpc_data)
+{
+	ASSERT(p_file);
+
+	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
+
+	DRIVE_PAYLOAD_write_t payload =
+	{
+		.p_file = p_file,
+		.kpc_data = kpc_data,
+		.p_result_status = &status
+	};
+
+	ARCADIA_msg_t msg =
+	{
+		.id = ARCADIA_MSG_ID_DRIVE_WRITE,
+		.from = ARCADIA_get_current_task_id(),
+		.payload.drive_payload_write = payload
+	};
+
+	msg.semaphore = ARCADIA_semaphore_alloc(&msg.semaphore_buffer);
+
+	ARCADIA_send(ARCADIA_TASK_ID_DRIVE, &msg);
+
+	if (!ARCADIA_semaphore_take(msg.semaphore))
+	{
+		status = ARCADIA_STATUS_API_TIMEOUT;
+	}
+
+	ARCADIA_semaphore_free(msg.semaphore);
+
+	return status;
+}
+
 /****************************************************************************************************
  *	S H E L L   F U N C T I O N S
  ****************************************************************************************************/
@@ -680,7 +714,7 @@ uint8_t DRIVE_API_shell_mount(uint8_t argc, char ** argv)
  ****************************************************************************************************/
 uint8_t DRIVE_API_shell_touch(uint8_t argc, char ** argv)
 {
-	FIL			file;
+	file_t		file;
 	FRESULT 	f_result;
 
 	if (argc == 1)

@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "mempool.h"
 #include "drive_api.h"
+#include "arcproject.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -81,7 +82,8 @@ void STORY_FSM_load_arcproject(const char * kpc_arcproject)
 {
 	ASSERT(kpc_arcproject);
 
-	ARCADIA_status_t status;
+	ARCADIA_status_t 	status;
+	file_t * 			p_file = NULL;
 
 	strncpy(STORY_FSM_info.pc_arcproject, kpc_arcproject, COMMON_MAX_FNAME_SIZE);
 
@@ -93,7 +95,13 @@ void STORY_FSM_load_arcproject(const char * kpc_arcproject)
 		return;
 	}
 
-	STORY_FSM_LOG_DBG("Loaded file: %s\n", STORY_FSM_info.pc_arcproject);
+	status = DRIVE_API_open_file(p_file, ARCPROJECT_BOOKMARK_FILENAME, "r");
+
+
+
+	// ARCPROJECT_bookmark_get_node();
+
+	STORY_FSM_LOG_DBG("Loaded arcproject: %s\n", STORY_FSM_info.pc_arcproject);
 }
 
 static void STORY_FSM_advance(void)

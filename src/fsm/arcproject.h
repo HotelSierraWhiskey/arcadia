@@ -7,9 +7,9 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
+#define ARCPROJECT_BOOKMARK_FILENAME					"bookmark.json"
 #define ARCPROJECT_JSON_KEY_ARCFILE_KEY_CONTENT_STR		"content"
 #define ARCPROJECT_JSON_KEY_ARCFILE_KEY_CHOICES_STR		"choices"
-
 #define ARCPROJECT_JSON_KEY_BOOKMARK_KEY_NODE_STR		"node"
 #define ARCPROJECT_JSON_KEY_BOOKMARK_KEY_PAGE_STR		"page"
 
@@ -25,5 +25,7 @@ bool        ARCPROJECT_bookmark_get_node                (const char * kpc_json, 
 bool        ARCPROJECT_bookmark_set_node                (char * pc_json, int32_t i32_node);
 bool        ARCPROJECT_bookmark_get_page                (const char * kpc_json, int32_t * pi32_page);
 bool        ARCPROJECT_bookmark_set_page                (char * pc_json, int32_t i32_page);
+
+int32_t		ARCPROJECT_get_node_from_arcfile			(const char * kpc_fname);
 
 #endif // ARCPROJECT_H
