@@ -73,6 +73,7 @@ void DRIVE_init(void)
 /****************************************************************************************************
  *	Top level task loop
  *
+ * 	@param[in] p_params Unused
  ****************************************************************************************************/
 void DRIVE_task(void * p_params)
 {
@@ -232,7 +233,6 @@ static void DRIVE_handle_msg_write_nvm(ARCADIA_msg_t * p_msg)
  * 	Erases a row at the provided address
  * 
  * 	@param[in] p_msg A pointer to the received message
- *
  ****************************************************************************************************/
 static void DRIVE_handle_msg_erase_nvm(ARCADIA_msg_t * p_msg)
 {
@@ -250,6 +250,16 @@ static void DRIVE_handle_msg_erase_nvm(ARCADIA_msg_t * p_msg)
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_erase_nvm.p_result_status);
 }
 
+/****************************************************************************************************
+ *	Blocking message handler for `ARCADIA_MSG_ID_DRIVE_OPEN_FILE`
+ *
+ * 	Attempts to open a file with the given filename and mode.
+ * 	Allocates a file handle and attempts to open the file using the specified mode.
+ * 	If successful, assigns the file pointer to the message payload.
+ * 	If unsuccessful, releases the allocated file structure.
+ * 
+ * 	@param[in] p_msg A pointer to the received message
+ ****************************************************************************************************/
 static void DRIVE_handle_msg_open_file(ARCADIA_msg_t * p_msg)
 {
 	const char * 	kpc_fname = p_msg->payload.drive_payload_open_file.kpc_fname;
@@ -279,6 +289,13 @@ static void DRIVE_handle_msg_open_file(ARCADIA_msg_t * p_msg)
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_open_file.p_result_status);
 }
 
+/****************************************************************************************************
+ *	Blocking message handler for `ARCADIA_MSG_ID_DRIVE_CLOSE_FILE`
+ *
+ * 	Closes an open file and returns the file resource to the pool.
+ * 
+ * 	@param[in] p_msg A pointer to the received message
+ ****************************************************************************************************/
 static void DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
 {
 	file_t * 	p_file = p_msg->payload.drive_payload_close_file.p_file;
@@ -305,6 +322,14 @@ static void DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_close_file.p_result_status);
 }
 
+/****************************************************************************************************
+ *	Blocking message handler for `ARCADIA_MSG_ID_DRIVE_CHDIR`
+ *
+ *	Attempts to change the current working directory to the provided path.
+ *	If successful, retrieves and logs the new working directory.
+ *
+ *	@param[in] p_msg A pointer to the received message
+ ****************************************************************************************************/
 static void	DRIVE_handle_msg_chdir(ARCADIA_msg_t * p_msg)
 {
 	const char * kpc_dirname = p_msg->payload.drive_payload_chdir.kpc_dirname;
@@ -343,6 +368,15 @@ static void	DRIVE_handle_msg_chdir(ARCADIA_msg_t * p_msg)
 			ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_chdir.p_result_status);
 }
 
+/****************************************************************************************************
+ *	Blocking message handler for `ARCADIA_MSG_ID_DRIVE_WRITE`
+ *
+ *	Writes the provided data to the specified file.
+ *	Attempts to write the full length of the input string and verifies success by checking
+ *	the number of bytes written.
+ * 
+ *	@param[in] p_msg A pointer to the received message
+ ****************************************************************************************************/
 static void	DRIVE_handle_msg_write(ARCADIA_msg_t * p_msg)
 {
 	file_t * 			p_file = p_msg->payload.drive_payload_write.p_file;
@@ -372,6 +406,16 @@ static void	DRIVE_handle_msg_write(ARCADIA_msg_t * p_msg)
 			ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_write.p_result_status);
 }
 
+/****************************************************************************************************
+ *	Blocking message handler for `ARCADIA_MSG_ID_DRIVE_FETCH_FNAMES`
+ *
+ *	Searches for filenames matching a given filter.
+ *
+ * 	@todo
+ * 	Get this to work on any directory level
+ * 
+ *	@param[in] p_msg A pointer to the received message
+ ****************************************************************************************************/
 static void	DRIVE_handle_msg_fetch_fnames(ARCADIA_msg_t * p_msg)
 {
 	uint8_t * 		pu8_num_found = p_msg->payload.drive_payload_fetch_fnames.pu8_num_found;
@@ -401,6 +445,17 @@ static void	DRIVE_handle_msg_fetch_fnames(ARCADIA_msg_t * p_msg)
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_fetch_fnames.p_result_status);
 }
 
+/****************************************************************************************************
+ *	Allocates an file from the file pool.
+ *
+ *	Searches for an unused file entry in the file pool and marks it as in use.
+ *	If an available entry is found, updates the provided handle and returns a pointer to the file.
+ *	If no available entry exists, returns NULL.
+ * 
+ *	@param[out] pi8_handle A pointer to store the allocated file handle index
+ *
+ *	@return A pointer to the allocated file structure, or NULL if no file is available
+ ****************************************************************************************************/
 static file_t * DRIVE_allocate_file(int8_t * pi8_handle)
 {
 	for (uint8_t i = 0; i < DRIVE_MAX_OPEN_FILES; ++i)
@@ -415,6 +470,14 @@ static file_t * DRIVE_allocate_file(int8_t * pi8_handle)
 	return NULL;
 }
 
+/****************************************************************************************************
+ *	Frees a previously allocated file structure.
+ *
+ *	Searches the file pool for the given file pointer and marks it as no longer in use.
+ *	If the file is found, it is freed for future allocations.
+ * 
+ *	@param[in] p_file A pointer to the file structure to be freed
+ ****************************************************************************************************/
 static void DRIVE_free_file(file_t *p_file)
 {
 	for (uint8_t i = 0; i < DRIVE_MAX_OPEN_FILES; ++i)
