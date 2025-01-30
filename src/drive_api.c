@@ -313,8 +313,6 @@ ARCADIA_status_t DRIVE_API_write(file_t * p_file, const char * kpc_data)
 
 ARCADIA_status_t DRIVE_API_read(file_t * p_file, char * pc_data, uint32_t u32_bytes_to_read)
 {
-	ASSERT(p_file);
-
 	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
 
 	DRIVE_PAYLOAD_read_t payload =

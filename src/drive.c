@@ -273,18 +273,17 @@ static void DRIVE_handle_msg_open_file(ARCADIA_msg_t * p_msg)
 	ASSERT(i32_open_flag != FSIF_INVALID_OPEN_MODE);
 
 	int8_t 		i8_handle = -1;
-	file_t *	p_file = DRIVE_allocate_file(&i8_handle);
-	FRESULT		f_result = f_open(p_file, kpc_fname, i32_open_flag);
+	FRESULT		f_result;
+	
+	f_result = f_open(p_msg->payload.drive_payload_open_file.p_file, kpc_fname, i32_open_flag);
 
 	if (FR_OK == f_result)
 	{
-		p_msg->payload.drive_payload_open_file.p_file = p_file;
 		*p_msg->payload.drive_payload_open_file.p_result_status = ARCADIA_STATUS_OK;
 		DRIVE_LOG_DBG("Opened file \"%s\" with handle %d\n", kpc_fname, i8_handle);
 	}
 	else
 	{
-		DRIVE_free_file(p_file);
 		DRIVE_LOG_WARN("Failed to open file (status: %u)\n", f_result);
 	}
 
@@ -306,15 +305,13 @@ static void DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
 	file_t * 	p_file = p_msg->payload.drive_payload_close_file.p_file;
 	int8_t 		i8_handle = DRIVE_file_pointer_to_index(p_file);
 	
-	ASSERT(i8_handle >= 0);
-	
 	FRESULT 	f_result = f_close(p_file);
 
 	if (FR_OK == f_result)
 	{
 		*p_msg->payload.drive_payload_close_file.p_result_status = ARCADIA_STATUS_OK;
-		DRIVE_free_file(p_file);
-		DRIVE_LOG_DBG("File %d closed\n", i8_handle);
+		// DRIVE_free_file(p_file);
+		// DRIVE_LOG_DBG("File %d closed\n", i8_handle);
 	}
 	else
 	{
@@ -383,9 +380,9 @@ static void	DRIVE_handle_msg_read(ARCADIA_msg_t * p_msg)
 
 	FRESULT f_result = f_read(p_file, kpc_data, u32_bytes_to_read, (UINT *)&u32_bytes_read);
 
-	if (FR_OK == f_result && u32_bytes_to_read == u32_bytes_read)
+	if (FR_OK == f_result)
 	{
-		DRIVE_LOG_DBG("Read %u bytes frp, file\n", u32_bytes_read);
+		DRIVE_LOG_DBG("Read %u bytes from file\n", u32_bytes_read);
 		*p_msg->payload.drive_payload_read.p_result_status = ARCADIA_STATUS_OK;
 	}
 	else

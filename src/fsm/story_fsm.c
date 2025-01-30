@@ -18,6 +18,8 @@ typedef struct _STORY_FSM_info_
 {
 	MEMPOOL_buffer_t 	p_buffer;
 	file_t *			p_file;
+	int32_t				i32_bookmark_node;
+	int32_t				i32_bookmark_page;
 	char 				pc_arcproject[COMMON_MAX_FNAME_SIZE];
 } STORY_FSM_info_t;
 
@@ -83,25 +85,70 @@ void STORY_FSM_load_arcproject(const char * kpc_arcproject)
 	ASSERT(kpc_arcproject);
 
 	ARCADIA_status_t 	status;
-	file_t * 			p_file = NULL;
+	// file_t * 			p_file = NULL;
+	file_t				file;
+	MEMPOOL_buffer_t	buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_256);
+	bool				b_result = false;
+
+	ASSERT(buffer);
 
 	strncpy(STORY_FSM_info.pc_arcproject, kpc_arcproject, COMMON_MAX_FNAME_SIZE);
 
+	// Step into the arcproject
 	status = DRIVE_API_chdir(STORY_FSM_info.pc_arcproject);
 
 	if (status != ARCADIA_STATUS_OK)
 	{
-		STORY_FSM_LOG_WARN("Unable to load %s (status: %u)\n", STORY_FSM_info.pc_arcproject, status);
+		STORY_FSM_LOG_WARN("Failed to load %s (status: %u)\n", STORY_FSM_info.pc_arcproject, status);
 		return;
 	}
 
-	status = DRIVE_API_open_file(p_file, ARCPROJECT_BOOKMARK_FILENAME, "r");
+	// Open the bookmark
+	status = DRIVE_API_open_file(&file, ARCPROJECT_BOOKMARK_FILENAME, "r");
 
+	if (status != ARCADIA_STATUS_OK)
+	{
+		STORY_FSM_LOG_WARN("Failed to open bookmark for arcproject %s (status: %u)\n", STORY_FSM_info.pc_arcproject, status);
+		return;
+	}
 
+	// Read the bookmark into a JSON buffer
+	status = DRIVE_API_read(&file, buffer, MEMPOOL_BUFFER_SIZE_256);
 
-	// ARCPROJECT_bookmark_get_node();
+	if (status != ARCADIA_STATUS_OK)
+	{
+		STORY_FSM_LOG_WARN("Failed to read bookmark for arcproject %s (status: %u)\n", STORY_FSM_info.pc_arcproject, status);
+		return;
+	}
 
-	STORY_FSM_LOG_DBG("Loaded arcproject: %s\n", STORY_FSM_info.pc_arcproject);
+	// Close to bookmark file
+	status = DRIVE_API_close_file(&file);
+	
+	if (status != ARCADIA_STATUS_OK)
+	{
+		STORY_FSM_LOG_WARN("Failed to close file %s (status: %u)\n", STORY_FSM_info.pc_arcproject, status);
+		return;
+	}
+
+	// Extract the node and page values
+	if (ARCPROJECT_bookmark_get_node(buffer, &STORY_FSM_info.i32_bookmark_node))
+	{
+		if (ARCPROJECT_bookmark_get_page(buffer, &STORY_FSM_info.i32_bookmark_page))
+		{
+			STORY_FSM_LOG_DBG("Loaded bookmark data (node: %d, page %d)\n",
+				STORY_FSM_info.i32_bookmark_node, STORY_FSM_info.i32_bookmark_page);
+			b_result = true;
+		}
+	}
+
+	if (b_result)
+	{
+		STORY_FSM_LOG_DBG("Loaded arcproject: %s\n", STORY_FSM_info.pc_arcproject);
+	}
+	else
+	{
+		STORY_FSM_LOG_WARN("Failed to load arcproject: %s\n", STORY_FSM_info.pc_arcproject);
+	}
 }
 
 static void STORY_FSM_advance(void)
