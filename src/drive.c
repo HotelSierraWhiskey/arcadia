@@ -40,22 +40,21 @@ static DRIVE_info_t DRIVE_info;
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
-static void 			DRIVE_handle_message			(void);
-static void 			DRIVE_handle_msg_read_nvm		(ARCADIA_msg_t * p_msg);
-static void 			DRIVE_handle_msg_write_nvm		(ARCADIA_msg_t * p_msg);
-static void 			DRIVE_handle_msg_erase_nvm		(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_message			(void);
+static void 		DRIVE_handle_msg_read_nvm		(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_msg_write_nvm		(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_msg_erase_nvm		(ARCADIA_msg_t * p_msg);
 
-static void 			DRIVE_handle_msg_open_file		(ARCADIA_msg_t * p_msg);
-static void 			DRIVE_handle_msg_close_file		(ARCADIA_msg_t * p_msg);
-static void 			DRIVE_handle_msg_chdir			(ARCADIA_msg_t * p_msg);
-static void				DRIVE_handle_msg_fetch_fnames	(ARCADIA_msg_t * p_msg);
-static void				DRIVE_handle_msg_write			(ARCADIA_msg_t * p_msg);
-static void				DRIVE_handle_msg_read			(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_msg_open_file		(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_msg_close_file		(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_msg_chdir			(ARCADIA_msg_t * p_msg);
+static void			DRIVE_handle_msg_fetch_fnames	(ARCADIA_msg_t * p_msg);
+static void			DRIVE_handle_msg_write			(ARCADIA_msg_t * p_msg);
+static void			DRIVE_handle_msg_read			(ARCADIA_msg_t * p_msg);
 
-static file_t * 		DRIVE_allocate_file				(int8_t * pi8_handle);
-static void 			DRIVE_free_file					(file_t * p_file);
-static file_t * 		DRIVE_handle_to_file_pointer	(file_handle_t file_handle);
-static file_handle_t 	DRIVE_file_pointer_to_handle	(file_t * p_file);
+static file_t * 	DRIVE_allocate_file				(int8_t * pi8_handle);
+static void 		DRIVE_free_file					(file_t * p_file);
+static file_t * 	DRIVE_handle_to_file_pointer	(file_handle_t file_handle);
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -292,7 +291,7 @@ static void DRIVE_handle_msg_open_file(ARCADIA_msg_t * p_msg)
  ****************************************************************************************************/
 static void DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
 {
-	file_handle_t 	file_handle = *p_msg->payload.drive_payload_close_file.p_file_handle;
+	file_handle_t 	file_handle = p_msg->payload.drive_payload_close_file.file_handle;
 	file_t * 		p_file = DRIVE_handle_to_file_pointer(file_handle);
 	FRESULT 		f_result = f_close(p_file);
 
@@ -324,7 +323,7 @@ static void DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
  ****************************************************************************************************/
 static void	DRIVE_handle_msg_write(ARCADIA_msg_t * p_msg)
 {
-	file_handle_t 		file_handle = *p_msg->payload.drive_payload_close_file.p_file_handle;
+	file_handle_t 		file_handle = p_msg->payload.drive_payload_close_file.file_handle;
 	file_t * 			p_file = DRIVE_handle_to_file_pointer(file_handle);
 	const char * 		kpc_data = p_msg->payload.drive_payload_write.kpc_data;
 	uint32_t			u32_bytes_to_write = strlen(kpc_data);
@@ -363,7 +362,7 @@ static void	DRIVE_handle_msg_write(ARCADIA_msg_t * p_msg)
  ****************************************************************************************************/
 static void	DRIVE_handle_msg_read(ARCADIA_msg_t * p_msg)
 {
-	file_handle_t 		file_handle = *p_msg->payload.drive_payload_close_file.p_file_handle;
+	file_handle_t 		file_handle = p_msg->payload.drive_payload_close_file.file_handle;
 	file_t * 			p_file = DRIVE_handle_to_file_pointer(file_handle);
 	char *		 		kpc_data = p_msg->payload.drive_payload_read.pc_data;
 	uint32_t			u32_bytes_to_read = p_msg->payload.drive_payload_read.u32_bytes_to_read;
@@ -521,6 +520,16 @@ static void DRIVE_free_file(file_t *p_file)
 	}
 }
 
+/****************************************************************************************************
+ *	Converts a file handle to a file pointer.
+ *
+ *	Looks up the file associated with a given file handle. If the handle is valid
+ *	and the file is in use, it returns a pointer to the corresponding file structure.
+ * 
+ *	@param[in] file_handle The file handle to be converted.
+ *	
+ *	@return A pointer to the corresponding file structure, or NULL if the handle is invalid.
+ ****************************************************************************************************/
 static file_t * DRIVE_handle_to_file_pointer(file_handle_t file_handle)
 {
 	if (file_handle >= DRIVE_MAX_OPEN_FILES || !DRIVE_info.file_pool[file_handle].b_in_use)
@@ -528,17 +537,4 @@ static file_t * DRIVE_handle_to_file_pointer(file_handle_t file_handle)
 		return NULL;
 	}
 	return &DRIVE_info.file_pool[file_handle].file;
-}
-
-static file_handle_t DRIVE_file_pointer_to_handle(file_t * p_file)
-{
-	for (uint8_t i = 0; i < DRIVE_MAX_OPEN_FILES; ++i)
-	{
-		if (&DRIVE_info.file_pool[i].file == p_file && DRIVE_info.file_pool[i].b_in_use)
-		{
-			return i;
-		}
-	}
-
-	return FSIF_INVALID_FILE;
 }

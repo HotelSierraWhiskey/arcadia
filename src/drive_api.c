@@ -179,7 +179,7 @@ ARCADIA_status_t DRIVE_API_close_file(file_handle_t file_handle)
 
 	DRIVE_PAYLOAD_close_file_t payload =
 	{
-		.p_file_handle = &file_handle,
+		.file_handle = file_handle,
 		.p_result_status = &status
 	};
 
@@ -281,7 +281,7 @@ ARCADIA_status_t DRIVE_API_write(file_handle_t file_handle, const char * kpc_dat
 
 	DRIVE_PAYLOAD_write_t payload =
 	{
-		.p_file_handle = &file_handle,
+		.file_handle = file_handle,
 		.kpc_data = kpc_data,
 		.p_result_status = &status
 	};
@@ -313,7 +313,7 @@ ARCADIA_status_t DRIVE_API_read(file_handle_t file_handle, char * pc_data, uint3
 
 	DRIVE_PAYLOAD_read_t payload =
 	{
-		.p_file_handle = &file_handle,
+		.file_handle = file_handle,
 		.pc_data = pc_data,
 		.u32_bytes_to_read = u32_bytes_to_read,
 		.p_result_status = &status

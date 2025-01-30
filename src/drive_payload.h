@@ -39,7 +39,7 @@ typedef struct _DRIVE_PAYLOAD_open_file
 
 typedef struct _DRIVE_PAYLOAD_close_file
 {
-	file_handle_t * 		p_file_handle;
+	file_handle_t 			file_handle;
 	ARCADIA_status_t *		p_result_status;
 } DRIVE_PAYLOAD_close_file_t;
 
@@ -61,14 +61,14 @@ typedef struct _DRIVE_PAYLOAD_chdir
 
 typedef struct _DRIVE_PAYLOAD_write
 {
-	file_handle_t * 		p_file_handle;
+	file_handle_t 			file_handle;
 	const char *			kpc_data;
 	ARCADIA_status_t *		p_result_status;
 } DRIVE_PAYLOAD_write_t;
 
 typedef struct _DRIVE_PAYLOAD_read
 {
-	file_handle_t * 		p_file_handle;
+	file_handle_t 			file_handle;
 	char *					pc_data;
 	uint32_t				u32_bytes_to_read;
 	ARCADIA_status_t *		p_result_status;

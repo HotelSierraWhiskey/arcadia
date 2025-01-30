@@ -85,8 +85,7 @@ void STORY_FSM_load_arcproject(const char * kpc_arcproject)
 	ASSERT(kpc_arcproject);
 
 	ARCADIA_status_t 	status;
-	// file_t * 			p_file = NULL;
-	file_t				file;
+	file_handle_t		fh;
 	MEMPOOL_buffer_t	buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_256);
 	bool				b_result = false;
 
@@ -104,7 +103,7 @@ void STORY_FSM_load_arcproject(const char * kpc_arcproject)
 	}
 
 	// Open the bookmark
-	status = DRIVE_API_open_file(&file, ARCPROJECT_BOOKMARK_FILENAME, "r");
+	status = DRIVE_API_open_file(&fh, ARCPROJECT_BOOKMARK_FILENAME, "r");
 
 	if (status != ARCADIA_STATUS_OK)
 	{
@@ -113,7 +112,7 @@ void STORY_FSM_load_arcproject(const char * kpc_arcproject)
 	}
 
 	// Read the bookmark into a JSON buffer
-	status = DRIVE_API_read(&file, buffer, MEMPOOL_BUFFER_SIZE_256);
+	status = DRIVE_API_read(fh, buffer, MEMPOOL_BUFFER_SIZE_256);
 
 	if (status != ARCADIA_STATUS_OK)
 	{
@@ -122,7 +121,7 @@ void STORY_FSM_load_arcproject(const char * kpc_arcproject)
 	}
 
 	// Close to bookmark file
-	status = DRIVE_API_close_file(&file);
+	status = DRIVE_API_close_file(fh);
 	
 	if (status != ARCADIA_STATUS_OK)
 	{
