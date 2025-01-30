@@ -140,13 +140,13 @@ ARCADIA_status_t DRIVE_API_erase_nvm(const NVMCTRL_app_nvm_row_id_t k_row_id)
 	return status;
 }
 
-ARCADIA_status_t DRIVE_API_open_file(file_t * p_file, const char *kpc_fname, const char * kpc_open_mode)
+ARCADIA_status_t DRIVE_API_open_file(file_handle_t * p_file_handle, const char *kpc_fname, const char * kpc_open_mode)
 {
 	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
 
 	DRIVE_PAYLOAD_open_file_t payload =
 	{
-		.p_file = p_file,
+		.p_file_handle = p_file_handle,
 		.kpc_fname = kpc_fname,
 		.kpc_open_mode = kpc_open_mode,
 		.p_result_status = &status
@@ -173,15 +173,13 @@ ARCADIA_status_t DRIVE_API_open_file(file_t * p_file, const char *kpc_fname, con
 	return status;
 }
 
-ARCADIA_status_t DRIVE_API_close_file(file_t * p_file)
+ARCADIA_status_t DRIVE_API_close_file(file_handle_t file_handle)
 {
-	ASSERT(p_file);
-
 	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
 
 	DRIVE_PAYLOAD_close_file_t payload =
 	{
-		.p_file = p_file,
+		.p_file_handle = &file_handle,
 		.p_result_status = &status
 	};
 
@@ -277,15 +275,13 @@ ARCADIA_status_t DRIVE_API_chdir(const char * kpc_dirname)
 	return status;
 }
 
-ARCADIA_status_t DRIVE_API_write(file_t * p_file, const char * kpc_data)
+ARCADIA_status_t DRIVE_API_write(file_handle_t file_handle, const char * kpc_data)
 {
-	ASSERT(p_file);
-
 	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
 
 	DRIVE_PAYLOAD_write_t payload =
 	{
-		.p_file = p_file,
+		.p_file_handle = &file_handle,
 		.kpc_data = kpc_data,
 		.p_result_status = &status
 	};
@@ -311,13 +307,13 @@ ARCADIA_status_t DRIVE_API_write(file_t * p_file, const char * kpc_data)
 	return status;
 }
 
-ARCADIA_status_t DRIVE_API_read(file_t * p_file, char * pc_data, uint32_t u32_bytes_to_read)
+ARCADIA_status_t DRIVE_API_read(file_handle_t file_handle, char * pc_data, uint32_t u32_bytes_to_read)
 {
 	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
 
 	DRIVE_PAYLOAD_read_t payload =
 	{
-		.p_file = p_file,
+		.p_file_handle = &file_handle,
 		.pc_data = pc_data,
 		.u32_bytes_to_read = u32_bytes_to_read,
 		.p_result_status = &status
@@ -784,11 +780,11 @@ uint8_t DRIVE_API_shell_touch(uint8_t argc, char ** argv)
  ****************************************************************************************************/
 uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
 {
-	file_t * p_file = NULL;
+	file_handle_t file_handle = FSIF_INVALID_FILE;
 
 	if (argc == 1)
 	{
-		DRIVE_API_open_file(p_file, argv[0], "r");
+		DRIVE_API_open_file(&file_handle, argv[0], "r");
 	}
 	else
 	{
@@ -800,19 +796,13 @@ uint8_t DRIVE_API_shell_open(uint8_t argc, char ** argv)
 
 uint8_t DRIVE_API_shell_close(uint8_t argc, char ** argv)
 {
-	uint32_t 	u32_fh;
-	file_t * 	p_file;
+	uint32_t file_handle;
 
 	if (argc == 1)
 	{
-		if (UTILS_string_to_u32(argv[0], &u32_fh))
+		if (UTILS_string_to_u32(argv[0], &file_handle))
 		{
-			p_file = DRIVE_index_to_file_pointer(u32_fh);
-
-			if (p_file)
-			{
-				DRIVE_API_close_file(p_file);
-			}
+			DRIVE_API_close_file(file_handle);
 		}
 	}
 	else
@@ -825,7 +815,6 @@ uint8_t DRIVE_API_shell_close(uint8_t argc, char ** argv)
 
 uint8_t DRIVE_API_shell_read(uint8_t argc, char ** argv)
 {
-
 	return SHELL_COMMAND_SUCCESS;
 }
 
@@ -866,16 +855,16 @@ uint8_t DRIVE_API_shell_rm(uint8_t argc, char ** argv)
  ****************************************************************************************************/
 uint8_t DRIVE_API_shell_ls(uint8_t argc, char ** argv)
 {
-	FRESULT		f_result;
-	DIR			dir_obj;
-	FILINFO 	f_info;
-	uint8_t		u8_num_files = 0;
-	uint8_t		u8_num_dirs = 0;
-	MEMPOOL_buffer_t buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_256);
+	FRESULT				f_result;
+	DIR					dir_obj;
+	FILINFO 			f_info;
+	uint8_t				u8_num_files = 0;
+	uint8_t				u8_num_dirs = 0;
+	MEMPOOL_buffer_t 	buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_256);
 
 	if (argc == 0)
 	{
-		f_result = f_getcwd((TCHAR *)buffer, 256);
+		f_result = f_getcwd((TCHAR *)buffer, MEMPOOL_BUFFER_SIZE_512);
 
 		if (FR_OK == f_result)
 		{

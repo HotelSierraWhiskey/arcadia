@@ -4,7 +4,7 @@
 #include "common.h"
 #include "arcadia.h"
 #include "nvmctrl.h"
-#include "fsif.h"
+#include "drive.h"
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -14,12 +14,12 @@ ARCADIA_status_t	DRIVE_API_read_nvm			(const NVMCTRL_app_nvm_row_id_t row_id, ch
 ARCADIA_status_t	DRIVE_API_write_nvm			(const NVMCTRL_app_nvm_row_id_t row_id, const char * kpc_data);
 ARCADIA_status_t	DRIVE_API_erase_nvm			(const NVMCTRL_app_nvm_row_id_t row_id);
 
-ARCADIA_status_t	DRIVE_API_open_file			(file_t * p_file, const char *kpc_fname, const char * kpc_open_mode);
-ARCADIA_status_t	DRIVE_API_close_file		(file_t * p_file);
+ARCADIA_status_t	DRIVE_API_open_file			(file_handle_t * p_file_handle, const char *kpc_fname, const char * kpc_open_mode);
+ARCADIA_status_t	DRIVE_API_close_file		(file_handle_t file_handle);
 ARCADIA_status_t 	DRIVE_API_chdir				(const char * kpc_dirname);
 ARCADIA_status_t 	DRIVE_API_fetch_fnames		(uint8_t u8_num_fnames, const char * kpc_filter, uint8_t u8_start_index, char ** ppc_buffer, uint8_t * pu8_num_found);
-ARCADIA_status_t 	DRIVE_API_write				(file_t * p_file, const char * kpc_data);
-ARCADIA_status_t 	DRIVE_API_read				(file_t * p_file, char * pc_data, uint32_t u32_bytes_to_read);
+ARCADIA_status_t 	DRIVE_API_write				(file_handle_t file_handle, const char * kpc_data);
+ARCADIA_status_t 	DRIVE_API_read				(file_handle_t file_handle, char * pc_data, uint32_t u32_bytes_to_read);
 
 /****************************************************************************************************
  *	S H E L L   F U N C T I O N S

@@ -21,8 +21,9 @@
 
 typedef struct _DRIVE_file_slot
 {
-	file_t 	file;
-	bool 	b_in_use;
+	file_t 				file;
+	bool 				b_in_use;
+	DRIVE_file_handle_t file_handle;
 } DRIVE_file_slot_t;
 typedef struct _DRIVE_info
 {
@@ -39,20 +40,22 @@ static DRIVE_info_t DRIVE_info;
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
-static void 		DRIVE_handle_message			(void);
-static void 		DRIVE_handle_msg_read_nvm		(ARCADIA_msg_t * p_msg);
-static void 		DRIVE_handle_msg_write_nvm		(ARCADIA_msg_t * p_msg);
-static void 		DRIVE_handle_msg_erase_nvm		(ARCADIA_msg_t * p_msg);
+static void 			DRIVE_handle_message			(void);
+static void 			DRIVE_handle_msg_read_nvm		(ARCADIA_msg_t * p_msg);
+static void 			DRIVE_handle_msg_write_nvm		(ARCADIA_msg_t * p_msg);
+static void 			DRIVE_handle_msg_erase_nvm		(ARCADIA_msg_t * p_msg);
 
-static void 		DRIVE_handle_msg_open_file		(ARCADIA_msg_t * p_msg);
-static void 		DRIVE_handle_msg_close_file		(ARCADIA_msg_t * p_msg);
-static void 		DRIVE_handle_msg_chdir			(ARCADIA_msg_t * p_msg);
-static void			DRIVE_handle_msg_fetch_fnames	(ARCADIA_msg_t * p_msg);
-static void			DRIVE_handle_msg_write			(ARCADIA_msg_t * p_msg);
-static void			DRIVE_handle_msg_read			(ARCADIA_msg_t * p_msg);
+static void 			DRIVE_handle_msg_open_file		(ARCADIA_msg_t * p_msg);
+static void 			DRIVE_handle_msg_close_file		(ARCADIA_msg_t * p_msg);
+static void 			DRIVE_handle_msg_chdir			(ARCADIA_msg_t * p_msg);
+static void				DRIVE_handle_msg_fetch_fnames	(ARCADIA_msg_t * p_msg);
+static void				DRIVE_handle_msg_write			(ARCADIA_msg_t * p_msg);
+static void				DRIVE_handle_msg_read			(ARCADIA_msg_t * p_msg);
 
-static file_t * 	DRIVE_allocate_file				(int8_t * pi8_handle);
-static void 		DRIVE_free_file					(file_t * p_file);
+static file_t * 		DRIVE_allocate_file				(int8_t * pi8_handle);
+static void 			DRIVE_free_file					(file_t * p_file);
+static file_t * 		DRIVE_handle_to_file_pointer	(file_handle_t file_handle);
+static file_handle_t 	DRIVE_file_pointer_to_handle	(file_t * p_file);
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -91,28 +94,6 @@ void DRIVE_task(void * p_params)
 		DRIVE_handle_message();
 		vPortYield();
 	}
-}
-
-file_t * DRIVE_index_to_file_pointer(uint8_t u8_index)
-{
-	if (u8_index >= DRIVE_MAX_OPEN_FILES || !DRIVE_info.file_pool[u8_index].b_in_use)
-	{
-		return NULL;
-	}
-	return &DRIVE_info.file_pool[u8_index].file;
-}
-
-int8_t DRIVE_file_pointer_to_index(file_t *p_file)
-{
-	for (uint8_t i = 0; i < DRIVE_MAX_OPEN_FILES; ++i)
-	{
-		if (&DRIVE_info.file_pool[i].file == p_file && DRIVE_info.file_pool[i].b_in_use)
-		{
-			return i;
-		}
-	}
-
-	return -1;
 }
 
 /****************************************************************************************************
@@ -272,21 +253,30 @@ static void DRIVE_handle_msg_open_file(ARCADIA_msg_t * p_msg)
 
 	ASSERT(i32_open_flag != FSIF_INVALID_OPEN_MODE);
 
-	int8_t 		i8_handle = -1;
+	file_t * 	p_file = DRIVE_allocate_file(p_msg->payload.drive_payload_open_file.p_file_handle);
 	FRESULT		f_result;
-	
-	f_result = f_open(p_msg->payload.drive_payload_open_file.p_file, kpc_fname, i32_open_flag);
 
-	if (FR_OK == f_result)
+	if (p_file)
 	{
-		*p_msg->payload.drive_payload_open_file.p_result_status = ARCADIA_STATUS_OK;
-		DRIVE_LOG_DBG("Opened file \"%s\" with handle %d\n", kpc_fname, i8_handle);
+		f_result = f_open(p_file, kpc_fname, i32_open_flag);
+
+		if (FR_OK == f_result)
+		{
+			*p_msg->payload.drive_payload_open_file.p_result_status = ARCADIA_STATUS_OK;
+			DRIVE_LOG_DBG("Opened file \"%s\" with handle %d\n", kpc_fname, *p_msg->payload.drive_payload_open_file.p_file_handle);
+		}
+		else
+		{
+			DRIVE_LOG_WARN("Failed to open file (status: %u)\n", f_result);
+			*p_msg->payload.drive_payload_open_file.p_result_status = ARCADIA_STATUS_FAILED;
+		}
 	}
 	else
 	{
-		DRIVE_LOG_WARN("Failed to open file (status: %u)\n", f_result);
+		DRIVE_LOG_WARN("Failed to allocate a file\n");
+		*p_msg->payload.drive_payload_open_file.p_result_status = ARCADIA_STATUS_FAILED;
 	}
-
+	
 	ARCADIA_semaphore_give(p_msg->semaphore);
 
 	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
@@ -302,16 +292,15 @@ static void DRIVE_handle_msg_open_file(ARCADIA_msg_t * p_msg)
  ****************************************************************************************************/
 static void DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
 {
-	file_t * 	p_file = p_msg->payload.drive_payload_close_file.p_file;
-	int8_t 		i8_handle = DRIVE_file_pointer_to_index(p_file);
-	
-	FRESULT 	f_result = f_close(p_file);
+	file_handle_t 	file_handle = *p_msg->payload.drive_payload_close_file.p_file_handle;
+	file_t * 		p_file = DRIVE_handle_to_file_pointer(file_handle);
+	FRESULT 		f_result = f_close(p_file);
 
 	if (FR_OK == f_result)
 	{
 		*p_msg->payload.drive_payload_close_file.p_result_status = ARCADIA_STATUS_OK;
-		// DRIVE_free_file(p_file);
-		// DRIVE_LOG_DBG("File %d closed\n", i8_handle);
+		DRIVE_free_file(p_file);
+		DRIVE_LOG_DBG("File %d closed\n", file_handle);
 	}
 	else
 	{
@@ -335,7 +324,8 @@ static void DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
  ****************************************************************************************************/
 static void	DRIVE_handle_msg_write(ARCADIA_msg_t * p_msg)
 {
-	file_t * 			p_file = p_msg->payload.drive_payload_write.p_file;
+	file_handle_t 		file_handle = *p_msg->payload.drive_payload_close_file.p_file_handle;
+	file_t * 			p_file = DRIVE_handle_to_file_pointer(file_handle);
 	const char * 		kpc_data = p_msg->payload.drive_payload_write.kpc_data;
 	uint32_t			u32_bytes_to_write = strlen(kpc_data);
 	uint32_t			u32_bytes_written = 0;
@@ -373,7 +363,8 @@ static void	DRIVE_handle_msg_write(ARCADIA_msg_t * p_msg)
  ****************************************************************************************************/
 static void	DRIVE_handle_msg_read(ARCADIA_msg_t * p_msg)
 {
-	file_t * 			p_file = p_msg->payload.drive_payload_read.p_file;
+	file_handle_t 		file_handle = *p_msg->payload.drive_payload_close_file.p_file_handle;
+	file_t * 			p_file = DRIVE_handle_to_file_pointer(file_handle);
 	char *		 		kpc_data = p_msg->payload.drive_payload_read.pc_data;
 	uint32_t			u32_bytes_to_read = p_msg->payload.drive_payload_read.u32_bytes_to_read;
 	uint32_t			u32_bytes_read = 0;
@@ -489,21 +480,24 @@ static void	DRIVE_handle_msg_fetch_fnames(ARCADIA_msg_t * p_msg)
  *	If an available entry is found, updates the provided handle and returns a pointer to the file.
  *	If no available entry exists, returns NULL.
  * 
- *	@param[out] pi8_handle A pointer to store the allocated file handle index
+ *	@param[out] p_file_handle A pointer to store the allocated file handle index
  *
  *	@return A pointer to the allocated file structure, or NULL if no file is available
  ****************************************************************************************************/
-static file_t * DRIVE_allocate_file(int8_t * pi8_handle)
+static file_t * DRIVE_allocate_file(file_handle_t * p_file_handle)
 {
 	for (uint8_t i = 0; i < DRIVE_MAX_OPEN_FILES; ++i)
 	{
 		if (!DRIVE_info.file_pool[i].b_in_use)
 		{
-			*pi8_handle = i;
+			*p_file_handle = i;
 			DRIVE_info.file_pool[i].b_in_use = true;
 			return &DRIVE_info.file_pool[i].file;
 		}
 	}
+
+	*p_file_handle = FSIF_INVALID_FILE;
+
 	return NULL;
 }
 
@@ -525,4 +519,26 @@ static void DRIVE_free_file(file_t *p_file)
 			return;
 		}
 	}
+}
+
+static file_t * DRIVE_handle_to_file_pointer(file_handle_t file_handle)
+{
+	if (file_handle >= DRIVE_MAX_OPEN_FILES || !DRIVE_info.file_pool[file_handle].b_in_use)
+	{
+		return NULL;
+	}
+	return &DRIVE_info.file_pool[file_handle].file;
+}
+
+static file_handle_t DRIVE_file_pointer_to_handle(file_t * p_file)
+{
+	for (uint8_t i = 0; i < DRIVE_MAX_OPEN_FILES; ++i)
+	{
+		if (&DRIVE_info.file_pool[i].file == p_file && DRIVE_info.file_pool[i].b_in_use)
+		{
+			return i;
+		}
+	}
+
+	return FSIF_INVALID_FILE;
 }
