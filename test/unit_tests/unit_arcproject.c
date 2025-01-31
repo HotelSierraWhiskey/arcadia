@@ -24,6 +24,25 @@ TEST_TEAR_DOWN(unit_arcproject)
  ****************************************************************************************************/
 
 /**
+ *	Validated various arcfile filenames
+ */
+TEST(unit_arcproject, arcfile_filename_validation)
+{
+	// Valid filenames
+	TEST_ASSERT_TRUE(ARCPROJECT_is_arcfile("node_0.arc.json"));				// Nominal
+	TEST_ASSERT_TRUE(ARCPROJECT_is_arcfile("node_2147483647.arc.json"));	// INT32_MAX
+	TEST_ASSERT_TRUE(ARCPROJECT_is_arcfile("other_0.arc.json"));			// Unconventional, but ok
+	TEST_ASSERT_TRUE(ARCPROJECT_is_arcfile("some_2_thing_1_0.arc.json"));	// More unconventional, but ok
+
+	// Invalid filenames
+	TEST_ASSERT_FALSE(ARCPROJECT_is_arcfile("node_2147483648.arc.json"));	// INT32_MAX + 1
+	TEST_ASSERT_FALSE(ARCPROJECT_is_arcfile("node_-1.arc.json"));			// negative node ID
+	TEST_ASSERT_FALSE(ARCPROJECT_is_arcfile(".arc.json"));					// extension only
+	TEST_ASSERT_FALSE(ARCPROJECT_is_arcfile("node_0"));						// missing extension
+	TEST_ASSERT_FALSE(ARCPROJECT_is_arcfile("node0.arc.json"));				// missing underscore
+}
+
+/**
  *	Tests decoding the content file nominally
  */
 TEST(unit_arcproject, decode_arcfile_content_file_name_nominal)
@@ -211,18 +230,21 @@ TEST(unit_arcproject, decode_and_update_bookmark_nominal)
 
 static void run_all_tests(void)
 {
-	// Arcfile content file decoding tests
+	// Arcfile validation
+	RUN_TEST_CASE(unit_arcproject, arcfile_filename_validation);
+
+	// Content file decoding tests
 	RUN_TEST_CASE(unit_arcproject, decode_arcfile_content_file_name_nominal);
 	RUN_TEST_CASE(unit_arcproject, decode_arcfile_content_file_name_key_missing);
 	RUN_TEST_CASE(unit_arcproject, decode_arcfile_content_file_name_empty_string);
 
-	// Arcfile choices decoding tests
+	// Choices decoding tests
 	RUN_TEST_CASE(unit_arcproject, decode_arcfile_num_choices_nominal);
 	RUN_TEST_CASE(unit_arcproject, decode_arcfile_num_choices_no_choices_exist);
 	RUN_TEST_CASE(unit_arcproject, decode_arcfile_num_choices_empty_object);
 	RUN_TEST_CASE(unit_arcproject, decode_arcfile_index_choices_nominal);
 
-	// Move this to unit_bookmark
+	// Bookmark tests
 	RUN_TEST_CASE(unit_arcproject, decode_and_update_bookmark_nominal);
 }
 
