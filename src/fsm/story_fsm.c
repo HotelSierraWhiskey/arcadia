@@ -111,33 +111,41 @@ void STORY_FSM_load_arcproject(const char * kpc_arcproject)
 		return;
 	}
 
-	// Read the bookmark into a JSON buffer
-	status = DRIVE_API_read(fh, buffer, MEMPOOL_BUFFER_SIZE_256);
-
-	if (status != ARCADIA_STATUS_OK)
+	if (FSIF_INVALID_FILE == fh)
 	{
-		STORY_FSM_LOG_WARN("Failed to read bookmark for arcproject %s (status: %u)\n", STORY_FSM_info.pc_arcproject, status);
-		return;
-	}
+		// Read the bookmark into a JSON buffer
+		status = DRIVE_API_read(fh, buffer, MEMPOOL_BUFFER_SIZE_256);
 
-	// Close to bookmark file
-	status = DRIVE_API_close_file(fh);
-	
-	if (status != ARCADIA_STATUS_OK)
-	{
-		STORY_FSM_LOG_WARN("Failed to close file %s (status: %u)\n", STORY_FSM_info.pc_arcproject, status);
-		return;
-	}
-
-	// Extract the node and page values
-	if (ARCPROJECT_bookmark_get_node(buffer, &STORY_FSM_info.i32_bookmark_node))
-	{
-		if (ARCPROJECT_bookmark_get_page(buffer, &STORY_FSM_info.i32_bookmark_page))
+		if (status != ARCADIA_STATUS_OK)
 		{
-			STORY_FSM_LOG_DBG("Loaded bookmark data (node: %d, page %d)\n",
-				STORY_FSM_info.i32_bookmark_node, STORY_FSM_info.i32_bookmark_page);
-			b_result = true;
+			STORY_FSM_LOG_WARN("Failed to read bookmark for arcproject %s (status: %u)\n", STORY_FSM_info.pc_arcproject, status);
+			return;
 		}
+
+		// Close to bookmark file
+		status = DRIVE_API_close_file(fh);
+		
+		if (status != ARCADIA_STATUS_OK)
+		{
+			STORY_FSM_LOG_WARN("Failed to close file %s (status: %u)\n", STORY_FSM_info.pc_arcproject, status);
+			return;
+		}
+
+		// Extract the node and page values
+		if (ARCPROJECT_bookmark_get_node(buffer, &STORY_FSM_info.i32_bookmark_node))
+		{
+			if (ARCPROJECT_bookmark_get_page(buffer, &STORY_FSM_info.i32_bookmark_page))
+			{
+				STORY_FSM_LOG_DBG("Loaded bookmark data (node: %d, page %d)\n",
+					STORY_FSM_info.i32_bookmark_node, STORY_FSM_info.i32_bookmark_page);
+				b_result = true;
+			}
+		}
+	}
+	else
+	{
+		STORY_FSM_LOG_WARN("Invalid file handle\n");
+		b_result = false;
 	}
 
 	if (b_result)
@@ -152,5 +160,5 @@ void STORY_FSM_load_arcproject(const char * kpc_arcproject)
 
 static void STORY_FSM_advance(void)
 {
-
+	
 }

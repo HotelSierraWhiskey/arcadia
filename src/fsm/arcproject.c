@@ -3,6 +3,18 @@
 #include "utils.h"
 
 /****************************************************************************************************
+ *	D E F I N E S   &   T Y P E D E F S
+ ****************************************************************************************************/
+
+#define ARCPROJECT_ARCFILE_EXT 					".arc.json"
+#define ARCPROJECT_ARCFILE_EXT_LENGTH			(sizeof(ARCPROJECT_ARCFILE_EXT) - 1)
+#define ARCPROJECT_MIN_ARCFILE_FNAME_LENGTH		(12U) // e.g. a_0.arc.json
+
+/****************************************************************************************************
+ *	F U N C T I O N S
+ ****************************************************************************************************/
+
+/****************************************************************************************************
  *	Retrieves the content file name from the given JSON data.
  *
  * 	This function extracts the value associated with the content file key from the provided JSON 
@@ -146,6 +158,14 @@ bool ARCPROJECT_bookmark_get_page(const char * kpc_json, int32_t * pi32_page)
 	return i32_bytes_read > 0 ? true : false;
 }
 
+/****************************************************************************************************
+ *	Sets the bookmarked node in the given `bookmark.json` data.
+ *
+ *	@param[in] 	pc_json   Pointer to the JSON data buffer to modify.
+ *	@param[in] 	i32_node  The node value to set in the JSON.
+ * 
+ *	@return `true` if the node value was successfully written, otherwise `false`.
+ ****************************************************************************************************/
 bool ARCPROJECT_bookmark_set_node(char * pc_json, int32_t i32_node)
 {
 	ASSERT(pc_json);
@@ -153,6 +173,14 @@ bool ARCPROJECT_bookmark_set_node(char * pc_json, int32_t i32_node)
 	return JSON_write_value(ARCPROJECT_JSON_KEY_BOOKMARK_KEY_NODE_STR, JSON_TYPE_INT, pc_json, &i32_node);
 }
 
+/****************************************************************************************************
+ *	Sets the bookmarked page in the given `bookmark.json` data.
+ *
+ *	@param[in] 	pc_json   Pointer to the JSON data buffer to modify.
+ *	@param[in] 	i32_page  The page value to set in the JSON.
+ * 
+ *	@return `true` if the page value was successfully written, otherwise `false`.
+ ****************************************************************************************************/
 bool ARCPROJECT_bookmark_set_page(char * pc_json, int32_t i32_page)
 {
 	ASSERT(pc_json);
@@ -160,7 +188,73 @@ bool ARCPROJECT_bookmark_set_page(char * pc_json, int32_t i32_page)
 	return JSON_write_value(ARCPROJECT_JSON_KEY_BOOKMARK_KEY_PAGE_STR, JSON_TYPE_INT, pc_json, &i32_page);
 }
 
+/****************************************************************************************************
+ *	Checks if the given filename follows the Arcadia archive file format.
+ *
+ *	This function verifies whether a filename matches the expected pattern "<a>_<n>.arc.json",
+ *	where `<a>` is a non-empty string, `_` is a separator, and `<n>` is a positive integer.
+ *
+ *	Validation criteria:
+ *	1. The filename must meet the minimum required length (`ARCPROJECT_MIN_ARCFILE_FNAME_LENGTH`).
+ *	2. The filename must end with the `.arc.json` extension.
+ *	3. There must be an underscore (`_`) before the number.
+ *	4. The portion after the underscore must be a valid positive integer.
+ *
+ *	@param[in] kpc_fname Pointer to the filename string.
+ * 
+ *	@return `true` if the filename follows the Arcadia archive format, otherwise `false`.
+ ****************************************************************************************************/
+bool ARCPROJECT_is_arcfile(const char * kpc_fname)
+{
+	ASSERT(kpc_fname);
+
+	const char * 	kpc_underscore = strrchr(kpc_fname, '_');
+	uint32_t 		u32_len = strlen(kpc_fname);
+	int32_t 		node;
+
+	// Ensure valid length
+	if (u32_len < ARCPROJECT_MIN_ARCFILE_FNAME_LENGTH)
+	{
+		return false;
+	}
+
+	// Ensure filename ends with ".arc.json"
+	if (u32_len < ARCPROJECT_ARCFILE_EXT_LENGTH || strcmp(kpc_fname + u32_len - ARCPROJECT_ARCFILE_EXT_LENGTH, ARCPROJECT_ARCFILE_EXT) != 0)
+	{
+		return false;
+	}
+
+	// Ensure there's an underscore and there's a prefix
+	if (!kpc_underscore || kpc_underscore == kpc_fname)
+	{
+		return false;
+	}
+
+	// Check if there's a valid number after the kpc_underscore
+	if (sscanf(kpc_underscore + 1, "%d", &node) != 1 || node < 0)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+/****************************************************************************************************
+ *	Extracts the node number from an arcfile.
+ *
+ *	@param[in] 	kpc_fname   Pointer to the filename string.
+ * 
+ *	@return The extracted node number `n` as an `int32_t`.
+ ****************************************************************************************************/
 int32_t	ARCPROJECT_get_node_from_arcfile(const char * kpc_fname)
 {
-	
+	ASSERT(kpc_fname);
+	ASSERT(ARCPROJECT_is_arcfile(kpc_fname));
+
+	int32_t 		node;
+	const char * 	kpc_underscore = strrchr(kpc_fname, '_');
+
+	sscanf(kpc_underscore + 1, "%d", &node);
+
+	return node;
 }

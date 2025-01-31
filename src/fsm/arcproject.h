@@ -25,7 +25,7 @@ bool        ARCPROJECT_bookmark_get_node                (const char * kpc_json, 
 bool        ARCPROJECT_bookmark_set_node                (char * pc_json, int32_t i32_node);
 bool        ARCPROJECT_bookmark_get_page                (const char * kpc_json, int32_t * pi32_page);
 bool        ARCPROJECT_bookmark_set_page                (char * pc_json, int32_t i32_page);
-
+bool 		ARCPROJECT_is_arcfile						(const char * kpc_fname);
 int32_t		ARCPROJECT_get_node_from_arcfile			(const char * kpc_fname);
 
 #endif // ARCPROJECT_H
