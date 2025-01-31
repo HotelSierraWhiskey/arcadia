@@ -1,10 +1,14 @@
 #ifndef INTERRUPTS_H
 #define INTERRUPTS_H
 
-void irqSERCOM0();
-void irqTC0();
-void irqTC1();
-void irqTC2();
-void irqTC3();
+/****************************************************************************************************
+ *	F U N C T I O N S
+ ****************************************************************************************************/
+
+void 	irqSERCOM0	(void);
+void 	irqTC0		(void);
+void 	irqTC1		(void);
+void 	irqTC2		(void);
+void 	irqTC3		(void);
 
 #endif // INTERRUPTS_H
