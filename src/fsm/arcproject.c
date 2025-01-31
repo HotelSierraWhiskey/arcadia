@@ -231,7 +231,7 @@ bool ARCPROJECT_is_arcfile(const char * kpc_fname)
 	}
 
 	// Check if there's a valid number after the kpc_underscore
-	if (sscanf(kpc_underscore + 1, "%d", &node) != 1 || node < 0)
+	if (sscanf(kpc_underscore + 1, "%" PRId32, &node) != 1 || node < 0)
 	{
 		return false;
 	}
@@ -254,7 +254,7 @@ int32_t	ARCPROJECT_get_node_from_arcfile(const char * kpc_fname)
 	int32_t 		node;
 	const char * 	kpc_underscore = strrchr(kpc_fname, '_');
 
-	sscanf(kpc_underscore + 1, "%d", &node);
+	sscanf(kpc_underscore + 1, "%" PRId32, &node);
 
 	return node;
 }
