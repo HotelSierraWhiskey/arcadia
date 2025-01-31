@@ -213,7 +213,7 @@ bool ARCPROJECT_is_arcfile(const char * kpc_fname)
 	int32_t 		node;
 
 	// Ensure valid length
-	if (u32_len < ARCPROJECT_MIN_ARCFILE_FNAME_LENGTH)
+	if (u32_len < ARCPROJECT_MIN_ARCFILE_FNAME_LENGTH || u32_len > COMMON_MAX_FNAME_SIZE)
 	{
 		return false;
 	}
