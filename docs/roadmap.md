@@ -1,11 +1,9 @@
 # Roadmap to Arcadia 1.0.0 (Closed Beta Testing)
 
-### ☑️ version 0.5.0
+### ☑️ version 0.7.0
 <b>Hardware</b>:
-- Development Board Revision B
-- Tactile push buttons + plastic caps
-- Tactile push buttons under D-pad
-- 3D printed enclosure prototype
+- Arcadia Prototype PCB Rev. A
+- Enclosure development
 
 <b>New firmware features</b>:
 - Button interface
@@ -14,9 +12,9 @@
 
 ---
 
-### ☑️ version 0.4.0
+### ☑️ version 0.6.0
 <b>Hardware</b>:
-- Wonka Board + SD module + AMOLED display
+- Arcadia Prototype PCB Rev. A
 
 <b>New firmware features</b>:
 - DISPLAY task
@@ -25,6 +23,11 @@
 - Basic text advancing, wrapping
 - Menu & menu behaviour rendering
 
+---
+
+### ☑️ version 0.5.0
+<b>Hardware</b>:
+- Arcadia Prototype PCB Rev. A
 ---
 
 ### ☑️ version 0.3.0
