@@ -1,6 +1,6 @@
 # Roadmap to Arcadia 1.0.0 (Closed Beta Testing)
 
-### ☑️ version 0.7.0
+### ☑️ version 0.6.0
 <b>Hardware</b>:
 - Arcadia Prototype PCB Rev. A
 - Enclosure development
@@ -12,7 +12,7 @@
 
 ---
 
-### ☑️ version 0.6.0
+### ☑️ version 0.5.0
 <b>Hardware</b>:
 - Arcadia Prototype PCB Rev. A
 
@@ -25,7 +25,7 @@
 
 ---
 
-### ☑️ version 0.5.0
+### ☑️ version 0.4.0
 <b>Hardware</b>:
 - Arcadia Prototype PCB Rev. A
 ---
