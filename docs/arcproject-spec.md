@@ -13,6 +13,7 @@ Arcadia does not parse JSONC or other supersets of JSON. Similarly, Arcadia does
 Below is a minimal project's directory tree:
 ```
 my_story.arc/
+├── about.json
 ├── bookmark.json
 ├── content/
 │   ├── text_0.txt
@@ -46,9 +47,21 @@ The node ID of an arcfile is encoded in the arcfile's name. All arcfiles must be
 }
 ```
 
-## Bookmark Structure
+## about.json Structure
 
-Arcprojects contain exactly one top-level file named bookmark.json. This file is used to save a reader's progress as they advance through a story.
+The about.json file is a read-only file used to store general information relevant to the project/ story. In the current Arcproject spec, the only piece of information that's stored in about.json is the title of the story.
+
+### about.json Example
+
+```json
+{
+	"title": "A Tale of Foo and Bar",
+}
+```
+
+## bookmark.json Structure
+
+Arcprojects contain exactly one top-level read/ write file named bookmark.json. This file is used to save a reader's progress as they advance through a story.
 
 - `node` <b>(Integer, Required)</b><br>
 This is the ID of the the last node where progress was saved. This allows Arcadia to save/ resume from any reachable arcfile.
@@ -56,7 +69,7 @@ This is the ID of the the last node where progress was saved. This allows Arcadi
 - `page` <b>(Integer, Required)</b><br>
 The page within the context of the node from which to resume.
 
-### Bookmark Example
+### bookmark.json Example
 
 ```json
 {
