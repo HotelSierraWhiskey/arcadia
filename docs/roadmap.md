@@ -28,6 +28,10 @@
 ### ☑️ version 0.4.0
 <b>Hardware</b>:
 - Arcadia Prototype PCB Rev. A
+
+<b>New firmware features</b>:
+- 64 pin map support
+- Basic firmware image validation
 ---
 
 ### ☑️ version 0.3.0
