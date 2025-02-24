@@ -2,7 +2,7 @@
 
 ### ☑️ version 0.6.0
 <b>Hardware</b>:
-- Arcadia Prototype PCB Rev. A
+- Arcadia Prototype PCB Rev. A1
 - Enclosure development
 
 <b>New firmware features</b>:
@@ -14,7 +14,7 @@
 
 ### ☑️ version 0.5.0
 <b>Hardware</b>:
-- Arcadia Prototype PCB Rev. A
+- Arcadia Prototype PCB Rev. A1
 
 <b>New firmware features</b>:
 - DISPLAY task
@@ -27,14 +27,14 @@
 
 ### ☑️ version 0.4.0
 <b>Hardware</b>:
-- Arcadia Prototype PCB Rev. A
+- Arcadia Prototype PCB Rev. A1
 
 <b>New firmware features</b>:
 - 64 pin map support
 - Basic firmware image validation
 ---
 
-### ☑️ version 0.3.0
+### ✅ version 0.3.0
 <b>Hardware</b>:
 - Wonka Board + SD module
 
