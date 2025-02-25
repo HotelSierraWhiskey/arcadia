@@ -7,13 +7,11 @@
 
 /**
  *	An enumerated type for PORT groups
- *	
- *	@note 
- *	The SAMC21E18A implements PORT A only
  */
 typedef enum _IO_group
 {
 	IO_GROUP_A = 0,
+	IO_GROUP_B,
 	//////////
 	IO_GROUP_NUM_GROUPS
 } IO_group_t;
@@ -39,160 +37,319 @@ static const IO_pin_t pin_map[IO_PIN_ID_NUM_PINS] =
 {
 	[IO_PIN_ID_PA00] =
 	{
-		.kcp_name = "PA00",
-		.group = IO_GROUP_A,
-		.u8_number = 0
+		.kcp_name 	= "LCD_DB6",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 0
 	},
 	[IO_PIN_ID_PA01] =
 	{
-		.kcp_name = "PA01",
-		.group = IO_GROUP_A,
-		.u8_number = 1
+		.kcp_name 	= "LCD_DB7",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 1
 	},
 	[IO_PIN_ID_PA02] =
 	{
-		.kcp_name = "PA02",
-		.group = IO_GROUP_A,
-		.u8_number = 2
+		.kcp_name 	= "LCD_DB8",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 2
 	},
 	[IO_PIN_ID_PA03] =
 	{
-		.kcp_name = "PA03",
-		.group = IO_GROUP_A,
-		.u8_number = 3
+		.kcp_name 	= "LCD_DB9",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 3
 	},
 	[IO_PIN_ID_PA04] =
 	{
-		.kcp_name = "PA04",
-		.group = IO_GROUP_A,
-		.u8_number = 4
+		.kcp_name 	= "LCD_DB16",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 4
 	},
 	[IO_PIN_ID_PA05] =
 	{
-		.kcp_name = "PA05",
-		.group = IO_GROUP_A,
-		.u8_number = 5
+		.kcp_name 	= "LCD_DB17",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 5
 	},
 	[IO_PIN_ID_PA06] =
 	{
-		.kcp_name = "UART_CHANNEL_SHELL_TX",
-		.group = IO_GROUP_A,
-		.u8_number = 6
+		.kcp_name 	= "UART_CHANNEL_SHELL_TX",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 6
 	},
 	[IO_PIN_ID_PA07] =
 	{
-		.kcp_name = "UART_CHANNEL_SHELL_RX",
-		.group = IO_GROUP_A,
-		.u8_number = 7
+		.kcp_name 	= "UART_CHANNEL_SHELL_RX",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 7
 	},
 	[IO_PIN_ID_PA08] =
 	{
-		.kcp_name = "PA08",
-		.group = IO_GROUP_A,
-		.u8_number = 8
+		.kcp_name 	= "BUTTON_A",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 8
 	},
 	[IO_PIN_ID_PA09] =
 	{
-		.kcp_name = "PA09",
-		.group = IO_GROUP_A,
-		.u8_number = 9
+		.kcp_name 	= "BUTTON_B",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 9
 	},
 	[IO_PIN_ID_PA10] =
 	{
-		.kcp_name = "PA10",
-		.group = IO_GROUP_A,
-		.u8_number = 10
+		.kcp_name 	= "BUTTON_DPAD_UP",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 10
 	},
 	[IO_PIN_ID_PA11] =
 	{
-		.kcp_name = "PA11",
-		.group = IO_GROUP_A,
-		.u8_number = 11
+		.kcp_name 	= "BUTTON_DPAD_DOWN",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 11
+	},
+	[IO_PIN_ID_PA12] =
+	{
+		.kcp_name 	= "BUTTON_DPAD_LEFT",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 12
+	},
+	[IO_PIN_ID_PA13] =
+	{
+		.kcp_name 	= "BUTTON_DPAD_RIGHT",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 13
 	},
 	[IO_PIN_ID_PA14] =
 	{
-		.kcp_name = "PA14",
-		.group = IO_GROUP_A,
-		.u8_number = 14
+		.kcp_name 	= "BUTTON_DPAD_MENU",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 14
 	},
 	[IO_PIN_ID_PA15] =
 	{
-		.kcp_name = "PA15",
-		.group = IO_GROUP_A,
-		.u8_number = 15
+		.kcp_name 	= "SD_DETECT",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 15
 	},
 	[IO_PIN_ID_PA16] =
 	{
-		.kcp_name = "SPI_CHANNEL_SD_CARD_DATA_IN",
-		.group = IO_GROUP_A,
-		.u8_number = 16
+		.kcp_name 	= "SPI_CHANNEL_SD_CARD_DATA_IN",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 16
 	},
 	[IO_PIN_ID_PA17] =
 	{
-		.kcp_name = "SPI_CHANNEL_SD_CARD_SS",
-		.group = IO_GROUP_A,
-		.u8_number = 17
+		.kcp_name 	= "SPI_CHANNEL_SD_CARD_SS",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 17
 	},
 	[IO_PIN_ID_PA18] =
 	{
-		.kcp_name = "SPI_CHANNEL_SD_CARD_DATA_OUT",
-		.group = IO_GROUP_A,
-		.u8_number = 18
+		.kcp_name 	= "SPI_CHANNEL_SD_CARD_DATA_OUT",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 18
 	},
 	[IO_PIN_ID_PA19] =
 	{
-		.kcp_name = "SPI_CHANNEL_SD_CARD_CLOCK",
-		.group = IO_GROUP_A,
-		.u8_number = 19
+		.kcp_name 	= "SPI_CHANNEL_SD_CARD_CLOCK",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 19
+	},
+	[IO_PIN_ID_PA20] =
+	{
+		.kcp_name 	= "LCD_CS",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 20
+	},
+	[IO_PIN_ID_PA21] =
+	{
+		.kcp_name 	= "PA21",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 21
 	},
 	[IO_PIN_ID_PA22] =
 	{
-		.kcp_name = "PA22",
-		.group = IO_GROUP_A,
-		.u8_number = 22
+		.kcp_name 	= "PA22",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 22
 	},
 	[IO_PIN_ID_PA23] =
 	{
-		.kcp_name = "PA23",
-		.group = IO_GROUP_A,
-		.u8_number = 23
+		.kcp_name 	= "PA23",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 23
 	},
 	[IO_PIN_ID_PA24] =
 	{
-		.kcp_name = "PA24",
-		.group = IO_GROUP_A,
-		.u8_number = 24
+		.kcp_name 	= "PA24",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 24
 	},
 	[IO_PIN_ID_PA25] =
 	{
-		.kcp_name = "PA25",
-		.group = IO_GROUP_A,
-		.u8_number = 25
+		.kcp_name 	= "PA25",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 25
 	},
 	[IO_PIN_ID_PA27] =
 	{
-		.kcp_name = "PA27",
-		.group = IO_GROUP_A,
-		.u8_number = 27
+		.kcp_name 	= "LCD_WR",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 27
 	},
 	[IO_PIN_ID_PA28] =
 	{
-		.kcp_name = "PA28",
-		.group = IO_GROUP_A,
-		.u8_number = 28
+		.kcp_name 	= "LCD_RD",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 28
 	},
 	[IO_PIN_ID_PA30] =
 	{
-		.kcp_name = "PA30",
-		.group = IO_GROUP_A,
-		.u8_number = 30
+		.kcp_name 	= "SWCLK",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 30
 	},
 	[IO_PIN_ID_PA31] =
 	{
-		.kcp_name = "PA31",
-		.group = IO_GROUP_A,
-		.u8_number = 31
+		.kcp_name 	= "SWDIO",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 31
 	},
+
+	/////
+
+	[IO_PIN_ID_PB00] =
+	{
+		.kcp_name 	= "LCD_DB2",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 0
+	},
+	[IO_PIN_ID_PB01] =
+	{
+		.kcp_name 	= "LCD_DB3",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 1
+	},
+	[IO_PIN_ID_PB02] =
+	{
+		.kcp_name 	= "LCD_DB4",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 2
+	},
+	[IO_PIN_ID_PB03] =
+	{
+		.kcp_name 	= "LCD_DB5",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 3
+	},
+	[IO_PIN_ID_PB04] =
+	{
+		.kcp_name 	= "LCD_DB10",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 4
+	},
+	[IO_PIN_ID_PB05] =
+	{
+		.kcp_name 	= "LCD_DB11",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 5
+	},
+	[IO_PIN_ID_PB06] =
+	{
+		.kcp_name 	= "LCD_DB12",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 6
+	},
+	[IO_PIN_ID_PB07] =
+	{
+		.kcp_name 	= "LCD_DB13",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 7
+	},
+	[IO_PIN_ID_PB08] =
+	{
+		.kcp_name 	= "LCD_DB14",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 8
+	},
+	[IO_PIN_ID_PB09] =
+	{
+		.kcp_name 	= "LCD_DB15",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 9
+	},
+	[IO_PIN_ID_PB10] =
+	{
+		.kcp_name 	= "LCD_IM2",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 10
+	},
+	[IO_PIN_ID_PB11] =
+	{
+		.kcp_name 	= "LCD_IM1",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 11
+	},
+	[IO_PIN_ID_PB12] =
+	{
+		.kcp_name 	= "LCD_IM0",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 12
+	},
+	[IO_PIN_ID_PB13] =
+	{
+		.kcp_name 	= "LCD_HSYNC",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 13
+	},
+	[IO_PIN_ID_PB14] =
+	{
+		.kcp_name 	= "LCD_VSYNC",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 14
+	},
+	[IO_PIN_ID_PB15] =
+	{
+		.kcp_name 	= "LCD_PCLK",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 15
+	},
+	[IO_PIN_ID_PB16] =
+	{
+		.kcp_name 	= "LCD_DE",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 16
+	},
+	[IO_PIN_ID_PB17] =
+	{
+		.kcp_name 	= "LCD_RESET",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 17
+	},
+	[IO_PIN_ID_PB22] =
+	{
+		.kcp_name 	= "USB_5V",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 22
+	},
+	[IO_PIN_ID_PB23] =
+	{
+		.kcp_name 	= "LCD_RS",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 23
+	},
+	[IO_PIN_ID_PB30] =
+	{
+		.kcp_name 	= "LCD_DB0",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 30
+	},
+	[IO_PIN_ID_PB31] =
+	{
+		.kcp_name 	= "LCD_DB1",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 31
+	}
 };
 
 /****************************************************************************************************
