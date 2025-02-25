@@ -10,6 +10,7 @@
 #include "spi.h"
 #include "sd.h"
 #include "app_fsm.h"
+#include "io.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -104,6 +105,9 @@ static const SHELL_command_t kp_spi_command_table[];
 
 // UART command tables
 static const SHELL_command_t kp_uart_command_table[];
+
+// IO command tables
+static const SHELL_command_t kp_io_command_table[];
 
 /**
  *	Top level commands
@@ -218,6 +222,12 @@ static const SHELL_command_t kp_command_table[] =
 		.kpc_name 			= "uart",
 		.function 			= NULL,
 		.kp_command_table 	= kp_uart_command_table,
+		.kpc_docstring		= NULL
+	},
+	{
+		.kpc_name 			= "io",
+		.function 			= NULL,
+		.kp_command_table 	= kp_io_command_table,
 		.kpc_docstring		= NULL
 	},
 	//////////
@@ -605,6 +615,24 @@ static const SHELL_command_t kp_uart_command_table[] =
 		.kpc_docstring		= 	(
 									"\tDisplays UART configuration\n"
 									"\tUsage: uart info\n"
+								)
+	},
+	//////////
+	SHELL_COMMAND_TABLE_END
+};
+
+/**
+ *	`io` commands
+ */
+static const SHELL_command_t kp_io_command_table[] =
+{
+	{
+		.kpc_name 			= "map",
+		.function 			= IO_shell_map,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tDisplays IO pin map\n"
+									"\tUsage: io map\n"
 								)
 	},
 	//////////
