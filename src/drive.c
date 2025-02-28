@@ -8,6 +8,7 @@
 #include "drive_payload.h"
 #include "spi.h"
 #include "fsif.h"
+#include "mempool.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -20,8 +21,9 @@
 
 typedef struct _DRIVE_file_slot
 {
-	file_t 	file;
-	bool 	b_in_use;
+	file_t 				file;
+	bool 				b_in_use;
+	DRIVE_file_handle_t file_handle;
 } DRIVE_file_slot_t;
 typedef struct _DRIVE_info
 {
@@ -45,10 +47,14 @@ static void 		DRIVE_handle_msg_erase_nvm		(ARCADIA_msg_t * p_msg);
 
 static void 		DRIVE_handle_msg_open_file		(ARCADIA_msg_t * p_msg);
 static void 		DRIVE_handle_msg_close_file		(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_msg_chdir			(ARCADIA_msg_t * p_msg);
 static void			DRIVE_handle_msg_fetch_fnames	(ARCADIA_msg_t * p_msg);
+static void			DRIVE_handle_msg_write			(ARCADIA_msg_t * p_msg);
+static void			DRIVE_handle_msg_read			(ARCADIA_msg_t * p_msg);
 
 static file_t * 	DRIVE_allocate_file				(int8_t * pi8_handle);
 static void 		DRIVE_free_file					(file_t * p_file);
+static file_t * 	DRIVE_handle_to_file_pointer	(file_handle_t file_handle);
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -70,6 +76,7 @@ void DRIVE_init(void)
 /****************************************************************************************************
  *	Top level task loop
  *
+ * 	@param[in] p_params Unused
  ****************************************************************************************************/
 void DRIVE_task(void * p_params)
 {
@@ -86,28 +93,6 @@ void DRIVE_task(void * p_params)
 		DRIVE_handle_message();
 		vPortYield();
 	}
-}
-
-file_t * DRIVE_index_to_file_pointer(uint8_t u8_index)
-{
-	if (u8_index >= DRIVE_MAX_OPEN_FILES || !DRIVE_info.file_pool[u8_index].b_in_use)
-	{
-		return NULL;
-	}
-	return &DRIVE_info.file_pool[u8_index].file;
-}
-
-int8_t DRIVE_file_pointer_to_index(file_t *p_file)
-{
-	for (uint8_t i = 0; i < DRIVE_MAX_OPEN_FILES; ++i)
-	{
-		if (&DRIVE_info.file_pool[i].file == p_file && DRIVE_info.file_pool[i].b_in_use)
-		{
-			return i;
-		}
-	}
-
-	return -1;
 }
 
 /****************************************************************************************************
@@ -148,8 +133,20 @@ static void DRIVE_handle_message(void)
 				DRIVE_handle_msg_close_file(&msg);
 				break;
 
+			case ARCADIA_MSG_ID_DRIVE_CHDIR:
+				DRIVE_handle_msg_chdir(&msg);
+				break;
+
 			case ARCADIA_MSG_ID_DRIVE_FETCH_FNAMES:
 				DRIVE_handle_msg_fetch_fnames(&msg);
+				break;
+
+			case ARCADIA_MSG_ID_DRIVE_WRITE:
+				DRIVE_handle_msg_write(&msg);
+				break;
+
+			case ARCADIA_MSG_ID_DRIVE_READ:
+				DRIVE_handle_msg_read(&msg);
 				break;
 			
 			default:
@@ -221,7 +218,6 @@ static void DRIVE_handle_msg_write_nvm(ARCADIA_msg_t * p_msg)
  * 	Erases a row at the provided address
  * 
  * 	@param[in] p_msg A pointer to the received message
- *
  ****************************************************************************************************/
 static void DRIVE_handle_msg_erase_nvm(ARCADIA_msg_t * p_msg)
 {
@@ -239,6 +235,16 @@ static void DRIVE_handle_msg_erase_nvm(ARCADIA_msg_t * p_msg)
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_erase_nvm.p_result_status);
 }
 
+/****************************************************************************************************
+ *	Blocking message handler for `ARCADIA_MSG_ID_DRIVE_OPEN_FILE`
+ *
+ * 	Attempts to open a file with the given filename and mode.
+ * 	Allocates a file handle and attempts to open the file using the specified mode.
+ * 	If successful, assigns the file pointer to the message payload.
+ * 	If unsuccessful, releases the allocated file structure.
+ * 
+ * 	@param[in] p_msg A pointer to the received message
+ ****************************************************************************************************/
 static void DRIVE_handle_msg_open_file(ARCADIA_msg_t * p_msg)
 {
 	const char * 	kpc_fname = p_msg->payload.drive_payload_open_file.kpc_fname;
@@ -246,42 +252,54 @@ static void DRIVE_handle_msg_open_file(ARCADIA_msg_t * p_msg)
 
 	ASSERT(i32_open_flag != FSIF_INVALID_OPEN_MODE);
 
-	int8_t 		i8_handle = -1;
-	file_t *	p_file = DRIVE_allocate_file(&i8_handle);
-	FRESULT		f_result = f_open(p_file, kpc_fname, i32_open_flag);
+	file_t * 	p_file = DRIVE_allocate_file(p_msg->payload.drive_payload_open_file.p_file_handle);
+	FRESULT		f_result;
 
-	if (FR_OK == f_result)
+	if (p_file)
 	{
-		p_msg->payload.drive_payload_open_file.p_file = p_file;
-		*p_msg->payload.drive_payload_open_file.p_result_status = ARCADIA_STATUS_OK;
-		DRIVE_LOG_DBG("Opened file \"%s\" with handle %d\n", kpc_fname, i8_handle);
+		f_result = f_open(p_file, kpc_fname, i32_open_flag);
+
+		if (FR_OK == f_result)
+		{
+			*p_msg->payload.drive_payload_open_file.p_result_status = ARCADIA_STATUS_OK;
+			DRIVE_LOG_DBG("Opened file \"%s\" with handle %d\n", kpc_fname, *p_msg->payload.drive_payload_open_file.p_file_handle);
+		}
+		else
+		{
+			DRIVE_LOG_WARN("Failed to open file (status: %u)\n", f_result);
+			*p_msg->payload.drive_payload_open_file.p_result_status = ARCADIA_STATUS_FAILED;
+		}
 	}
 	else
 	{
-		DRIVE_free_file(p_file);
-		DRIVE_LOG_WARN("Failed to open file (status: %u)\n", f_result);
+		DRIVE_LOG_WARN("Failed to allocate a file\n");
+		*p_msg->payload.drive_payload_open_file.p_result_status = ARCADIA_STATUS_FAILED;
 	}
-
+	
 	ARCADIA_semaphore_give(p_msg->semaphore);
 
 	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_open_file.p_result_status);
 }
 
+/****************************************************************************************************
+ *	Blocking message handler for `ARCADIA_MSG_ID_DRIVE_CLOSE_FILE`
+ *
+ * 	Closes an open file and returns the file resource to the pool.
+ * 
+ * 	@param[in] p_msg A pointer to the received message
+ ****************************************************************************************************/
 static void DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
 {
-	file_t * 	p_file = p_msg->payload.drive_payload_close_file.p_file;
-	int8_t 		i8_handle = DRIVE_file_pointer_to_index(p_file);
-	
-	ASSERT(i8_handle >= 0);
-	
-	FRESULT 	f_result = f_close(p_file);
+	file_handle_t 	file_handle = p_msg->payload.drive_payload_close_file.file_handle;
+	file_t * 		p_file = DRIVE_handle_to_file_pointer(file_handle);
+	FRESULT 		f_result = f_close(p_file);
 
 	if (FR_OK == f_result)
 	{
 		*p_msg->payload.drive_payload_close_file.p_result_status = ARCADIA_STATUS_OK;
 		DRIVE_free_file(p_file);
-		DRIVE_LOG_DBG("File %d closed\n", i8_handle);
+		DRIVE_LOG_DBG("File %d closed\n", file_handle);
 	}
 	else
 	{
@@ -294,6 +312,137 @@ static void DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_close_file.p_result_status);
 }
 
+/****************************************************************************************************
+ *	Blocking message handler for `ARCADIA_MSG_ID_DRIVE_WRITE`
+ *
+ *	Writes the provided data to the specified file.
+ *	Attempts to write the full length of the input string and verifies success by checking
+ *	the number of bytes written.
+ * 
+ *	@param[in] p_msg A pointer to the received message
+ ****************************************************************************************************/
+static void	DRIVE_handle_msg_write(ARCADIA_msg_t * p_msg)
+{
+	file_handle_t 		file_handle = p_msg->payload.drive_payload_close_file.file_handle;
+	file_t * 			p_file = DRIVE_handle_to_file_pointer(file_handle);
+	const char * 		kpc_data = p_msg->payload.drive_payload_write.kpc_data;
+	uint32_t			u32_bytes_to_write = strlen(kpc_data);
+	uint32_t			u32_bytes_written = 0;
+	MEMPOOL_buffer_t 	buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_256);
+
+	FRESULT f_result = f_write(p_file, kpc_data, u32_bytes_to_write, (UINT *)&u32_bytes_written);
+
+	if (FR_OK == f_result && u32_bytes_to_write == u32_bytes_written)
+	{
+		DRIVE_LOG_DBG("Wrote %u bytes to file\n", u32_bytes_written);
+		*p_msg->payload.drive_payload_write.p_result_status = ARCADIA_STATUS_OK;
+	}
+	else
+	{
+		DRIVE_LOG_WARN("Failed to write data to file (status: %u)\n", f_result);
+		*p_msg->payload.drive_payload_write.p_result_status = ARCADIA_STATUS_FAILED;
+	}
+
+	MEMPOOL_free(buffer);
+
+	ARCADIA_semaphore_give(p_msg->semaphore);
+
+	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
+			ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_write.p_result_status);
+}
+
+/****************************************************************************************************
+ *	Blocking message handler for `ARCADIA_MSG_ID_DRIVE_READ`
+ *
+ *	Reads data provided data to the specified file.
+ *	Attempts to write the full length of the input string and verifies success by checking
+ *	the number of bytes written.
+ * 
+ *	@param[in] p_msg A pointer to the received message
+ ****************************************************************************************************/
+static void	DRIVE_handle_msg_read(ARCADIA_msg_t * p_msg)
+{
+	file_handle_t 		file_handle = p_msg->payload.drive_payload_close_file.file_handle;
+	file_t * 			p_file = DRIVE_handle_to_file_pointer(file_handle);
+	char *		 		kpc_data = p_msg->payload.drive_payload_read.pc_data;
+	uint32_t			u32_bytes_to_read = p_msg->payload.drive_payload_read.u32_bytes_to_read;
+	uint32_t			u32_bytes_read = 0;
+
+	FRESULT f_result = f_read(p_file, kpc_data, u32_bytes_to_read, (UINT *)&u32_bytes_read);
+
+	if (FR_OK == f_result)
+	{
+		DRIVE_LOG_DBG("Read %u bytes from file\n", u32_bytes_read);
+		*p_msg->payload.drive_payload_read.p_result_status = ARCADIA_STATUS_OK;
+	}
+	else
+	{
+		DRIVE_LOG_WARN("Failed to read data from file (status: %u)\n", f_result);
+		*p_msg->payload.drive_payload_read.p_result_status = ARCADIA_STATUS_FAILED;
+	}
+
+	ARCADIA_semaphore_give(p_msg->semaphore);
+
+	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
+			ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_read.p_result_status);
+}
+
+/****************************************************************************************************
+ *	Blocking message handler for `ARCADIA_MSG_ID_DRIVE_CHDIR`
+ *
+ *	Attempts to change the current working directory to the provided path.
+ *	If successful, retrieves and logs the new working directory.
+ *
+ *	@param[in] p_msg A pointer to the received message
+ ****************************************************************************************************/
+static void	DRIVE_handle_msg_chdir(ARCADIA_msg_t * p_msg)
+{
+	const char * kpc_dirname = p_msg->payload.drive_payload_chdir.kpc_dirname;
+	MEMPOOL_buffer_t buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_512);
+
+	ASSERT(buffer);
+
+	FRESULT f_result = f_chdir(kpc_dirname);
+
+	if (FR_OK == f_result)
+	{
+		f_result = f_getcwd((TCHAR *)buffer, MEMPOOL_BUFFER_SIZE_512);
+
+		if (FR_OK == f_result)
+		{
+			DRIVE_LOG_DBG("Changed to directory: %s\n", (char *)buffer);
+		}
+		else
+		{
+			DRIVE_LOG_WARN("Couldn't retrieve current directory\n");
+		}
+
+		*p_msg->payload.drive_payload_chdir.p_result_status = ARCADIA_STATUS_OK;
+	}
+	else
+	{
+		DRIVE_LOG_WARN("Failed to change directory to %s (status: %u)\n", kpc_dirname, f_result);
+		*p_msg->payload.drive_payload_chdir.p_result_status = ARCADIA_STATUS_DIRECTORY_ERROR;
+	}
+
+	MEMPOOL_free(buffer);
+
+	ARCADIA_semaphore_give(p_msg->semaphore);
+
+	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
+			ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_chdir.p_result_status);
+}
+
+/****************************************************************************************************
+ *	Blocking message handler for `ARCADIA_MSG_ID_DRIVE_FETCH_FNAMES`
+ *
+ *	Searches for filenames matching a given filter.
+ *
+ * 	@todo
+ * 	Get this to work on any directory level
+ * 
+ *	@param[in] p_msg A pointer to the received message
+ ****************************************************************************************************/
 static void	DRIVE_handle_msg_fetch_fnames(ARCADIA_msg_t * p_msg)
 {
 	uint8_t * 		pu8_num_found = p_msg->payload.drive_payload_fetch_fnames.pu8_num_found;
@@ -323,20 +472,42 @@ static void	DRIVE_handle_msg_fetch_fnames(ARCADIA_msg_t * p_msg)
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_fetch_fnames.p_result_status);
 }
 
-static file_t * DRIVE_allocate_file(int8_t * pi8_handle)
+/****************************************************************************************************
+ *	Allocates an file from the file pool.
+ *
+ *	Searches for an unused file entry in the file pool and marks it as in use.
+ *	If an available entry is found, updates the provided handle and returns a pointer to the file.
+ *	If no available entry exists, returns NULL.
+ * 
+ *	@param[out] p_file_handle A pointer to store the allocated file handle index
+ *
+ *	@return A pointer to the allocated file structure, or NULL if no file is available
+ ****************************************************************************************************/
+static file_t * DRIVE_allocate_file(file_handle_t * p_file_handle)
 {
 	for (uint8_t i = 0; i < DRIVE_MAX_OPEN_FILES; ++i)
 	{
 		if (!DRIVE_info.file_pool[i].b_in_use)
 		{
-			*pi8_handle = i;
+			*p_file_handle = i;
 			DRIVE_info.file_pool[i].b_in_use = true;
 			return &DRIVE_info.file_pool[i].file;
 		}
 	}
+
+	*p_file_handle = FSIF_INVALID_FILE;
+
 	return NULL;
 }
 
+/****************************************************************************************************
+ *	Frees a previously allocated file structure.
+ *
+ *	Searches the file pool for the given file pointer and marks it as no longer in use.
+ *	If the file is found, it is freed for future allocations.
+ * 
+ *	@param[in] p_file A pointer to the file structure to be freed
+ ****************************************************************************************************/
 static void DRIVE_free_file(file_t *p_file)
 {
 	for (uint8_t i = 0; i < DRIVE_MAX_OPEN_FILES; ++i)
@@ -347,4 +518,23 @@ static void DRIVE_free_file(file_t *p_file)
 			return;
 		}
 	}
+}
+
+/****************************************************************************************************
+ *	Converts a file handle to a file pointer.
+ *
+ *	Looks up the file associated with a given file handle. If the handle is valid
+ *	and the file is in use, it returns a pointer to the corresponding file structure.
+ * 
+ *	@param[in] file_handle The file handle to be converted.
+ *	
+ *	@return A pointer to the corresponding file structure, or NULL if the handle is invalid.
+ ****************************************************************************************************/
+static file_t * DRIVE_handle_to_file_pointer(file_handle_t file_handle)
+{
+	if (file_handle >= DRIVE_MAX_OPEN_FILES || !DRIVE_info.file_pool[file_handle].b_in_use)
+	{
+		return NULL;
+	}
+	return &DRIVE_info.file_pool[file_handle].file;
 }

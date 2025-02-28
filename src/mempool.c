@@ -6,7 +6,6 @@
  ****************************************************************************************************/
 
 #define MEMPOOL_SIZE					(2048U)
-#define MEMPOOL_MINIMUM_BLOCK_SIZE		(256U)
 #define MEMPOOL_TOTAL_BLOCKS			(MEMPOOL_SIZE / MEMPOOL_MINIMUM_BLOCK_SIZE)
 
 #define MEMPOOL_semaphore_take() 		xSemaphoreTake(MEMPOOL_info.pool_mutex, portMAX_DELAY)

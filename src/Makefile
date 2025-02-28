@@ -68,7 +68,8 @@ APP_VPATH = 	main.c  \
 				json/json.c \
 				fsm/app_fsm.c \
 				fsm/menu_fsm.c \
-				fsm/story_fsm.c
+				fsm/story_fsm.c \
+				fsm/arcproject.c \
 
 # Matching .o files from APP_VPATH, and .o files from FreeRTOS and FatFs
 APP_OBJECTS = 	$(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(wildcard $(APP_VPATH)))) $(FREERTOS_OBJECTS) $(FATFS_OBJECTS)

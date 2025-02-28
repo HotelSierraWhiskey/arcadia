@@ -29,6 +29,9 @@ typedef enum _ARCADIA_msg_id
 	ARCADIA_MSG_ID_DRIVE_OPEN_FILE,
 	ARCADIA_MSG_ID_DRIVE_CLOSE_FILE,
 	ARCADIA_MSG_ID_DRIVE_FETCH_FNAMES,
+	ARCADIA_MSG_ID_DRIVE_CHDIR,
+	ARCADIA_MSG_ID_DRIVE_WRITE,
+	ARCADIA_MSG_ID_DRIVE_READ,
 
 	// CHRONO task messages
 	ARCADIA_MSG_ID_CHRONO_TIMER_ELAPSED,
@@ -47,6 +50,9 @@ typedef union _ARCADIA_payload
 	DRIVE_PAYLOAD_open_file_t				drive_payload_open_file;
 	DRIVE_PAYLOAD_close_file_t				drive_payload_close_file;
 	DRIVE_PAYLOAD_fetch_fnames_t			drive_payload_fetch_fnames;
+	DRIVE_PAYLOAD_chdir_t					drive_payload_chdir;
+	DRIVE_PAYLOAD_write_t					drive_payload_write;
+	DRIVE_PAYLOAD_read_t					drive_payload_read;
 
 	// CHRONO task payloads
 	CHRONO_PAYLOAD_timer_elapsed_t			chrono_payload_timer_elapsed;

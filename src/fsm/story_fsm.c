@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "mempool.h"
 #include "drive_api.h"
+#include "arcproject.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -17,7 +18,9 @@ typedef struct _STORY_FSM_info_
 {
 	MEMPOOL_buffer_t 	p_buffer;
 	file_t *			p_file;
-	char 				pc_fname[COMMON_MAX_FNAME_SIZE];
+	int32_t				i32_bookmark_node;
+	int32_t				i32_bookmark_page;
+	char 				pc_arcproject[COMMON_MAX_FNAME_SIZE];
 } STORY_FSM_info_t;
 
 /****************************************************************************************************
@@ -77,26 +80,85 @@ void STORY_FSM_handle_event(FSM_EVENT_t event)
 	}
 }
 
-void STORY_FSM_load_file(const char * kpc_fname)
+void STORY_FSM_load_arcproject(const char * kpc_arcproject)
 {
-	ASSERT(kpc_fname);
+	ASSERT(kpc_arcproject);
 
-	// ARCADIA_status_t status;
+	ARCADIA_status_t 	status;
+	file_handle_t		fh;
+	MEMPOOL_buffer_t	buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_256);
+	bool				b_result = false;
 
-	// strncpy(STORY_FSM_info.pc_fname, kpc_fname, COMMON_MAX_FNAME_SIZE);
+	ASSERT(buffer);
 
-	// status = DRIVE_API_open_file(STORY_FSM_info.p_file, STORY_FSM_info.pc_fname, "r");
+	strncpy(STORY_FSM_info.pc_arcproject, kpc_arcproject, COMMON_MAX_FNAME_SIZE);
 
-	// if (status != ARCADIA_STATUS_OK)
-	// {
-	// 	STORY_FSM_LOG_WARN("Unable to load %s (status: %u)\n", STORY_FSM_info.pc_fname, status);
-	// 	return;
-	// }
+	// Step into the arcproject
+	status = DRIVE_API_chdir(STORY_FSM_info.pc_arcproject);
 
-	// STORY_FSM_LOG_DBG("Loaded file: %s\n", STORY_FSM_info.pc_fname);
+	if (status != ARCADIA_STATUS_OK)
+	{
+		STORY_FSM_LOG_WARN("Failed to load %s (status: %u)\n", STORY_FSM_info.pc_arcproject, status);
+		return;
+	}
+
+	// Open the bookmark
+	status = DRIVE_API_open_file(&fh, ARCPROJECT_BOOKMARK_FILENAME, "r");
+
+	if (status != ARCADIA_STATUS_OK)
+	{
+		STORY_FSM_LOG_WARN("Failed to open bookmark for arcproject %s (status: %u)\n", STORY_FSM_info.pc_arcproject, status);
+		return;
+	}
+
+	if (FSIF_INVALID_FILE == fh)
+	{
+		// Read the bookmark into a JSON buffer
+		status = DRIVE_API_read(fh, buffer, MEMPOOL_BUFFER_SIZE_256);
+
+		if (status != ARCADIA_STATUS_OK)
+		{
+			STORY_FSM_LOG_WARN("Failed to read bookmark for arcproject %s (status: %u)\n", STORY_FSM_info.pc_arcproject, status);
+			return;
+		}
+
+		// Close to bookmark file
+		status = DRIVE_API_close_file(fh);
+		
+		if (status != ARCADIA_STATUS_OK)
+		{
+			STORY_FSM_LOG_WARN("Failed to close file %s (status: %u)\n", STORY_FSM_info.pc_arcproject, status);
+			return;
+		}
+
+		// Extract the node and page values
+		if (ARCPROJECT_bookmark_get_node(buffer, &STORY_FSM_info.i32_bookmark_node))
+		{
+			if (ARCPROJECT_bookmark_get_page(buffer, &STORY_FSM_info.i32_bookmark_page))
+			{
+				STORY_FSM_LOG_DBG("Loaded bookmark data (node: %d, page %d)\n",
+					STORY_FSM_info.i32_bookmark_node, STORY_FSM_info.i32_bookmark_page);
+				b_result = true;
+			}
+		}
+	}
+	else
+	{
+		STORY_FSM_LOG_WARN("Invalid file handle\n");
+		b_result = false;
+	}
+
+	if (b_result)
+	{
+		STORY_FSM_LOG_DBG("Loaded arcproject: %s\n", STORY_FSM_info.pc_arcproject);
+	}
+	else
+	{
+		STORY_FSM_LOG_WARN("Failed to load arcproject: %s\n", STORY_FSM_info.pc_arcproject);
+	}
 }
 
 static void STORY_FSM_advance(void)
 {
-
+	
 }
