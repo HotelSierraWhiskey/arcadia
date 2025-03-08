@@ -14,6 +14,7 @@
  */
 typedef enum _IO_pin_id
 {
+	// Port A
 	IO_PIN_ID_PA00 = 0,
 	IO_PIN_ID_PA01,
 	IO_PIN_ID_PA02,
@@ -26,20 +27,57 @@ typedef enum _IO_pin_id
 	IO_PIN_ID_PA09,
 	IO_PIN_ID_PA10,
 	IO_PIN_ID_PA11,
+	IO_PIN_ID_PA12,
+	IO_PIN_ID_PA13,
 	IO_PIN_ID_PA14,
 	IO_PIN_ID_PA15,
 	IO_PIN_ID_PA16,
 	IO_PIN_ID_PA17,
 	IO_PIN_ID_PA18,
 	IO_PIN_ID_PA19,
+	IO_PIN_ID_PA20,
+	IO_PIN_ID_PA21,
 	IO_PIN_ID_PA22,
 	IO_PIN_ID_PA23,
 	IO_PIN_ID_PA24,
 	IO_PIN_ID_PA25,
+	// no PA26
 	IO_PIN_ID_PA27,
 	IO_PIN_ID_PA28,
 	IO_PIN_ID_PA30,
 	IO_PIN_ID_PA31,
+	
+	// Port B
+	IO_PIN_ID_PB00,
+	IO_PIN_ID_PB01,
+	IO_PIN_ID_PB02,
+	IO_PIN_ID_PB03,
+	IO_PIN_ID_PB04,
+	IO_PIN_ID_PB05,
+	IO_PIN_ID_PB06,
+	IO_PIN_ID_PB07,
+	IO_PIN_ID_PB08,
+	IO_PIN_ID_PB09,
+	IO_PIN_ID_PB10,
+	IO_PIN_ID_PB11,
+	IO_PIN_ID_PB12,
+	IO_PIN_ID_PB13,
+	IO_PIN_ID_PB14,
+	IO_PIN_ID_PB15,
+	IO_PIN_ID_PB16,
+	IO_PIN_ID_PB17,
+	// no PB18
+	// no PB19
+	// no PB20
+	// no PB21
+	IO_PIN_ID_PB22,
+	IO_PIN_ID_PB23,
+	// no PB24,
+	// no PB25,
+	// no PB27,
+	// no PB28,
+	IO_PIN_ID_PB30,
+	IO_PIN_ID_PB31,
 	//////////
 	IO_PIN_ID_NUM_PINS
 } IO_pin_id_t;
@@ -103,5 +141,11 @@ void			IO_disable_pullup						(IO_pin_id_t pin_id);
 void			IO_enable_strong_drive_strength			(IO_pin_id_t pin_id);
 void			IO_disable_strong_drive_strength		(IO_pin_id_t pin_id);
 const char *	IO_get_pin_name							(IO_pin_id_t pin_id);
+
+/****************************************************************************************************
+ *	S H E L L   F U N C T I O N S
+ ****************************************************************************************************/
+
+uint8_t 		IO_shell_map							(uint8_t argc, char ** argv);
 
 #endif // IO_H

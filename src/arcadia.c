@@ -198,11 +198,24 @@ void NORETURN ARCADIA_start(void)
 	while(1);
 }
 
+/****************************************************************************************************
+ *  Idle task hook function
+ * 
+ *  This function is called when the system is idle.
+ * 
+ ****************************************************************************************************/
 void vApplicationIdleHook(void)
 {
     while(1);
 }
 
+/****************************************************************************************************
+ * 	Retrieves the task handle associated with a given task ID
+ *
+ * 	@param[in] task_id The ID of the task whose handle is requested.
+ *
+ * 	@return TaskHandle_t Handle to the task if found, otherwise NULL.
+ ****************************************************************************************************/
 TaskHandle_t ARCADIA_handle_from_id(ARCADIA_task_id_t task_id)
 {
 	ASSERT(task_id < ARCADIA_TASK_ID_NUM_IDS);
@@ -220,6 +233,11 @@ TaskHandle_t ARCADIA_handle_from_id(ARCADIA_task_id_t task_id)
 	return handle;
 }
 
+/****************************************************************************************************
+ *  Retrieves the task ID of the currently executing task
+ *
+ *  @return Task ID of the calling task
+ ****************************************************************************************************/
 ARCADIA_task_id_t ARCADIA_get_current_task_id(void)
 {
 	TaskHandle_t current_handle = xTaskGetCurrentTaskHandle();
@@ -237,16 +255,31 @@ ARCADIA_task_id_t ARCADIA_get_current_task_id(void)
 		}
 	}
 
+	// Something is very wrong if this trips
+	ASSERT(task_id != ARCADIA_TASK_ID_NUM_IDS);
+
 	return task_id;
 }
 
+/****************************************************************************************************
+ *  Sends a message to the specified task's message queue
+ *  
+ *  Ensures that the target task ID is within bounds and that the message pointer is valid.
+ *  If the target task is the SHELL task, it also notifies the task to wake it up from
+ *  `ulTaskNotifyTake`, ensuring it processes incoming messages immediately.
+ *
+ *  @param[in] task_id The ID of the task to send the message to.
+ *  @param[in] p_msg Pointer to the message to be sent.
+ *
+ *  @return `pdPASS` if the message was successfully added to the queue.
+ ****************************************************************************************************/
 uint32_t ARCADIA_send(ARCADIA_task_id_t task_id, ARCADIA_msg_t * p_msg)
 {
 	ASSERT(task_id < ARCADIA_TASK_ID_NUM_IDS);
 	ASSERT(p_msg);
 
-	// Notify SHELL task to unblock it from `ulTaskNotifyTake` (it's waiting on UART input or notifications).
-	// This ensures it processes inbound messages immediately.
+	// Notify SHELL to unblock from `ulTaskNotifyTake` (it's waiting on UART input or notifications).
+	// This ensures SHELL processes inbound messages immediately.
 	if (ARCADIA_TASK_ID_SHELL == task_id)
 	{
 		xTaskNotifyGive(rtos_tasks[ARCADIA_TASK_ID_SHELL].handle);
@@ -255,6 +288,14 @@ uint32_t ARCADIA_send(ARCADIA_task_id_t task_id, ARCADIA_msg_t * p_msg)
 	return (uint32_t)xQueueSend(rtos_tasks[task_id].queue_handle, (const void *)p_msg, portMAX_DELAY);
 }
 
+/****************************************************************************************************
+ *  Sends a message to the specified task's queue from ISR context
+ *
+ *	@param[in] task_id The ID of the task to send the message to.
+ *	@param[in] p_msg Pointer to the message to be sent.
+ *
+ *  @return `pdPASS` if the message was successfully added to the queue.
+ ****************************************************************************************************/
 uint32_t ARCADIA_send_from_isr(ARCADIA_task_id_t task_id, ARCADIA_msg_t * p_msg)
 {
 	ASSERT(task_id < ARCADIA_TASK_ID_NUM_IDS);
@@ -262,30 +303,70 @@ uint32_t ARCADIA_send_from_isr(ARCADIA_task_id_t task_id, ARCADIA_msg_t * p_msg)
 	return (uint32_t)xQueueSendFromISR(rtos_tasks[task_id].queue_handle, (const void *)p_msg, NULL);
 }
 
+/****************************************************************************************************
+ *	Receives a message from the current task's queue, blocking until a message is available.
+ *  
+ *	This function retrieves the message from the queue of the currently executing task.
+ *
+ *	@param[out] p_msg pointer to the message structure where the received data will be stored.
+ *
+ *	@return	`pdPASS` if a message was successfully received.
+ ****************************************************************************************************/
 uint32_t ARCADIA_receive(ARCADIA_msg_t * p_msg)
 {
 	ASSERT(p_msg);
 	return (uint32_t)xQueueReceive(rtos_tasks[ARCADIA_get_current_task_id()].queue_handle, (void * const)p_msg, portMAX_DELAY);
 }
 
+/****************************************************************************************************
+ *	Receives a message from the current task's queue without blocking.
+ *  
+ *	This function attempts to retrieve a message from the queue of the currently executing task.
+ *	If no message is available, it returns immediately.
+ *
+ *	@param[out] p_msg  Pointer to the message structure where the received data will be stored.
+ *
+ *	@return `pdPASS` if a message was successfully received, `errQUEUE_EMPTY` otherwise.
+ ****************************************************************************************************/
 uint32_t ARCADIA_receive_nb(ARCADIA_msg_t * p_msg)
 {
 	ASSERT(p_msg);
 	return (uint32_t)xQueueReceive(rtos_tasks[ARCADIA_get_current_task_id()].queue_handle, (void * const)p_msg, 0);
 }
 
+/****************************************************************************************************
+ *	Retrieves a task's stack size (in words)
+ *
+ *	@param[in] task_id The ID of the task whose stack size is requested.
+ *
+ *	@return The stack size of the specified task in words.
+ ****************************************************************************************************/
 uint32_t ARCADIA_get_task_stack_size_words(ARCADIA_task_id_t task_id)
 {
 	ASSERT(task_id < ARCADIA_TASK_ID_NUM_IDS);
 	return rtos_tasks[task_id].stack.u32_words;
 }
 
+/****************************************************************************************************
+ *  Retrieves the name of a specified task.
+ *
+ *  @param[in] task_id The ID of the task whose name is requested.
+ *
+ *  @return pointer to the name of the specified task.
+ ****************************************************************************************************/
 const char * ARCADIA_get_task_name(ARCADIA_task_id_t task_id)
 {
 	ASSERT(task_id < ARCADIA_TASK_ID_NUM_IDS);
 	return rtos_tasks[task_id].kpc_name;
 }
 
+/****************************************************************************************************
+ *  Retrieves the string representation of a message type.
+ *
+ *	@param[in] msg_id The ID of the message whose type is requested.
+ *
+ *  @return pointer to the message type descriptor string.
+ ****************************************************************************************************/
 const char * ARCADIA_get_msg_type(ARCADIA_msg_id_t msg_id)
 {
 	ASSERT(msg_id < ARCADIA_MSG_ID_NUM_IDS);
