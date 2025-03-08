@@ -155,8 +155,8 @@ typedef int8_t FOO_id_t;
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-void		FOO_init						(void);
-void		FOO_update						(FOO_id_t id);
+void		FOO_init			(void);
+void		FOO_update			(FOO_id_t id);
 
 #endif // FOO_H
 ```
