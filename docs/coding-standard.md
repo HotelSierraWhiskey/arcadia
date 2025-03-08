@@ -34,7 +34,7 @@ char c_current_char;
 ### Structs, Enums, and Unions
 
 Standalone (i.e. not nested) structs, enums, and unions are always typedef'd and prefixed with the name of their module in capital letters, and postfixed with "_t".
-They are also forward aliased with a leading underscore (and no "_t").
+They are also forward aliased with a leading underscore (and no "_t"). Members should be tab-aligned unless their types drastically vary in length.
 All typedefs should have an associated doxygen-style comment of reasonable length.
 Given a file vehicle.h, the following illustrates this convention for a struct:
 
@@ -57,7 +57,7 @@ VEHICLE_car_t car;
 ```
 
 If the instance is to be declcared and initialized, designated initializers are used,
-and their values should be tab-aligned.
+and their values should be tab-aligned (Really, this is at programmer's discretion, as the difference in length between member names can be excessive).
 
 ```c
 VEHICLE_car_t car =
@@ -126,4 +126,37 @@ Actual arrays of pointers need not follow the "multiple p" prefix rule. The foll
 
 ```c
 char * pc_names[IDENTIFIERS_NUM_NAMES];
+```
+
+### Module Organization
+
+Example foo.h:
+```c
+#ifndef FOO_H
+#define FOO_H
+
+#include "includes.h"
+
+/****************************************************************************************************
+ *	D E F I N E S   &   T Y P E D E F S
+ ****************************************************************************************************/
+
+/**
+ *	Value used for foo stuff
+ */
+#define FOO_VAL (100U)
+
+/**
+ *	A typedef for foo IDs
+ */
+typedef int8_t FOO_id_t;
+
+/****************************************************************************************************
+ *	F U N C T I O N S
+ ****************************************************************************************************/
+
+void		FOO_init						(void);
+void		FOO_update						(FOO_id_t id);
+
+#endif // FOO_H
 ```
