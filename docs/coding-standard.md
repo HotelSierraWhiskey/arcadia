@@ -122,7 +122,7 @@ char ** ppc_names = {"foo", "bar", "baz"};
 const char * kpc_part_number = "ATSAMC21E18A";
 ```
 
-Actual arrays of pointers need not follow the multiple "p" prefix rule. The following example is valid.
+Actual arrays of pointers need not follow the "multiple p" prefix rule. The following example is valid.
 
 ```c
 char * pc_names[IDENTIFIERS_NUM_NAMES];
