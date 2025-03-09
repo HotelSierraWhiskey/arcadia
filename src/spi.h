@@ -17,6 +17,9 @@ typedef enum _SPI_channel_id
 	SPI_CHANNEL_NUM_CHANNELS
 } SPI_channel_id_t;
 
+/**
+ *	Baud rate IDs
+ */
 typedef enum _SPI_baud_id
 {
 	SPI_BAUD_ID_400KHZ = 0,

@@ -33,8 +33,8 @@ uint32_t	NVMCTRL_get_addr_from_row_id	(const NVMCTRL_app_nvm_row_id_t k_row_id);
  *	S H E L L   F U N C T I O N S
  ****************************************************************************************************/
 
-uint8_t		NVMCTRL_shell_erase		(uint8_t argc, char ** argv);
-uint8_t		NVMCTRL_shell_read		(uint8_t argc, char ** argv);
-uint8_t		NVMCTRL_shell_write		(uint8_t argc, char ** argv);
+uint8_t		NVMCTRL_shell_erase				(uint8_t argc, char ** argv);
+uint8_t		NVMCTRL_shell_read				(uint8_t argc, char ** argv);
+uint8_t		NVMCTRL_shell_write				(uint8_t argc, char ** argv);
 
 #endif // NVMCTRL_H
