@@ -23,7 +23,7 @@
  *
  * 	Our vector table contains 155 of these. Those that are not strongly linked will be irqEMPTY_DEF
  */
-typedef void (* NVIC_irq_function_t)();
+typedef void (* NVIC_irq_function_t)(void);
 
 /**
  *	NVIC table struct typedef
@@ -39,6 +39,7 @@ typedef struct _NVIC_table_t
 /****************************************************************************************************
  *	F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
+
 NVIC_WEAK_IRQ(SysTick_Handler);
 NVIC_WEAK_IRQ(irqSYSTEM);
 NVIC_WEAK_IRQ(irqWDT);
@@ -188,15 +189,19 @@ void irqNMI()
  ****************************************************************************************************/
 void irqRESET()
 {
-	while(true)
+	while (1)
 	{
 		uint32_t *pu32_src = &u32_end_text;
 
 		for (uint32_t *pu32_dst = &u32_begin_data; pu32_dst < &u32_end_data; ++pu32_dst, ++pu32_src)
+		{
 			*pu32_dst = *pu32_src;
+		}
 
 		for (uint32_t *pu32_dst = &u32_begin_bss; pu32_dst < &u32_end_bss; ++pu32_dst)
+		{
 			*pu32_dst = 0;
+		}
 
 		main();
 	}
@@ -238,11 +243,11 @@ void irqHARD_FAULT(void)
 /****************************************************************************************************
  *	Newlib syscall stubs to make the compiler happy
  ****************************************************************************************************/
-int 		WEAKREF 	_close		(int file) { return -1; }
-int 		WEAKREF 	_fstat		(int file, struct stat *st) { return 0; }
-pid_t 		WEAKREF 	_getpid		(void) { return 1; }
-int 		WEAKREF 	_isatty		(int file) { return 1; }
-int 		WEAKREF 	_kill		(pid_t pid, int sig) { return -1; }
-off_t 		WEAKREF 	_lseek		(int file, off_t offset, int whence) { return -1; }
-ssize_t 	WEAKREF 	_read		(int file, void *ptr, size_t len) { return 0; }
+int 		WEAKREF 	_close		(int file) 								{ return -1; }
+int 		WEAKREF 	_fstat		(int file, struct stat *st) 			{ return 0; }
+pid_t 		WEAKREF 	_getpid		(void) 									{ return 1; }
+int 		WEAKREF 	_isatty		(int file) 								{ return 1; }
+int 		WEAKREF 	_kill		(pid_t pid, int sig) 					{ return -1; }
+off_t 		WEAKREF 	_lseek		(int file, off_t offset, int whence) 	{ return -1; }
+ssize_t 	WEAKREF 	_read		(int file, void *ptr, size_t len) 		{ return 0; }
 ssize_t 	WEAKREF 	_write		(int file, const void *ptr, size_t len) { return len; }
