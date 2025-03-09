@@ -52,7 +52,7 @@ static void			DRIVE_handle_msg_fetch_fnames	(ARCADIA_msg_t * p_msg);
 static void			DRIVE_handle_msg_write			(ARCADIA_msg_t * p_msg);
 static void			DRIVE_handle_msg_read			(ARCADIA_msg_t * p_msg);
 
-static file_t * 	DRIVE_allocate_file				(int8_t * pi8_handle);
+static file_t * 	DRIVE_allocate_file				(file_handle_t * p_file_handle);
 static void 		DRIVE_free_file					(file_t * p_file);
 static file_t * 	DRIVE_handle_to_file_pointer	(file_handle_t file_handle);
 
@@ -508,7 +508,7 @@ static file_t * DRIVE_allocate_file(file_handle_t * p_file_handle)
  * 
  *	@param[in] p_file A pointer to the file structure to be freed
  ****************************************************************************************************/
-static void DRIVE_free_file(file_t *p_file)
+static void DRIVE_free_file(file_t * p_file)
 {
 	for (uint8_t i = 0; i < DRIVE_MAX_OPEN_FILES; ++i)
 	{
