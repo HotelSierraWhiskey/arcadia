@@ -17,3 +17,13 @@ void DAC_init(void)
 		continue;
 	}
 }
+
+void DAC_write(uint16_t u16_data)
+{
+	DAC_REGS->DAC_DATABUF =  u16_data;
+
+	while (DAC_REGS->DAC_SYNCBUSY & DAC_SYNCBUSY_DATA(1))
+	{
+		continue;
+	}
+}
