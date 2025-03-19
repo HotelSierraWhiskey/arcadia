@@ -71,6 +71,7 @@
 		"arcproject.h": "c",
 		"mempool.h": "c",
 		"story_fsm.h": "c",
-		"inttypes.h": "c"
+		"inttypes.h": "c",
+		"dac.h": "c"
 	}
 }
