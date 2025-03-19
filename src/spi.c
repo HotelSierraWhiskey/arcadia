@@ -44,7 +44,9 @@ typedef struct _SPI_channel
  * 	@note
  * 	Supports one slave device per channel for now
  * 	SS is always manual
- * 
+ * 	
+ * 	@ref
+ * 	Datasheet page 541
  */
 static SPI_channel_t p_spi_channels[SPI_CHANNEL_NUM_CHANNELS] =
 {
@@ -56,6 +58,18 @@ static SPI_channel_t p_spi_channels[SPI_CHANNEL_NUM_CHANNELS] =
 		.data_in_pin			= IO_PIN_ID_PA16,
 		.clock_pin				= IO_PIN_ID_PA19,
 		.ss_pin					= IO_PIN_ID_PA17,
+		.dipo_setting			= 0x00,
+		.dopo_setting			= 0x01,
+		.peripheral_function 	= IO_PERIPHERAL_FUNCTION_C
+	},
+	[SPI_CHANNEL_DISPLAY] =
+	{
+		.kpc_name 				= "Display",
+		.sercom_channel_id 		= SERCOM_CHANNEL_ID_3,
+		.data_out_pin			= IO_PIN_ID_PA24,
+		.data_in_pin			= IO_PIN_ID_PA22,
+		.clock_pin				= IO_PIN_ID_PA25,
+		.ss_pin					= IO_PIN_ID_PA23,
 		.dipo_setting			= 0x00,
 		.dopo_setting			= 0x01,
 		.peripheral_function 	= IO_PERIPHERAL_FUNCTION_C
@@ -135,6 +149,16 @@ void SPI_init(SPI_channel_id_t channel_id)
 	}
 }
 
+/****************************************************************************************************
+ *	SPI baud rate configuration
+ *
+ * 	Changes the baud rate of the specified SPI channel.
+ * 	Disables the SPI peripheral before updating the baud rate and re-enables it after configuration.
+ *
+ * 	@param[in] channel_id The logical SPI channel whose baud rate is to be set
+ * 	@param[in] baud_id The baud rate identifier
+ *
+ ****************************************************************************************************/
 void SPI_set_baud(SPI_channel_id_t channel_id, SPI_baud_id_t baud_id)
 {
 	ASSERT(baud_id < SPI_BAUD_ID_NUM_IDS);

@@ -13,6 +13,7 @@
 typedef enum _SPI_channel_id
 {
 	SPI_CHANNEL_SD_CARD = 0,
+	SPI_CHANNEL_DISPLAY,
 	//////////
 	SPI_CHANNEL_NUM_CHANNELS
 } SPI_channel_id_t;
