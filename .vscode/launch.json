@@ -1,0 +1,25 @@
+{
+  "configurations": [
+	{
+		"cwd": "${workspaceFolder}",
+		"executable": "${workspaceFolder}/src/build/app.elf",
+		"name": "Attach Arcadia Debug",
+		"request": "attach",
+		"type": "cortex-debug",
+		"servertype": "jlink",
+		"serverpath": "/usr/bin/JLinkGDBServer",            
+		"armToolchainPath": "/opt/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/bin",  
+		"jlinkscript": "${workspaceFolder}/toochain/debug.jlink",
+		"device": "ATSAMC21E18",
+		"interface": "swd",
+		"serialNumber": "", 
+		"rtos": "FreeRTOS",
+		"showDevDebugOutput": "raw",
+		"postAttachCommands": [
+			"load",
+			"monitor reset",
+			"continue"
+	  ]
+	}
+  ]
+}

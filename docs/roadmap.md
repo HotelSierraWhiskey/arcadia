@@ -4,7 +4,7 @@
 
 This roadmap serves as a high-level progress tracker for Arcadia's firmware and hardware development, outlining the milestones leading up to version 1.0.0 (Closed Beta Testing). It is not intended as full system documentation but rather as an overview of key development phases, highlighting major features, hardware revisions, and architectural decisions.
 
-Each version milestone reflects incremental progress toward a stable and feature-complete firmware, ensuring that core systems are functional and ready to support further development. Hardware iterations are also tracked, from initial development on the Wonka Board to the Arcadia Prototype PCB Rev. A1.
+Each version milestone reflects incremental progress toward a stable and feature-complete firmware, ensuring that core systems are functional and ready to support further development. Hardware iterations are also tracked, from initial development on the Wonka Board to the Arcadia Prototype PCB Rev. A.
 
 The ultimate goal of this roadmap is to reach version 1.0.0, marking the transition to Closed Beta Testing, where Arcadia's hardware and firmware will be put into real-world user scenarios to validate stability, usability, and performance before wider release.
 
@@ -12,7 +12,7 @@ The ultimate goal of this roadmap is to reach version 1.0.0, marking the transit
 
 ### ☑️ version 0.6.0 - <i>App-specific Development II</i>
 <b>Hardware</b>:
-- Arcadia Prototype PCB Rev. A1
+- Arcadia Prototype PCB Rev. A
 - Enclosure development
 
 <b>New firmware features</b>:
@@ -21,9 +21,23 @@ The ultimate goal of this roadmap is to reach version 1.0.0, marking the transit
 
 ---
 
-### ☑️ version 0.5.0 - <i>Display Development</i>
+### ☑️ version 0.5.0 - <i>Rev. A Bring-up</i>
 <b>Hardware</b>:
-- Arcadia Prototype PCB Rev. A1
+- Arcadia Prototype PCB Rev. A smoke test & bringup, including validation of:
+	- Display validation
+	- SD bus mux/ protection
+	- Snap dome interfaces
+
+<b>New firmware features</b>:
+- 64 pin map support for ATSAMC21J18A
+- Basic firmware image validation
+- SD card detection
+
+---
+
+### ☑️ version 0.4.0 - <i>Display Development</i>
+<b>Hardware</b>:
+- Full-featured breadboard setup (SD module, display, pushbuttons, etc.)
 
 <b>New firmware features</b>:
 - RAM optimization
@@ -32,21 +46,8 @@ The ultimate goal of this roadmap is to reach version 1.0.0, marking the transit
 - Loadable character set(s)
 - Basic text advancing, wrapping
 - Menu behaviour validation on display
-
----
-
-### ☑️ version 0.4.0 - <i>Rev. A1 Bring-up</i>
-<b>Hardware</b>:
-- Arcadia Prototype PCB Rev. A1 smoke test & bringup, including validation of:
-	- LiPo Battery management
-	- Power selection
-	- SD bus mux/ protection
-	- Snap dome interfaces
-
-<b>New firmware features</b>:
-- 64 pin map support for ATSAMC21J18A
-- Basic firmware image validation
-- SD card detection
+- Button module
+- SD detection
 
 ---
 
