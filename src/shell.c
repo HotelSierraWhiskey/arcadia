@@ -599,6 +599,15 @@ static const SHELL_command_t kp_spi_command_table[] =
 									"\tUsage: spi write <channel_id> <num_bytes> <...>\n"
 								)
 	},
+	{
+		.kpc_name 			= "info",
+		.function 			= SPI_shell_info,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tDisplay logical SPI channel info\n"
+									"\tUsage: spi info\n"
+								)
+	},
 	//////////
 	SHELL_COMMAND_TABLE_END
 };

@@ -30,6 +30,7 @@ typedef struct _SPI_channel
 	// Populated during initialization (derived from `sercom_channel_id`)
 	IRQn_Type						_irq_index;
 	volatile sercom_registers_t	*	_p_sercom_registers;
+	bool 							_b_enabled;
 } SPI_channel_t;
 
 /****************************************************************************************************
@@ -96,6 +97,8 @@ void SPI_init(SPI_channel_id_t channel_id)
 	GCLK_REGS->GCLK_PCHCTRL[u8_PCHCTRL_register_index] = 	GCLK_PCHCTRL_CHEN(1) | 
 															GCLK_PCHCTRL_GEN_GCLK0;
 
+	p_channel->_b_enabled = false;
+
 	switch (p_channel->sercom_channel_id)
 	{
 		case SERCOM_CHANNEL_ID_0:
@@ -147,6 +150,8 @@ void SPI_init(SPI_channel_id_t channel_id)
 	{
 		continue;
 	}
+
+	p_channel->_b_enabled = true;
 }
 
 /****************************************************************************************************
@@ -314,6 +319,43 @@ uint8_t	SPI_shell_write(uint8_t argc, char ** argv)
 	else
 	{
 		SHELL_printf("Usage: spi write <channel_id> <num_bytes> <...>");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
+
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Display SPI logical channel info
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
+uint8_t	SPI_shell_info(uint8_t argc, char ** argv)
+{
+	if (argc == 0)
+	{
+		SHELL_SEPARATOR();
+
+		for (uint8_t i = 0; i < SPI_CHANNEL_NUM_CHANNELS; i++)
+		{
+			SHELL_printf("%-30s: %s\n", "Channel Name", p_spi_channels[i].kpc_name);
+			SHELL_printf("%-30s: %s\n", "Enabled", p_spi_channels[i]._b_enabled ? "Yes": "No");
+
+			if (i != (SPI_CHANNEL_NUM_CHANNELS - 1))
+			{
+				SHELL_printf("\n");
+			}
+		}
+
+		SHELL_SEPARATOR();
+	}
+	else
+	{
+		SHELL_printf("Usage: spi info\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;

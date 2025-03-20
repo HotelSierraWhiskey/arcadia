@@ -71,6 +71,7 @@ void DRIVE_init(void)
 
 	// Initialize SD card SPI channel
 	SPI_init(SPI_CHANNEL_SD_CARD);
+	SPI_init(SPI_CHANNEL_DISPLAY); // temp
 }
 
 /****************************************************************************************************

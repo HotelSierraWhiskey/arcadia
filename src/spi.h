@@ -45,5 +45,6 @@ void 		SPI_ss_pin_low		(SPI_channel_id_t channel_id);
  ****************************************************************************************************/
 
 uint8_t		SPI_shell_write		(uint8_t argc, char ** argv);
+uint8_t		SPI_shell_info		(uint8_t argc, char ** argv);
 
 #endif // SPI_H
