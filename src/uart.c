@@ -473,11 +473,17 @@ uint8_t UART_shell_info(uint8_t argc, char ** argv)
 		{
 			p_uart = &p_uart_channels[i];
 
-			SHELL_printf("%-30s: %s\r\n", "Channel Name", p_uart->kpc_name);
-			SHELL_printf("%-30s: %u\r\n", "Baud Rate",  kpu8_baud_descriptors[p_uart->baud_rate]);
-			SHELL_printf("%-30s: %s\r\n", "TX Pin", IO_get_pin_name(p_uart->tx_pin));
-			SHELL_printf("%-30s: %s\r\n", "RX Pin", IO_get_pin_name(p_uart->rx_pin));
+			SHELL_printf("%-20s: %s\r\n", "Channel Name", p_uart->kpc_name);
+			SHELL_printf("%-20s: %u\r\n", "Baud Rate",  kpu8_baud_descriptors[p_uart->baud_rate]);
+			SHELL_printf("%-20s: %s\r\n", "TX", IO_get_pin_string(p_uart->tx_pin));
+			SHELL_printf("%-20s: %s\r\n", "RX", IO_get_pin_string(p_uart->rx_pin));
+			
+			if (i != (UART_CHANNEL_NUM_CHANNELS - 1))
+			{
+				SHELL_printf("\n");
+			}
 		}
+
 
 		SHELL_SEPARATOR();
 	}

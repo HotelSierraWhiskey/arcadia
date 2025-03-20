@@ -342,8 +342,12 @@ uint8_t	SPI_shell_info(uint8_t argc, char ** argv)
 
 		for (uint8_t i = 0; i < SPI_CHANNEL_NUM_CHANNELS; i++)
 		{
-			SHELL_printf("%-30s: %s\n", "Channel Name", p_spi_channels[i].kpc_name);
-			SHELL_printf("%-30s: %s\n", "Enabled", p_spi_channels[i]._b_enabled ? "Yes": "No");
+			SHELL_printf("%-20s: %s\n", "Channel Name", p_spi_channels[i].kpc_name);
+			SHELL_printf("%-20s: %s\n", "Enabled", p_spi_channels[i]._b_enabled ? "Yes": "No");
+			SHELL_printf("%-20s: %s\n", "MOSI", IO_get_pin_string(p_spi_channels[i].data_out_pin));
+			SHELL_printf("%-20s: %s\n", "MISO", IO_get_pin_string(p_spi_channels[i].data_in_pin));
+			SHELL_printf("%-20s: %s\n", "SS", IO_get_pin_string(p_spi_channels[i].ss_pin));
+			SHELL_printf("%-20s: %s\n", "CLK", IO_get_pin_string(p_spi_channels[i].clock_pin));
 
 			if (i != (SPI_CHANNEL_NUM_CHANNELS - 1))
 			{

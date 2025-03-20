@@ -5,6 +5,8 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
+#define IO_PIN_STRING_DESCRIPTOR_SIZE (5U)
+
 /**
  *	An enumerated type for PORT groups
  */
@@ -12,6 +14,7 @@ typedef enum _IO_group
 {
 	IO_GROUP_A = 0,
 	IO_GROUP_B,
+	IO_GROUP_C,
 	//////////
 	IO_GROUP_NUM_GROUPS
 } IO_group_t;
@@ -22,6 +25,7 @@ typedef enum _IO_group
 typedef struct _IO_pin
 {
 	const char *	kpc_name;
+	char			pc_string[IO_PIN_STRING_DESCRIPTOR_SIZE];
 	IO_group_t		group;
 	uint8_t			u8_number;
 } IO_pin_t;
@@ -33,7 +37,7 @@ typedef struct _IO_pin
 /**
  *	Main application pin map
  */
-static const IO_pin_t pin_map[IO_PIN_ID_NUM_PINS] =
+static IO_pin_t p_pin_map[IO_PIN_ID_NUM_PINS] =
 {
 	// Port A
 
@@ -364,8 +368,40 @@ static const IO_pin_t pin_map[IO_PIN_ID_NUM_PINS] =
  ****************************************************************************************************/
 void IO_init(void)
 {
+	char * 	pc_string;
+	char 	c_port;
+
 	// Set the APB for the PORT peripheral
 	MCLK_REGS->MCLK_APBBMASK |= MCLK_APBBMASK_PORT(1);
+
+	for (uint8_t i = 0; i < IO_PIN_ID_NUM_PINS; i++)
+	{
+		switch (p_pin_map[i].group)
+		{
+			case IO_GROUP_A:
+			{
+				c_port = 'A';
+				break;
+			}
+			case IO_GROUP_B:
+			{
+				c_port = 'B';
+				break;
+			}
+			case IO_GROUP_C:
+			{
+				c_port = 'C';
+				break;
+			}
+			default:
+				c_port = 'X';
+		}
+
+		pc_string = p_pin_map[i].pc_string;
+
+		memset(pc_string, 0, IO_PIN_STRING_DESCRIPTOR_SIZE);
+		sprintf(pc_string, "P%c%02u", c_port, p_pin_map[i].u8_number);
+	}
 }
 
 /****************************************************************************************************
@@ -380,7 +416,7 @@ void IO_enable_peripheral_function_for_pin(IO_pin_id_t pin_id, IO_peripheral_fun
 	ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
 	ASSERT(peripheral_function < IO_PERIPHERAL_FUNCTION_NUM_FUNCTIONS);
 
-	IO_pin_t pin = pin_map[pin_id];
+	IO_pin_t pin = p_pin_map[pin_id];
 	bool b_odd = pin.u8_number & 1;
 	volatile uint8_t * u8_pmux_register = &PORT_REGS->GROUP[pin.group].PORT_PMUX[pin.u8_number / 2];
 
@@ -410,7 +446,7 @@ void IO_disable_peripheral_function_for_pin(IO_pin_id_t pin_id, IO_peripheral_fu
 	ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
 	ASSERT(peripheral_function < IO_PERIPHERAL_FUNCTION_NUM_FUNCTIONS);
 
-	IO_pin_t pin = pin_map[pin_id];
+	IO_pin_t pin = p_pin_map[pin_id];
 	bool b_odd = pin.u8_number & 1;
 	volatile uint8_t * u8_pmux_register = &PORT_REGS->GROUP[pin.group].PORT_PMUX[pin.u8_number / 2];
 
@@ -440,7 +476,7 @@ void IO_config_pin_direction(IO_pin_id_t pin_id, IO_pin_direction_t direction)
 	ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
 	ASSERT(direction < IO_DIRECTION_NUM_DIRECTIONS);
 
-	IO_pin_t pin = pin_map[pin_id];
+	IO_pin_t pin = p_pin_map[pin_id];
 
 	PORT_REGS->GROUP[pin.group].PORT_DIR |= direction << pin.u8_number;
 }
@@ -456,7 +492,7 @@ void IO_config_pin_direction(IO_pin_id_t pin_id, IO_pin_direction_t direction)
  ****************************************************************************************************/
 void IO_set_pin(IO_pin_id_t pin_id, IO_pin_state_t state)
 {
-	IO_pin_t pin = pin_map[pin_id];
+	IO_pin_t pin = p_pin_map[pin_id];
 
 	if (state == IO_PIN_STATE_HIGH)
 	{
@@ -479,7 +515,7 @@ void IO_set_pin(IO_pin_id_t pin_id, IO_pin_state_t state)
  ****************************************************************************************************/
 IO_pin_state_t IO_read_pin(IO_pin_id_t pin_id)
 {
-	IO_pin_t pin = pin_map[pin_id];
+	IO_pin_t pin = p_pin_map[pin_id];
 
 	return (IO_pin_state_t)PORT_REGS->GROUP[pin.group].PORT_IN & (1 << pin.u8_number);
 }
@@ -494,7 +530,7 @@ void IO_enable_pullup(IO_pin_id_t pin_id)
 {
 	ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
 
-	IO_pin_t pin = pin_map[pin_id];
+	IO_pin_t pin = p_pin_map[pin_id];
 
 	PORT_REGS->GROUP[pin.group].PORT_PINCFG[pin.u8_number] |= PORT_PINCFG_PULLEN(1);
 }
@@ -509,7 +545,7 @@ void IO_disable_pullup(IO_pin_id_t pin_id)
 {
 	ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
 
-	IO_pin_t pin = pin_map[pin_id];
+	IO_pin_t pin = p_pin_map[pin_id];
 
 	PORT_REGS->GROUP[pin.group].PORT_PINCFG[pin.u8_number] &= ~PORT_PINCFG_PULLEN(1);
 }
@@ -524,7 +560,7 @@ void IO_enable_strong_drive_strength(IO_pin_id_t pin_id)
 {
 	ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
 
-	IO_pin_t pin = pin_map[pin_id];
+	IO_pin_t pin = p_pin_map[pin_id];
 
 	PORT_REGS->GROUP[pin.group].PORT_PINCFG[pin.u8_number] |= PORT_PINCFG_DRVSTR(1);
 }
@@ -539,13 +575,13 @@ void IO_disable_strong_drive_strength(IO_pin_id_t pin_id)
 {
 	ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
 
-	IO_pin_t pin = pin_map[pin_id];
+	IO_pin_t pin = p_pin_map[pin_id];
 
 	PORT_REGS->GROUP[pin.group].PORT_PINCFG[pin.u8_number] &= ~PORT_PINCFG_DRVSTR(1);
 }
 
 /****************************************************************************************************
- *	Retrieves the string descriptor of the given pin according to its entry in the pin map
+ *	Retrieves the name of the given pin according to its entry in the pin map
  *  
  *	@param[in] pin_id The ID of the desired pin
  *
@@ -556,7 +592,22 @@ const char * IO_get_pin_name(IO_pin_id_t pin_id)
 {
 	ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
 
-	return pin_map[pin_id].kpc_name;
+	return p_pin_map[pin_id].kpc_name;
+}
+
+/****************************************************************************************************
+ *	Retrieves the string descriptor of the given pin according to its entry in the pin map
+ *  
+ *	@param[in] pin_id The ID of the desired pin
+ *
+ * 	@return The name of the pin
+ * 
+ ****************************************************************************************************/
+const char * IO_get_pin_string(IO_pin_id_t pin_id)
+{
+	ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
+
+	return p_pin_map[pin_id].pc_string;
 }
 
 /****************************************************************************************************
@@ -571,14 +622,11 @@ const char * IO_get_pin_name(IO_pin_id_t pin_id)
  ****************************************************************************************************/
 uint8_t	IO_shell_map(uint8_t argc, char ** argv)
 {
-	char c_group;
-
 	if (argc == 0)
 	{
 		for (uint32_t i = 0; i < IO_PIN_ID_NUM_PINS; i++)
 		{
-			c_group = pin_map[i].group == IO_GROUP_A ? 'A': 'B';
-			SHELL_printf("%u\tP%c%u\t%s\n", i + 1, c_group, pin_map[i].u8_number, pin_map[i].kpc_name);
+			SHELL_printf("%u\t%s\t%s\n", i + 1, p_pin_map[i].pc_string, p_pin_map[i].kpc_name);
 		}
 	}
 	else

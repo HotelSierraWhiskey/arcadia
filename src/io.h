@@ -141,6 +141,7 @@ void			IO_disable_pullup						(IO_pin_id_t pin_id);
 void			IO_enable_strong_drive_strength			(IO_pin_id_t pin_id);
 void			IO_disable_strong_drive_strength		(IO_pin_id_t pin_id);
 const char *	IO_get_pin_name							(IO_pin_id_t pin_id);
+const char * 	IO_get_pin_string						(IO_pin_id_t pin_id);
 
 /****************************************************************************************************
  *	S H E L L   F U N C T I O N S
