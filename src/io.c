@@ -73,7 +73,7 @@ static IO_pin_t p_pin_map[IO_PIN_ID_NUM_PINS] =
 	},
 	[IO_PIN_ID_PA05] =
 	{
-		.kpc_name 	= "LCD_DB17",
+		.kpc_name 	= "LCD_RESET",
 		.group 		= IO_GROUP_A,
 		.u8_number 	= 5
 	},

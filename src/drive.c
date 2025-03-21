@@ -9,6 +9,7 @@
 #include "spi.h"
 #include "fsif.h"
 #include "mempool.h"
+#include "pv035hv_cina5007.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -71,7 +72,6 @@ void DRIVE_init(void)
 
 	// Initialize SD card SPI channel
 	SPI_init(SPI_CHANNEL_SD_CARD);
-	SPI_init(SPI_CHANNEL_DISPLAY); // temp
 }
 
 /****************************************************************************************************
@@ -88,6 +88,9 @@ void DRIVE_task(void * p_params)
 		DRIVE_LOG_DBG("File system mounted (%s, %s)\n",
 			FSIF_get_volume_label(), FSIF_get_fat_subtype());
 	}
+
+	PV035HV_CINA5007_init(PV035HV_CINA5007_MODE_SPI);
+	DRIVE_LOG_DBG("Display initialized");
 
 	while (1)
 	{
