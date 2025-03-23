@@ -1,4 +1,4 @@
-#include "pv035hv_cina5007.h"
+#include "ili9488.h"
 #include "utils.h"
 #include "io.h"
 #include "spi.h"
@@ -8,8 +8,8 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define PV035HV_CINA5007_NRESET_PIN IO_PIN_ID_PA05
-#define PV035HV_CINA5007_RS_PIN IO_PIN_ID_PA04
+#define ILI9488_NRESET_PIN IO_PIN_ID_PA05
+#define ILI9488_RS_PIN IO_PIN_ID_PA04
 
 /* Level 1 Commands (from the display Datasheet) */
 #define ILI9488_CMD_NOP                             0x00
@@ -115,105 +115,168 @@
 #define get_24b_to_32b(x)           (((union_type*)&(x))->byte.byte_32)
 
 
-uint32_t PV035HV_CINA5007_get_chip_id(void);
-void PV035HV_CINA5007_set_cursor_position(uint16_t x, uint16_t y);
-void PV035HV_CINA5007_write_register(uint8_t u8_cmd, const uint8_t * kpu8_data, uint32_t u32_size);
-void PV035HV_CINA5007_set_window(uint16_t x, uint16_t y, uint16_t width, uint16_t height);
-void PV035HV_CINA5007_fill(uint16_t u16_color);
+typedef struct __attribute__((packed)) {
+	// Byte 3: D31–D24
+	uint8_t booster_on         : 1; // D31
+	uint8_t row_address_order  : 1; // D30
+	uint8_t col_address_order  : 1; // D29
+	uint8_t row_col_exchange   : 1; // D28
+	uint8_t vertical_refresh   : 1; // D27
+	uint8_t rgb_bgr_order      : 1; // D26
+	uint8_t horizontal_refresh : 1; // D25
+	uint8_t reserved0          : 1; // D24
 
+	// Byte 2: D23–D16
+	uint8_t reserved1          : 1; // D23
+	uint8_t pixel_format0      : 1; // D22
+	uint8_t pixel_format1      : 1; // D21
+	uint8_t pixel_format2      : 1; // D20
+	uint8_t idle_mode          : 1; // D19
+	uint8_t partial_mode       : 1; // D18
+	uint8_t sleep_out          : 1; // D17
+	uint8_t normal_mode        : 1; // D16
+
+	// Byte 1: D15–D8
+	uint8_t vertical_scroll    : 1; // D15
+	uint8_t reserved2          : 1; // D14
+	uint8_t inversion          : 1; // D13
+	uint8_t reserved3          : 2; // D12–D11
+	uint8_t display_on         : 1; // D10
+	uint8_t tearing_line       : 1; // D9
+	uint8_t gamma_curve        : 1; // D8 — LSB of gamma bits
+
+	// Byte 0: D7–D0
+	uint8_t gamma_curve1       : 1; // D7
+	uint8_t gamma_curve2       : 1; // D6
+	uint8_t tearing_mode       : 1; // D5
+	uint8_t reserved4          : 5; // D4–D0
+} ILI9488_status_t;
+
+
+uint32_t ILI9488_get_chip_id(void);
+void ILI9488_set_cursor_position(uint16_t x, uint16_t y);
+void ILI9488_write_register(uint8_t u8_cmd, const uint8_t * kpu8_data, uint32_t u32_size);
+void ILI9488_set_window(uint16_t x, uint16_t y, uint16_t width, uint16_t height);
+void ILI9488_fill(uint16_t u16_color);
+void ILI9488_read_display_status(void);
 
 /****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-void PV035HV_CINA5007_init(PV035HV_CINA5007_mode_t mode)
+void ILI9488_init(ILI9488_mode_t mode)
 {
-	ASSERT(mode < PV035HV_CINA5007_MODE_NUM_MODES);
+	ASSERT(mode < ILI9488_MODE_NUM_MODES);
 
 	uint8_t param;
+	UNUSED(param);
 
 	switch (mode)
 	{
-		case PV035HV_CINA5007_MODE_SPI:
+		case ILI9488_MODE_SPI:
 		{
-			IO_config_pin_direction(PV035HV_CINA5007_NRESET_PIN, IO_DIRECTION_OUTPUT);
-			IO_config_pin_direction(PV035HV_CINA5007_RS_PIN, IO_DIRECTION_OUTPUT);
+			// Initialize display SPI channel
+			SPI_init(SPI_CHANNEL_DISPLAY);
+
+			IO_config_pin_direction(ILI9488_NRESET_PIN, IO_DIRECTION_OUTPUT);
+			IO_config_pin_direction(ILI9488_RS_PIN, IO_DIRECTION_OUTPUT);
 
 			// Assert NRESET and stabilize
-			IO_set_pin(PV035HV_CINA5007_NRESET_PIN, IO_PIN_STATE_LOW);
+			IO_set_pin(ILI9488_NRESET_PIN, IO_PIN_STATE_LOW);
 			CHRONO_delay_ms(200);
 
 			// Deassert NRESET and stabilize
-			IO_set_pin(PV035HV_CINA5007_NRESET_PIN, IO_PIN_STATE_HIGH);
+			IO_set_pin(ILI9488_NRESET_PIN, IO_PIN_STATE_HIGH);
 			CHRONO_delay_ms(200);
 
-			SPI_init(SPI_CHANNEL_DISPLAY);
 
-
-
-			PV035HV_CINA5007_write_register(ILI9488_CMD_SOFTWARE_RESET, 0x0000, 0);
+			ILI9488_write_register(ILI9488_CMD_SOFTWARE_RESET, 0x0000, 0);
 			CHRONO_delay_ms(200);
 
-			PV035HV_CINA5007_write_register(ILI9488_CMD_SLEEP_OUT, 0x0000, 0);
+			ILI9488_write_register(ILI9488_CMD_SLEEP_OUT, 0x0000, 0);
 			CHRONO_delay_ms(250);
+
+			ILI9488_write_register(ILI9488_CMD_NORMAL_DISP_MODE_ON, 0, 0);
+			CHRONO_delay_ms(200);
+
+			ILI9488_write_register(ILI9488_CMD_DISPLAY_ON, 0, 0);
+			CHRONO_delay_ms(200);
+
+			// ILI9488_read_display_status();
 			
-
-
-			// /** make it tRGB and reverse the column order */
-			// param = 0x48;
-			// PV035HV_CINA5007_write_register(ILI9488_CMD_MEMORY_ACCESS_CONTROL, &param, 1);
-			// CHRONO_delay_ms(100);
-
-			// param = 0x04;
-			// PV035HV_CINA5007_write_register(ILI9488_CMD_CABC_CONTROL_9, &param, 1);
-			// CHRONO_delay_ms(100);
-
-			param = 0x05; // RGB565, 2 bytes/ pixel
-			PV035HV_CINA5007_write_register(ILI9488_CMD_COLMOD_PIXEL_FORMAT_SET, &param, 1);
-			CHRONO_delay_ms(100);
-
-			PV035HV_CINA5007_write_register(ILI9488_CMD_NORMAL_DISP_MODE_ON, 0, 0);
-			CHRONO_delay_ms(100);
-
-			PV035HV_CINA5007_write_register(ILI9488_CMD_DISPLAY_ON, 0, 0);
-			CHRONO_delay_ms(100);
-
-			PV035HV_CINA5007_fill(0xFEFE);
+			// param = 0x05;
+			// ILI9488_write_register(ILI9488_CMD_COLMOD_PIXEL_FORMAT_SET, &param, 1);
 
 			// param = 0x48;
-			// PV035HV_CINA5007_write_register(ILI9488_CMD_MEMORY_ACCESS_CONTROL, &param, 1);
-			// CHRONO_delay_ms(100);
+			// ILI9488_write_register(ILI9488_CMD_MEMORY_ACCESS_CONTROL, &param, 1);
 
-			// PV035HV_CINA5007_set_window(0, 0,320,480);
-			// PV035HV_CINA5007_fill(0x00FF00);
-			// PV035HV_CINA5007_set_cursor_position(0, 0);
+
+
+			ILI9488_write_register(ILI9488_CMD_PIXEL_ON, 0, 0);
+			// ILI9488_set_window(0, 0,320,480);
+			// ILI9488_set_cursor_position(0, 0);
+			// ILI9488_fill(0x00FF00);
+
 		}
 	}
 }
 
-void PV035HV_CINA5007_write_command(uint8_t u8_cmd)
+
+			// ILI9488_fill(0xFEFE);
+
+			// param = 0x48;
+			// ILI9488_write_register(ILI9488_CMD_MEMORY_ACCESS_CONTROL, &param, 1);
+			// CHRONO_delay_ms(100);
+
+
+			// /** make it tRGB and reverse the column order */
+			// param = 0x48;
+			// ILI9488_write_register(ILI9488_CMD_MEMORY_ACCESS_CONTROL, &param, 1);
+			// CHRONO_delay_ms(200);
+
+			// param = 0x04;
+			// ILI9488_write_register(ILI9488_CMD_CABC_CONTROL_9, &param, 1);
+			// CHRONO_delay_ms(200);
+
+
+
+
+			// param = 0x05; // RGB565, 2 bytes/ pixel
+			// ILI9488_write_register(ILI9488_CMD_COLMOD_PIXEL_FORMAT_SET, &param, 1);
+			// CHRONO_delay_ms(200);
+
+			// param = 0xFF;
+			// ILI9488_write_register(ILI9488_CMD_WRITE_DISPLAY_BRIGHTNESS, &param, 1);
+			// CHRONO_delay_ms(200);
+
+			// ILI9488_write_register(ILI9488_CMD_NORMAL_DISP_MODE_ON, 0, 0);
+			// CHRONO_delay_ms(200);
+
+void ILI9488_write_command(uint8_t u8_cmd)
 {
-	IO_set_pin(PV035HV_CINA5007_RS_PIN, IO_PIN_STATE_LOW); // Set D/C low for command
+	IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_LOW); // Set D/C low for command
 	SPI_transfer(SPI_CHANNEL_DISPLAY, u8_cmd);
+	CHRONO_delay_ms(10);
 }
 
-void PV035HV_CINA5007_write_data(uint8_t u8_data)
+void ILI9488_write_data(uint8_t u8_data)
 {
-	IO_set_pin(PV035HV_CINA5007_RS_PIN, IO_PIN_STATE_HIGH); // Set D/C high for data
+	IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_HIGH); // Set D/C high for data
 	SPI_transfer(SPI_CHANNEL_DISPLAY, u8_data);
+	CHRONO_delay_ms(10);
 }
 
-void PV035HV_CINA5007_write_register(uint8_t u8_cmd, const uint8_t * kpu8_data, uint32_t u32_size)
+void ILI9488_write_register(uint8_t u8_cmd, const uint8_t * kpu8_data, uint32_t u32_size)
 {
-	PV035HV_CINA5007_write_command(u8_cmd);
+	ILI9488_write_command(u8_cmd);
 
-	for (uint32_t i = 0; i < u32_size; ++i)
+	for (uint32_t i = 0; i < u32_size; i++)
 	{
-		PV035HV_CINA5007_write_data(kpu8_data[i]);
+		ILI9488_write_data(kpu8_data[i]);
 	}
 }
 
-void PV035HV_CINA5007_set_window(uint16_t x, uint16_t y, uint16_t width, uint16_t height)
+void ILI9488_set_window(uint16_t x, uint16_t y, uint16_t width, uint16_t height)
 {
 	uint16_t col_start  = x;
 	uint16_t col_end    = x + width - 1;
@@ -235,13 +298,13 @@ void PV035HV_CINA5007_set_window(uint16_t x, uint16_t y, uint16_t width, uint16_
 	};
 
 	// Set column address
-	PV035HV_CINA5007_write_register(0x2A, col_addr_data, 4); // ILI9488_CMD_COLUMN_ADDRESS_SET
+	ILI9488_write_register(0x2A, col_addr_data, 4); // ILI9488_CMD_COLUMN_ADDRESS_SET
 
 	// Set row (page) address
-	PV035HV_CINA5007_write_register(0x2B, row_addr_data, 4); // ILI9488_CMD_PAGE_ADDRESS_SET
+	ILI9488_write_register(0x2B, row_addr_data, 4); // ILI9488_CMD_PAGE_ADDRESS_SET
 }
 
-void PV035HV_CINA5007_set_cursor_position(uint16_t x, uint16_t y)
+void ILI9488_set_cursor_position(uint16_t x, uint16_t y)
 {
 	uint8_t col_data[4] = {
 		(uint8_t)(x >> 8),
@@ -258,22 +321,22 @@ void PV035HV_CINA5007_set_cursor_position(uint16_t x, uint16_t y)
 	};
 
 	// Set column address (X)
-	PV035HV_CINA5007_write_register(0x2A, col_data, 4);
+	ILI9488_write_register(0x2A, col_data, 4);
 
 	// Set row (page) address (Y)
-	PV035HV_CINA5007_write_register(0x2B, row_data, 4);
+	ILI9488_write_register(0x2B, row_data, 4);
 }
 
-uint32_t PV035HV_CINA5007_get_chip_id(void)
+uint32_t ILI9488_get_chip_id(void)
 {
 	uint8_t pu8_id_bytes[3] = {0};
 
 	// Set D/C LOW → command
-	IO_set_pin(PV035HV_CINA5007_RS_PIN, IO_PIN_STATE_LOW);
+	IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_LOW);
 	SPI_transfer(SPI_CHANNEL_DISPLAY, 0x04); // Read Display ID
 
 	// Set D/C HIGH → data (read phase)
-	IO_set_pin(PV035HV_CINA5007_RS_PIN, IO_PIN_STATE_HIGH);
+	IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_HIGH);
 
 	// Read 3 ID bytes (MISO response)
 	pu8_id_bytes[0] = SPI_transfer(SPI_CHANNEL_DISPLAY, 0x00); // dummy byte → gets response
@@ -287,17 +350,55 @@ uint32_t PV035HV_CINA5007_get_chip_id(void)
 }
 
 
-void PV035HV_CINA5007_fill(uint16_t u16_color)
+void ILI9488_fill(uint16_t u16_color)
 {
 	uint8_t u8_high = (u16_color >> 8) & 0xFF;
 	uint8_t u8_low = u16_color & 0xFF;
 
-	PV035HV_CINA5007_set_cursor_position(0, 0);
-	PV035HV_CINA5007_write_command(ILI9488_CMD_MEMORY_WRITE);
+	ILI9488_set_cursor_position(0, 0);
+	ILI9488_write_command(ILI9488_CMD_MEMORY_WRITE);
 
 	for (uint32_t i = 0; i < 320 * 480; i++)
 	{
-		PV035HV_CINA5007_write_data(u8_low);
-		PV035HV_CINA5007_write_data(u8_high);
+		ILI9488_write_data(u8_low);
+		ILI9488_write_data(u8_high);
+	}
+}
+
+void ILI9488_read_display_status(void)
+{
+	union {
+		uint32_t u32;
+		ILI9488_status_t status;
+	} status_u;
+
+	uint8_t *pu8_status = (uint8_t *)&status_u.u32;
+
+	ILI9488_write_register(ILI9488_CMD_READ_DISP_STATUS, 0, 0);
+
+	// Set D/C HIGH → data (read phase)
+	IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_HIGH);
+
+	SPI_transfer(SPI_CHANNEL_DISPLAY, 0x00); // dummy byte
+
+	// Read display status (D31 down to D0)
+	pu8_status[3] = SPI_transfer(SPI_CHANNEL_DISPLAY, 0x00); // D31–D24
+	pu8_status[2] = SPI_transfer(SPI_CHANNEL_DISPLAY, 0x00); // D23–D16
+	pu8_status[1] = SPI_transfer(SPI_CHANNEL_DISPLAY, 0x00); // D15–D8
+	pu8_status[0] = SPI_transfer(SPI_CHANNEL_DISPLAY, 0x00); // D7–D0
+
+	ILI9488_status_t *status = &status_u.status;
+
+	if (status->booster_on && status->display_on && status->sleep_out)
+	{
+		SHELL_printf("Display is ON and ready!\n");
+	}
+	else
+	{
+		SHELL_printf("Display is NOT ready:\n");
+		SHELL_printf("  booster:      %d\n", status->booster_on);
+		SHELL_printf("  display_on:   %d\n", status->display_on);
+		SHELL_printf("  sleep_out:    %d\n", status->sleep_out);
+		SHELL_printf("  normal_mode:  %d\n", status->normal_mode);
 	}
 }
