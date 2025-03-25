@@ -100,3 +100,7 @@ all:
 .PHONY:
 clean:
 	rm -rf *.o $(JSON_DIR)/*.o $(BUILD_DIR)
+
+.PHONY:
+gdb_server:
+	JLinkGDBServer -device ATSAMC21E18 -if SWD -speed 4000
