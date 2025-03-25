@@ -114,43 +114,48 @@
 #define get_16b_to_24b(x)           (((union_type*)&(x))->byte.byte_24)
 #define get_24b_to_32b(x)           (((union_type*)&(x))->byte.byte_32)
 
+typedef union PACKED _ILI9488_status
+{
+	struct _ILI9488_status_bits
+	{
+		// Byte 3: D31–D24
+		uint8_t booster_on         : 1; // D31
+		uint8_t row_address_order  : 1; // D30
+		uint8_t col_address_order  : 1; // D29
+		uint8_t row_col_exchange   : 1; // D28
+		uint8_t vertical_refresh   : 1; // D27
+		uint8_t rgb_bgr_order      : 1; // D26
+		uint8_t horizontal_refresh : 1; // D25
+		uint8_t reserved0          : 1; // D24
 
-typedef struct __attribute__((packed)) {
-	// Byte 3: D31–D24
-	uint8_t booster_on         : 1; // D31
-	uint8_t row_address_order  : 1; // D30
-	uint8_t col_address_order  : 1; // D29
-	uint8_t row_col_exchange   : 1; // D28
-	uint8_t vertical_refresh   : 1; // D27
-	uint8_t rgb_bgr_order      : 1; // D26
-	uint8_t horizontal_refresh : 1; // D25
-	uint8_t reserved0          : 1; // D24
+		// Byte 2: D23–D16
+		uint8_t reserved1          : 1; // D23
+		uint8_t pixel_format0      : 1; // D22
+		uint8_t pixel_format1      : 1; // D21
+		uint8_t pixel_format2      : 1; // D20
+		uint8_t idle_mode          : 1; // D19
+		uint8_t partial_mode       : 1; // D18
+		uint8_t sleep_out          : 1; // D17
+		uint8_t normal_mode        : 1; // D16
 
-	// Byte 2: D23–D16
-	uint8_t reserved1          : 1; // D23
-	uint8_t pixel_format0      : 1; // D22
-	uint8_t pixel_format1      : 1; // D21
-	uint8_t pixel_format2      : 1; // D20
-	uint8_t idle_mode          : 1; // D19
-	uint8_t partial_mode       : 1; // D18
-	uint8_t sleep_out          : 1; // D17
-	uint8_t normal_mode        : 1; // D16
+		// Byte 1: D15–D8
+		uint8_t vertical_scroll    : 1; // D15
+		uint8_t reserved2          : 1; // D14
+		uint8_t inversion          : 1; // D13
+		uint8_t reserved3          : 2; // D12–D11
+		uint8_t display_on         : 1; // D10
+		uint8_t tearing_line       : 1; // D9
+		uint8_t gamma_curve        : 1; // D8 — LSB of gamma bits
 
-	// Byte 1: D15–D8
-	uint8_t vertical_scroll    : 1; // D15
-	uint8_t reserved2          : 1; // D14
-	uint8_t inversion          : 1; // D13
-	uint8_t reserved3          : 2; // D12–D11
-	uint8_t display_on         : 1; // D10
-	uint8_t tearing_line       : 1; // D9
-	uint8_t gamma_curve        : 1; // D8 — LSB of gamma bits
-
-	// Byte 0: D7–D0
-	uint8_t gamma_curve1       : 1; // D7
-	uint8_t gamma_curve2       : 1; // D6
-	uint8_t tearing_mode       : 1; // D5
-	uint8_t reserved4          : 5; // D4–D0
+		// Byte 0: D7–D0
+		uint8_t gamma_curve1       : 1; // D7
+		uint8_t gamma_curve2       : 1; // D6
+		uint8_t tearing_mode       : 1; // D5
+		uint8_t reserved4          : 5; // D4–D0
+	} bits;
+	uint32_t u32_raw;
 } ILI9488_status_t;
+
 
 
 uint32_t ILI9488_get_chip_id(void);
@@ -199,24 +204,28 @@ void ILI9488_init(ILI9488_mode_t mode)
 			ILI9488_write_register(ILI9488_CMD_NORMAL_DISP_MODE_ON, 0, 0);
 			CHRONO_delay_ms(200);
 
-			ILI9488_write_register(ILI9488_CMD_DISPLAY_ON, 0, 0);
-			CHRONO_delay_ms(200);
-
-			// ILI9488_read_display_status();
+			// param = 0x04;
+			// ILI9488_write_register(ILI9488_CMD_CABC_CONTROL_9, &param, 1);
+			// CHRONO_delay_ms(200);
 			
 			// param = 0x05;
 			// ILI9488_write_register(ILI9488_CMD_COLMOD_PIXEL_FORMAT_SET, &param, 1);
+			// CHRONO_delay_ms(200);
 
 			// param = 0x48;
 			// ILI9488_write_register(ILI9488_CMD_MEMORY_ACCESS_CONTROL, &param, 1);
+			// CHRONO_delay_ms(200);
 
+			ILI9488_write_register(ILI9488_CMD_DISPLAY_ON, 0, 0); // 
+			CHRONO_delay_ms(200);
 
+			// ILI9488_write_register(ILI9488_CMD_PIXEL_ON, 0, 0);
 
-			ILI9488_write_register(ILI9488_CMD_PIXEL_ON, 0, 0);
-			// ILI9488_set_window(0, 0,320,480);
+			// ILI9488_set_window(0, 0, 320, 480);
 			// ILI9488_set_cursor_position(0, 0);
-			// ILI9488_fill(0x00FF00);
 
+			// ILI9488_fill(0x00FF00);
+			ILI9488_read_display_status();
 		}
 	}
 }
@@ -234,36 +243,27 @@ void ILI9488_init(ILI9488_mode_t mode)
 			// ILI9488_write_register(ILI9488_CMD_MEMORY_ACCESS_CONTROL, &param, 1);
 			// CHRONO_delay_ms(200);
 
-			// param = 0x04;
-			// ILI9488_write_register(ILI9488_CMD_CABC_CONTROL_9, &param, 1);
-			// CHRONO_delay_ms(200);
 
 
 
 
-			// param = 0x05; // RGB565, 2 bytes/ pixel
-			// ILI9488_write_register(ILI9488_CMD_COLMOD_PIXEL_FORMAT_SET, &param, 1);
-			// CHRONO_delay_ms(200);
+
 
 			// param = 0xFF;
 			// ILI9488_write_register(ILI9488_CMD_WRITE_DISPLAY_BRIGHTNESS, &param, 1);
 			// CHRONO_delay_ms(200);
 
-			// ILI9488_write_register(ILI9488_CMD_NORMAL_DISP_MODE_ON, 0, 0);
-			// CHRONO_delay_ms(200);
 
 void ILI9488_write_command(uint8_t u8_cmd)
 {
 	IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_LOW); // Set D/C low for command
 	SPI_transfer(SPI_CHANNEL_DISPLAY, u8_cmd);
-	CHRONO_delay_ms(10);
 }
 
 void ILI9488_write_data(uint8_t u8_data)
 {
 	IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_HIGH); // Set D/C high for data
 	SPI_transfer(SPI_CHANNEL_DISPLAY, u8_data);
-	CHRONO_delay_ms(10);
 }
 
 void ILI9488_write_register(uint8_t u8_cmd, const uint8_t * kpu8_data, uint32_t u32_size)
@@ -283,14 +283,16 @@ void ILI9488_set_window(uint16_t x, uint16_t y, uint16_t width, uint16_t height)
 	uint16_t row_start  = y;
 	uint16_t row_end    = y + height - 1;
 
-	uint8_t col_addr_data[4] = {
+	uint8_t col_addr_data[4] =
+	{
 		(uint8_t)(col_start >> 8),
 		(uint8_t)(col_start & 0xFF),
 		(uint8_t)(col_end >> 8),
 		(uint8_t)(col_end & 0xFF)
 	};
 
-	uint8_t row_addr_data[4] = {
+	uint8_t row_addr_data[4] =
+	{
 		(uint8_t)(row_start >> 8),
 		(uint8_t)(row_start & 0xFF),
 		(uint8_t)(row_end >> 8),
@@ -298,10 +300,12 @@ void ILI9488_set_window(uint16_t x, uint16_t y, uint16_t width, uint16_t height)
 	};
 
 	// Set column address
-	ILI9488_write_register(0x2A, col_addr_data, 4); // ILI9488_CMD_COLUMN_ADDRESS_SET
+	ILI9488_write_register(ILI9488_CMD_COLUMN_ADDRESS_SET, col_addr_data, 4);
+	CHRONO_delay_ms(120);
 
 	// Set row (page) address
-	ILI9488_write_register(0x2B, row_addr_data, 4); // ILI9488_CMD_PAGE_ADDRESS_SET
+	ILI9488_write_register(ILI9488_CMD_PAGE_ADDRESS_SET, row_addr_data, 4);
+	CHRONO_delay_ms(120);
 }
 
 void ILI9488_set_cursor_position(uint16_t x, uint16_t y)
@@ -367,38 +371,42 @@ void ILI9488_fill(uint16_t u16_color)
 
 void ILI9488_read_display_status(void)
 {
-	union {
-		uint32_t u32;
-		ILI9488_status_t status;
-	} status_u;
+	ILI9488_status_t status;
 
-	uint8_t *pu8_status = (uint8_t *)&status_u.u32;
+	uint8_t * pu8_status = &status.u32_raw;
 
 	ILI9488_write_register(ILI9488_CMD_READ_DISP_STATUS, 0, 0);
 
-	// Set D/C HIGH → data (read phase)
 	IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_HIGH);
 
 	SPI_transfer(SPI_CHANNEL_DISPLAY, 0x00); // dummy byte
 
 	// Read display status (D31 down to D0)
-	pu8_status[3] = SPI_transfer(SPI_CHANNEL_DISPLAY, 0x00); // D31–D24
-	pu8_status[2] = SPI_transfer(SPI_CHANNEL_DISPLAY, 0x00); // D23–D16
-	pu8_status[1] = SPI_transfer(SPI_CHANNEL_DISPLAY, 0x00); // D15–D8
-	pu8_status[0] = SPI_transfer(SPI_CHANNEL_DISPLAY, 0x00); // D7–D0
+	pu8_status[0] = SPI_transfer(SPI_CHANNEL_DISPLAY, 0x00); // D31–D24
+	pu8_status[1] = SPI_transfer(SPI_CHANNEL_DISPLAY, 0x00); // D23–D16
+	pu8_status[2] = SPI_transfer(SPI_CHANNEL_DISPLAY, 0x00); // D15–D8
+	pu8_status[3] = SPI_transfer(SPI_CHANNEL_DISPLAY, 0x00); // D7–D0
 
-	ILI9488_status_t *status = &status_u.status;
-
-	if (status->booster_on && status->display_on && status->sleep_out)
-	{
-		SHELL_printf("Display is ON and ready!\n");
-	}
-	else
-	{
-		SHELL_printf("Display is NOT ready:\n");
-		SHELL_printf("  booster:      %d\n", status->booster_on);
-		SHELL_printf("  display_on:   %d\n", status->display_on);
-		SHELL_printf("  sleep_out:    %d\n", status->sleep_out);
-		SHELL_printf("  normal_mode:  %d\n", status->normal_mode);
-	}
+	SHELL_printf("booster_on : %u\n", status.bits.booster_on);
+	SHELL_printf("row_address_order : %u\n", status.bits.row_address_order);
+	SHELL_printf("col_address_order : %u\n", status.bits.col_address_order);
+	SHELL_printf("row_col_exchange : %u\n", status.bits.row_col_exchange);
+	SHELL_printf("vertical_refresh : %u\n", status.bits.vertical_refresh);
+	SHELL_printf("rgb_bgr_order : %u\n", status.bits.rgb_bgr_order);
+	SHELL_printf("horizontal_refresh : %u\n", status.bits.horizontal_refresh);
+	SHELL_printf("pixel_format0 : %u\n", status.bits.pixel_format0);
+	SHELL_printf("pixel_format1 : %u\n", status.bits.pixel_format1);
+	SHELL_printf("pixel_format2 : %u\n", status.bits.pixel_format2);
+	SHELL_printf("idle_mode : %u\n", status.bits.idle_mode);
+	SHELL_printf("partial_mode : %u\n", status.bits.partial_mode);
+	SHELL_printf("sleep_out : %u\n", status.bits.sleep_out);
+	SHELL_printf("normal_mode : %u\n", status.bits.normal_mode);
+	SHELL_printf("vertical_scroll : %u\n", status.bits.vertical_scroll);
+	SHELL_printf("inversion : %u\n", status.bits.inversion);
+	SHELL_printf("display_on : %u\n", status.bits.display_on);
+	SHELL_printf("tearing_line : %u\n", status.bits.tearing_line);
+	SHELL_printf("gamma_curve : %u\n", status.bits.gamma_curve);
+	SHELL_printf("gamma_curve1 : %u\n", status.bits.gamma_curve1);
+	SHELL_printf("gamma_curve2 : %u\n", status.bits.gamma_curve2);
+	SHELL_printf("tearing_mode : %u\n", status.bits.tearing_mode);
 }
