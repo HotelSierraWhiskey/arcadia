@@ -195,64 +195,37 @@ void ILI9488_init(ILI9488_mode_t mode)
 			CHRONO_delay_ms(200);
 
 
-			ILI9488_write_register(ILI9488_CMD_SOFTWARE_RESET, 0x0000, 0);
-			CHRONO_delay_ms(200);
+			ILI9488_write_register(ILI9488_CMD_SOFTWARE_RESET, NULL, 0);
+			CHRONO_delay_ms(120);
 
-			ILI9488_write_register(ILI9488_CMD_SLEEP_OUT, 0x0000, 0);
-			CHRONO_delay_ms(250);
+			ILI9488_write_register(ILI9488_CMD_SLEEP_OUT, NULL, 0);
+			CHRONO_delay_ms(120);
 
-			ILI9488_write_register(ILI9488_CMD_NORMAL_DISP_MODE_ON, 0, 0);
-			CHRONO_delay_ms(200);
+			// Pixel format: 16-bit
+			param = 0x55;
+			ILI9488_write_register(ILI9488_CMD_COLMOD_PIXEL_FORMAT_SET, &param, 1);
+			CHRONO_delay_ms(10);
 
-			// param = 0x04;
-			// ILI9488_write_register(ILI9488_CMD_CABC_CONTROL_9, &param, 1);
-			// CHRONO_delay_ms(200);
-			
-			// param = 0x05;
-			// ILI9488_write_register(ILI9488_CMD_COLMOD_PIXEL_FORMAT_SET, &param, 1);
-			// CHRONO_delay_ms(200);
+			// Orientation
+			param = 0x48;
+			ILI9488_write_register(ILI9488_CMD_MEMORY_ACCESS_CONTROL, &param, 1);
+			CHRONO_delay_ms(10);
 
-			// param = 0x48;
-			// ILI9488_write_register(ILI9488_CMD_MEMORY_ACCESS_CONTROL, &param, 1);
-			// CHRONO_delay_ms(200);
+			// Optional brightness / CABC
+			param = 0x04;
+			ILI9488_write_register(ILI9488_CMD_CABC_CONTROL_9, &param, 1);
+			CHRONO_delay_ms(10);
 
-			ILI9488_write_register(ILI9488_CMD_DISPLAY_ON, 0, 0); // 
-			CHRONO_delay_ms(200);
+			// Display ON
+			ILI9488_write_register(ILI9488_CMD_DISPLAY_ON, NULL, 0);
+			CHRONO_delay_ms(100);
 
-			// ILI9488_write_register(ILI9488_CMD_PIXEL_ON, 0, 0);
-
-			// ILI9488_set_window(0, 0, 320, 480);
-			// ILI9488_set_cursor_position(0, 0);
-
-			// ILI9488_fill(0x00FF00);
 			ILI9488_read_display_status();
+
+			ILI9488_fill(0xF800); // RED
 		}
 	}
 }
-
-
-			// ILI9488_fill(0xFEFE);
-
-			// param = 0x48;
-			// ILI9488_write_register(ILI9488_CMD_MEMORY_ACCESS_CONTROL, &param, 1);
-			// CHRONO_delay_ms(100);
-
-
-			// /** make it tRGB and reverse the column order */
-			// param = 0x48;
-			// ILI9488_write_register(ILI9488_CMD_MEMORY_ACCESS_CONTROL, &param, 1);
-			// CHRONO_delay_ms(200);
-
-
-
-
-
-
-
-			// param = 0xFF;
-			// ILI9488_write_register(ILI9488_CMD_WRITE_DISPLAY_BRIGHTNESS, &param, 1);
-			// CHRONO_delay_ms(200);
-
 
 void ILI9488_write_command(uint8_t u8_cmd)
 {
@@ -266,14 +239,17 @@ void ILI9488_write_data(uint8_t u8_data)
 	SPI_transfer(SPI_CHANNEL_DISPLAY, u8_data);
 }
 
-void ILI9488_write_register(uint8_t u8_cmd, const uint8_t * kpu8_data, uint32_t u32_size)
+void ILI9488_write_register(uint8_t u8_cmd, const uint8_t *kpu8_data, uint32_t u32_size)
 {
-	ILI9488_write_command(u8_cmd);
+    ILI9488_write_command(u8_cmd);
 
-	for (uint32_t i = 0; i < u32_size; i++)
+    if (kpu8_data && u32_size > 0)
 	{
-		ILI9488_write_data(kpu8_data[i]);
-	}
+        for (uint32_t i = 0; i < u32_size; i++)
+		{
+            ILI9488_write_data(kpu8_data[i]);
+        }
+    }
 }
 
 void ILI9488_set_window(uint16_t x, uint16_t y, uint16_t width, uint16_t height)
