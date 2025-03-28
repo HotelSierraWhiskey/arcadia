@@ -19,7 +19,5 @@ typedef enum _ILI9488_mode
  ****************************************************************************************************/
 
 void        ILI9488_init       	(ILI9488_mode_t mode);
-void 		ILI9488_write_command	(uint8_t u8_cmd);
-void 		ILI9488_write_data		(uint8_t u8_data);
 
 #endif // ILI9488
