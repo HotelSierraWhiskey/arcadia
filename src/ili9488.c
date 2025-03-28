@@ -155,6 +155,13 @@ typedef union PACKED _ILI9488_status
 } ILI9488_status_t;
 
 
+#define ILI9488_DISPLAY_ON_MASK 			(1UL << (10UL - 1))
+#define ILI9488_SLEEP_OUT_MASK 				(1UL << (17UL - 1))
+#define ILI9488_IDLE_MODE_ON_MASK 			(1UL << (19UL - 1))
+#define ILI9488_INTERFACE_PIX_FMT_0_MASK 	(1UL << (20UL - 1))
+#define ILI9488_INTERFACE_PIX_FMT_1_MASK 	(1UL << (21UL - 1))
+#define ILI9488_INTERFACE_PIX_FMT_2_MASK 	(1UL << (22UL - 1))
+
 
 uint32_t ILI9488_get_chip_id(void);
 void ILI9488_set_cursor_position(uint16_t x, uint16_t y);
@@ -233,7 +240,6 @@ void ILI9488_init(ILI9488_mode_t mode)
 			// Display ON
 			ILI9488_write_command(ILI9488_CMD_DISPLAY_ON);
 			CHRONO_delay_ms(500);
-
 
 			// ILI9488_get_chip_id();
 			ILI9488_read_display_status();
@@ -422,8 +428,9 @@ uint32_t ILI9488_get_chip_id(void)
 
 void ILI9488_read_display_status(void)
 {
-	ILI9488_status_t status = {0};
-	uint8_t *pu8_status = (uint8_t *)&status.u32_raw;
+	// ILI9488_status_t status = {0};
+	uint32_t u32_status;
+	uint8_t * pu8_status = (uint8_t *)&u32_status;
 
 	// Begin full read transaction
 	IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_LOW);
@@ -443,27 +450,12 @@ void ILI9488_read_display_status(void)
 	pu8_status[0] = SPI_transfer(SPI_CHANNEL_DISPLAY, 0xFF); // D7–D0
 
 	IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_HIGH);
-	SHELL_printf("raw val : 0x%08lX\n", status.u32_raw);
-	SHELL_printf("booster_on : %u\n", status.bits.booster_on);
-	SHELL_printf("row_address_order : %u\n", status.bits.row_address_order);
-	SHELL_printf("col_address_order : %u\n", status.bits.col_address_order);
-	SHELL_printf("row_col_exchange : %u\n", status.bits.row_col_exchange);
-	SHELL_printf("vertical_refresh : %u\n", status.bits.vertical_refresh);
-	SHELL_printf("rgb_bgr_order : %u\n", status.bits.rgb_bgr_order);
-	SHELL_printf("horizontal_refresh : %u\n", status.bits.horizontal_refresh);
-	SHELL_printf("pixel_format0 : %u\n", status.bits.pixel_format0);
-	SHELL_printf("pixel_format1 : %u\n", status.bits.pixel_format1);
-	SHELL_printf("pixel_format2 : %u\n", status.bits.pixel_format2);
-	SHELL_printf("idle_mode : %u\n", status.bits.idle_mode);
-	SHELL_printf("partial_mode : %u\n", status.bits.partial_mode);
-	SHELL_printf("sleep_out : %u\n", status.bits.sleep_out);
-	SHELL_printf("normal_mode : %u\n", status.bits.normal_mode);
-	SHELL_printf("vertical_scroll : %u\n", status.bits.vertical_scroll);
-	SHELL_printf("inversion : %u\n", status.bits.inversion);
-	SHELL_printf("display_on : %u\n", status.bits.display_on);
-	SHELL_printf("tearing_line : %u\n", status.bits.tearing_line);
-	SHELL_printf("gamma_curve : %u\n", status.bits.gamma_curve);
-	SHELL_printf("gamma_curve1 : %u\n", status.bits.gamma_curve1);
-	SHELL_printf("gamma_curve2 : %u\n", status.bits.gamma_curve2);
-	SHELL_printf("tearing_mode : %u\n", status.bits.tearing_mode);
+
+	SHELL_printf("u32_status: 0x%08X\n", u32_status);
+	SHELL_printf("DISPLAY_ON: %u\n", u32_status & ILI9488_DISPLAY_ON_MASK ? 1: 0);
+	SHELL_printf("SLEEP_OUT: %u\n", u32_status & ILI9488_SLEEP_OUT_MASK ? 1: 0);
+	SHELL_printf("IDLE_MODE_ON: %u\n", u32_status & ILI9488_IDLE_MODE_ON_MASK ? 1: 0);
+	SHELL_printf("INTERFACE_PIX_FMT_0: %u\n", u32_status & ILI9488_INTERFACE_PIX_FMT_0_MASK ? 1: 0);
+	SHELL_printf("INTERFACE_PIX_FMT_1: %u\n", u32_status & ILI9488_INTERFACE_PIX_FMT_1_MASK ? 1: 0);
+	SHELL_printf("INTERFACE_PIX_FMT_2: %u\n", u32_status & ILI9488_INTERFACE_PIX_FMT_2_MASK ? 1: 0);
 }
