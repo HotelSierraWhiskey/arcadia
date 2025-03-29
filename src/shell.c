@@ -26,6 +26,11 @@
 #define SHELL_COMMAND_TABLE_END		{NULL, NULL, NULL, NULL}
 
 /**
+ *	ANSI esc sequence stuff
+ */
+#define SHELL_CLEAR_SCREEN			"\x1b[2J\x1b[H"
+
+/**
  *	Shell function pointer typedef
  */
 typedef uint8_t (* SHELL_function_t)(uint8_t argc, char ** argv);
@@ -63,6 +68,7 @@ static void 	SHELL_handle_command		(void);
 static void 	SHELL_help					(const SHELL_command_t * p_table);
 
 uint8_t 		SHELL_shell_help			(uint8_t argc, char ** argv);
+uint8_t			SHELL_shell_clear			(uint8_t argc, char ** argv);
 
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
@@ -122,6 +128,14 @@ static const SHELL_command_t kp_command_table[] =
 									"\tDumps the contents of a file\n"
 									"\tUsage: cat <fname>\n"
 								),
+	},
+	{
+		.kpc_name 			= "clear",
+		.function 			= SHELL_shell_clear,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		=	(
+									"\tClears the terminal\n"
+								)
 	},
 	{
 		.kpc_name 			= "cd",
@@ -992,8 +1006,33 @@ void SHELL_display_banner(void)
  ****************************************************************************************************/
 uint8_t SHELL_shell_help(uint8_t argc, char ** argv)
 {
+	UNUSED(argc);
+	UNUSED(argv);
+
 	// Just issue help on the top-level command table
 	SHELL_help(kp_command_table);
 
+	return SHELL_COMMAND_SUCCESS;
+}
+
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Clears the terminal
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
+uint8_t SHELL_shell_clear(uint8_t argc, char ** argv)
+{
+	UNUSED(argv);
+
+	if (argc == 0)
+	{
+		SHELL_printf(SHELL_CLEAR_SCREEN);
+	}
+	
 	return SHELL_COMMAND_SUCCESS;
 }
