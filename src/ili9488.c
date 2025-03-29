@@ -12,6 +12,8 @@
 #define ILI9488_RS_PIN 		IO_PIN_ID_PA04
 #define ILI9488_CSX_PIN 	IO_PIN_ID_PA03
 
+#define ILI9488_DISPLAY_HEIGHT 						(480U)
+#define ILI9488_DISPLAY_WIDTH 						(320U)
 
 /* Level 1 Commands (from the display Datasheet) */
 #define ILI9488_CMD_NOP                             0x00
@@ -111,56 +113,18 @@
 #define ILI9488_CMD_ADJUST_CONTROL_6                0xFC
 #define ILI9488_CMD_ADJUST_CONTROL_7                0xFF
 
-#define get_0b_to_8b(x)             (((union_type*)&(x))->byte.byte_8)
-#define get_8b_to_16b(x)            (((union_type*)&(x))->byte.byte_l6)
-#define get_16b_to_24b(x)           (((union_type*)&(x))->byte.byte_24)
-#define get_24b_to_32b(x)           (((union_type*)&(x))->byte.byte_32)
-
-typedef union PACKED _ILI9488_status
-{
-	struct _ILI9488_status_bits
-	{
-		uint32_t reserved4          : 5; // D0–D4
-		uint32_t tearing_mode       : 1; // D5
-		uint32_t gamma_curve2       : 1; // D6
-		uint32_t gamma_curve1       : 1; // D7
-
-		uint32_t gamma_curve        : 1; // D8
-		uint32_t tearing_line       : 1; // D9
-		uint32_t display_on         : 1; // D10
-		uint32_t reserved3          : 2; // D11–D12
-		uint32_t inversion          : 1; // D13
-		uint32_t reserved2          : 1; // D14
-		uint32_t vertical_scroll    : 1; // D15
-
-		uint32_t normal_mode        : 1; // D16
-		uint32_t sleep_out          : 1; // D17
-		uint32_t partial_mode       : 1; // D18
-		uint32_t idle_mode          : 1; // D19
-		uint32_t pixel_format2      : 1; // D20
-		uint32_t pixel_format1      : 1; // D21
-		uint32_t pixel_format0      : 1; // D22
-		uint32_t reserved1          : 1; // D23
-
-		uint32_t reserved0          : 1; // D24
-		uint32_t horizontal_refresh : 1; // D25
-		uint32_t rgb_bgr_order      : 1; // D26
-		uint32_t vertical_refresh   : 1; // D27
-		uint32_t row_col_exchange   : 1; // D28
-		uint32_t col_address_order  : 1; // D29
-		uint32_t row_address_order  : 1; // D30
-		uint32_t booster_on         : 1; // D31
-	} bits;
-	uint32_t u32_raw;
-} ILI9488_status_t;
 
 
 #define ILI9488_DISPLAY_ON_MASK 			(1UL << (10UL - 1))
+#define ILI9488_INVERSION_ON_MASK 			(1UL << (13UL - 1))
 #define ILI9488_SLEEP_OUT_MASK 				(1UL << (17UL - 1))
 #define ILI9488_IDLE_MODE_ON_MASK 			(1UL << (19UL - 1))
 #define ILI9488_INTERFACE_PIX_FMT_0_MASK 	(1UL << (20UL - 1))
 #define ILI9488_INTERFACE_PIX_FMT_1_MASK 	(1UL << (21UL - 1))
 #define ILI9488_INTERFACE_PIX_FMT_2_MASK 	(1UL << (22UL - 1))
+#define ILI9488_ROW_COL_EXCHANGE_MASK 		(1UL << (28UL - 1))
+#define ILI9488_COL_ADDRESS_ORDER_MASK 		(1UL << (29UL - 1))
+
 
 
 uint32_t ILI9488_get_chip_id(void);
@@ -175,8 +139,10 @@ void ILI9488_write_command_raw(uint8_t cmd);
 void ILI9488_fill_one_pixel(uint16_t u16_color);
 void ILI9488_write_pixel_rgb888(uint8_t r, uint8_t g, uint8_t b);
 
-void ILI9488_write_command(uint8_t u8_cmd);
-void ILI9488_write_data(const uint8_t * ku8_data, uint32_t u32_size);
+static void ILI9488_write_command(uint8_t u8_cmd);
+static void ILI9488_write_data(const uint8_t * ku8_data, uint32_t u32_size);
+static void ILI9488_read_display_madctrl(void);
+static void ILI9488_read_display_colmod(void);
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -193,7 +159,6 @@ void ILI9488_init(ILI9488_mode_t mode)
 	{
 		case ILI9488_MODE_SPI:
 		{
-			// Initialize display SPI channel
 			SPI_init(SPI_CHANNEL_DISPLAY);
 
 			IO_config_pin_direction(ILI9488_NRESET_PIN, IO_DIRECTION_OUTPUT);
@@ -210,20 +175,24 @@ void ILI9488_init(ILI9488_mode_t mode)
 			IO_set_pin(ILI9488_NRESET_PIN, IO_PIN_STATE_HIGH);
 			CHRONO_delay_ms(200);
 
+			// Hold CS line low
+			IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_LOW);
+
 			ILI9488_write_command(ILI9488_CMD_SOFTWARE_RESET);
 			CHRONO_delay_ms(200);
 
 			ILI9488_write_command(ILI9488_CMD_SLEEP_OUT);
 			CHRONO_delay_ms(200);
 
-			// Pixel format
+			// RGB888 (this is the only mode SPI supports afaik)
 			param = 0x06;
 			ILI9488_write_command(ILI9488_CMD_COLMOD_PIXEL_FORMAT_SET);
 			ILI9488_write_data(&param, 1);
 			CHRONO_delay_ms(200);
 
 			// Orientation
-			param = 0x48;
+			param = 0x48; // landscape
+			// param = 0xE8; // portrait
 			ILI9488_write_command(ILI9488_CMD_MEMORY_ACCESS_CONTROL);
 			ILI9488_write_data(&param, 1);
 			CHRONO_delay_ms(200);
@@ -242,28 +211,31 @@ void ILI9488_init(ILI9488_mode_t mode)
 			ILI9488_write_command(ILI9488_CMD_DISPLAY_ON);
 			CHRONO_delay_ms(200);
 
-			ILI9488_set_window(0, 0, 1, 1);
-			ILI9488_write_pixel_rgb888(0xFF, 0x00, 0x00); // red
+			// ILI9488_set_window(0, 0, ILI9488_DISPLAY_WIDTH, ILI9488_DISPLAY_HEIGHT);
 
-			CHRONO_delay_ms(200);
+			// // panel fill (w * h * bit depth = 460800 in RGB888....)
+			// for (uint8_t i = 0; i < ILI9488_DISPLAY_WIDTH * ILI9488_DISPLAY_HEIGHT; i++) 
+			// {
+			// 	ILI9488_write_pixel_rgb888(0xFF, 0x00, 0x00);
+			// }
 
 			ILI9488_read_display_status();
-			CHRONO_delay_ms(200);
-
+			ILI9488_read_display_madctrl();
+			ILI9488_read_display_colmod();
 		}
 	}
 }
 
-void ILI9488_write_command(uint8_t u8_cmd)
+static void ILI9488_write_command(uint8_t u8_cmd)
 {
 	IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_LOW); // Set D/C low for command
-	IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_LOW);
+	// IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_LOW);
 	SPI_transfer(SPI_CHANNEL_DISPLAY, u8_cmd);
 	// IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_HIGH); // Reset RS
-	IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_HIGH);
+	// IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_HIGH);
 }
 
-void ILI9488_write_data(const uint8_t * ku8_data, uint32_t u32_size)
+static void ILI9488_write_data(const uint8_t * ku8_data, uint32_t u32_size)
 {
 	if (0 == u32_size)
 	{
@@ -271,7 +243,7 @@ void ILI9488_write_data(const uint8_t * ku8_data, uint32_t u32_size)
 	}
 
 	IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_HIGH); // Set D/C high for data
-	IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_LOW);
+	// IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_LOW);
 
 	for (uint32_t i = 0; i < u32_size; i++)
 	{
@@ -279,7 +251,7 @@ void ILI9488_write_data(const uint8_t * ku8_data, uint32_t u32_size)
 	}
 
 	// IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_LOW); // Set D/C high for data
-	IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_HIGH);
+	// IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_HIGH);
 }
 
 void ILI9488_set_window(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
@@ -312,13 +284,13 @@ void ILI9488_write_pixel_rgb888(uint8_t r, uint8_t g, uint8_t b)
 	ILI9488_write_data(pixel, 3);
 }
 
+
 void ILI9488_read_display_status(void)
 {
-	// ILI9488_status_t status = {0};
 	uint32_t u32_status;
 	uint8_t * pu8_status = (uint8_t *)&u32_status;
 
-	IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_LOW);
+	// IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_LOW);
 
 	IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_LOW);
 	SPI_transfer(SPI_CHANNEL_DISPLAY, ILI9488_CMD_READ_DISP_STATUS);
@@ -332,13 +304,49 @@ void ILI9488_read_display_status(void)
 	pu8_status[1] = SPI_transfer(SPI_CHANNEL_DISPLAY, 0xFF); // D15–D8
 	pu8_status[0] = SPI_transfer(SPI_CHANNEL_DISPLAY, 0xFF); // D7–D0
 
-	IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_HIGH);
+	// IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_HIGH);
 
 	SHELL_printf("u32_status: 0x%08X\n", u32_status);
 	SHELL_printf("DISPLAY_ON: %u\n", u32_status & ILI9488_DISPLAY_ON_MASK ? 1: 0);
+	SHELL_printf("INVERSION_ON: %u\n", u32_status & ILI9488_INVERSION_ON_MASK ? 1: 0);
 	SHELL_printf("SLEEP_OUT: %u\n", u32_status & ILI9488_SLEEP_OUT_MASK ? 1: 0);
 	SHELL_printf("IDLE_MODE_ON: %u\n", u32_status & ILI9488_IDLE_MODE_ON_MASK ? 1: 0);
 	SHELL_printf("INTERFACE_PIX_FMT_0: %u\n", u32_status & ILI9488_INTERFACE_PIX_FMT_0_MASK ? 1: 0);
 	SHELL_printf("INTERFACE_PIX_FMT_1: %u\n", u32_status & ILI9488_INTERFACE_PIX_FMT_1_MASK ? 1: 0);
 	SHELL_printf("INTERFACE_PIX_FMT_2: %u\n", u32_status & ILI9488_INTERFACE_PIX_FMT_2_MASK ? 1: 0);
+	SHELL_printf("ROW_COL_EXCHANGE: %u\n", u32_status & ILI9488_ROW_COL_EXCHANGE_MASK ? 1: 0);
+	SHELL_printf("COL_ADDRESS_ORDER: %u\n", u32_status & ILI9488_COL_ADDRESS_ORDER_MASK ? 1: 0);
+}
+
+// fair enough
+static void ILI9488_read_display_madctrl(void)
+{
+	uint8_t u8_data;
+
+	ILI9488_write_command(ILI9488_CMD_READ_DISP_MADCTRL);
+
+	IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_HIGH);
+
+	SPI_transfer(SPI_CHANNEL_DISPLAY, 0xFF); // Dummy
+
+	u8_data = SPI_transfer(SPI_CHANNEL_DISPLAY, 0xFF);
+
+	SHELL_printf("MADCTRL (raw): %u\n", u8_data);
+}
+
+static void ILI9488_read_display_colmod(void)
+{
+	uint8_t u8_data;
+
+	ILI9488_write_command(ILI9488_CMD_READ_DISP_PIXEL_FORMAT);
+
+	IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_HIGH);
+
+	u8_data = SPI_transfer(SPI_CHANNEL_DISPLAY, 0xFF); // dummy
+
+	SHELL_printf("COLMOD (raw): %u\n", u8_data);
+
+	u8_data = SPI_transfer(SPI_CHANNEL_DISPLAY, 0xFF);
+
+	SHELL_printf("COLMOD (raw): %u\n", u8_data);
 }
