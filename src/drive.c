@@ -90,7 +90,7 @@ void DRIVE_task(void * p_params)
 	}
 
 	ILI9488_init(ILI9488_MODE_SPI);
-	DRIVE_LOG_DBG("Display initialized");
+	DRIVE_LOG_DBG("Display initialized\n");
 
 	while (1)
 	{

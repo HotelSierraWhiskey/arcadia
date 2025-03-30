@@ -115,25 +115,22 @@
 
 
 
-#define ILI9488_DISPLAY_ON_MASK 			(1UL << (10UL - 1))
-#define ILI9488_INVERSION_ON_MASK 			(1UL << (13UL - 1))
-#define ILI9488_SLEEP_OUT_MASK 				(1UL << (17UL - 1))
-#define ILI9488_IDLE_MODE_ON_MASK 			(1UL << (19UL - 1))
-#define ILI9488_INTERFACE_PIX_FMT_0_MASK 	(1UL << (20UL - 1))
-#define ILI9488_INTERFACE_PIX_FMT_1_MASK 	(1UL << (21UL - 1))
-#define ILI9488_INTERFACE_PIX_FMT_2_MASK 	(1UL << (22UL - 1))
-#define ILI9488_ROW_COL_EXCHANGE_MASK 		(1UL << (28UL - 1))
-#define ILI9488_COL_ADDRESS_ORDER_MASK 		(1UL << (29UL - 1))
+#define ILI9488_DISPLAY_ON_MASK 					(1UL << (10UL - 1))
+#define ILI9488_INVERSION_ON_MASK 					(1UL << (13UL - 1))
+#define ILI9488_SLEEP_OUT_MASK 						(1UL << (17UL - 1))
+#define ILI9488_IDLE_MODE_ON_MASK 					(1UL << (19UL - 1))
+#define ILI9488_INTERFACE_PIX_FMT_0_MASK 			(1UL << (20UL - 1))
+#define ILI9488_INTERFACE_PIX_FMT_1_MASK 			(1UL << (21UL - 1))
+#define ILI9488_INTERFACE_PIX_FMT_2_MASK 			(1UL << (22UL - 1))
+#define ILI9488_ROW_COL_EXCHANGE_MASK 				(1UL << (28UL - 1))
+#define ILI9488_COL_ADDRESS_ORDER_MASK 				(1UL << (29UL - 1))
+
+#define ILI9488_ROW_ADDRESS_ORDER_MASK 				(1UL << (30UL - 1))
+#define ILI9488_BOOSTER_ON_MASK 					(1UL << (31UL - 1))
 
 
-
-uint32_t ILI9488_get_chip_id(void);
-void ILI9488_set_cursor_position(uint16_t x, uint16_t y);
-void ILI9488_write_register(uint8_t u8_cmd, const uint8_t * kpu8_data, uint32_t u32_size);
 void ILI9488_set_window(uint16_t x, uint16_t y, uint16_t width, uint16_t height);
-void ILI9488_fill(uint16_t u16_color);
 void ILI9488_read_display_status(void);
-
 
 void ILI9488_write_command_raw(uint8_t cmd);
 void ILI9488_fill_one_pixel(uint16_t u16_color);
@@ -181,15 +178,15 @@ void ILI9488_init(ILI9488_mode_t mode)
 			ILI9488_write_command(ILI9488_CMD_SLEEP_OUT);
 			CHRONO_delay_ms(200);
 
-			// RGB888 (this is the only mode SPI supports afaik)
-			param = 0x06;
-			ILI9488_write_command(ILI9488_CMD_COLMOD_PIXEL_FORMAT_SET);
+
+			param = 0x06; // 18 bit
+			ILI9488_write_command(ILI9488_CMD_COLMOD_PIXEL_FORMAT_SET);  // p.122
 			ILI9488_write_data(&param, 1);
 			CHRONO_delay_ms(200);
 
 			// Orientation
-			param = 0x48; // landscape
-			// param = 0xE8; // portrait
+			// param = 0x48; // landscape
+			param = 0xE8; // portrait
 			ILI9488_write_command(ILI9488_CMD_MEMORY_ACCESS_CONTROL);
 			ILI9488_write_data(&param, 1);
 			CHRONO_delay_ms(200);
@@ -208,30 +205,53 @@ void ILI9488_init(ILI9488_mode_t mode)
 			ILI9488_write_command(ILI9488_CMD_DISPLAY_ON);
 			CHRONO_delay_ms(200);
 
-			ILI9488_set_window(0, 0, ILI9488_DISPLAY_WIDTH, ILI9488_DISPLAY_HEIGHT);
 
-			// panel fill (w * h * bit depth = 460800 in RGB888....)
-			// for (uint8_t i = 0; i < ILI9488_DISPLAY_WIDTH * ILI9488_DISPLAY_HEIGHT; i++)
-			for (uint8_t i = 0; i < 20; i++)
+			// Display ON
+			ILI9488_write_command(ILI9488_CMD_PIXEL_ON);
+			CHRONO_delay_ms(200);
+
+			param = 0;
+			ILI9488_write_command(ILI9488_CMD_INTERFACE_MODE_CONTROL);
+			ILI9488_write_data(&param, 1);
+			CHRONO_delay_ms(200);
+
+			// Set column
+			ILI9488_write_command(ILI9488_CMD_COLUMN_ADDRESS_SET);
+			uint8_t col_param[] = {0x00, 0x00, 0x00, 0x09}; // cols 0-9
+			ILI9488_write_data(col_param, 4);
+			ILI9488_write_command(ILI9488_CMD_NOP);
+
+			// Set row
+			ILI9488_write_command(ILI9488_CMD_PAGE_ADDRESS_SET);
+			uint8_t row_param[] = {0x00, 0x00, 0x00, 0x09}; // rows 0-9
+			ILI9488_write_data(row_param, 4);
+			ILI9488_write_command(ILI9488_CMD_NOP);
+
+			// Memory write (0x2C)
+			ILI9488_write_command(ILI9488_CMD_MEMORY_WRITE);
+
+			IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_HIGH);
+			IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_LOW);
+
+			for (uint8_t i = 0; i < 38; i++)
 			{
-				ILI9488_write_pixel_rgb888(0xFF, 0x00, 0x00);
+				SPI_transfer(SPI_CHANNEL_DISPLAY, 0xFF); // packed RGB111 white
 			}
 
+			ILI9488_write_command(ILI9488_CMD_NOP);
+			IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_HIGH);
+
+			ILI9488_read_display_status();
 			ILI9488_read_display_madctrl();
 			ILI9488_read_display_colmod();
-			ILI9488_read_display_status();
 		}
 	}
 }
 
 static void ILI9488_write_command(uint8_t u8_cmd)
-{
-	IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_LOW);
-	IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_LOW); // Set D/C low for command
-	// IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_LOW);
+{	
+	IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_LOW);
 	SPI_transfer(SPI_CHANNEL_DISPLAY, u8_cmd);
-	// IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_HIGH); // Reset RS
-	// IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_HIGH);
 }
 
 static void ILI9488_write_data(const uint8_t * ku8_data, uint32_t u32_size)
@@ -242,16 +262,12 @@ static void ILI9488_write_data(const uint8_t * ku8_data, uint32_t u32_size)
 	}
 
 	IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_LOW);
-	IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_HIGH); // Set D/C high for data
+	IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_HIGH);
 
 	for (uint32_t i = 0; i < u32_size; i++)
 	{
 		SPI_transfer(SPI_CHANNEL_DISPLAY, ku8_data[i]);
 	}
-
-	// IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_LOW); // Set D/C high for data
-	// IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_LOW); // Set D/C low for command
-	// IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_HIGH);
 }
 
 void ILI9488_set_window(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
@@ -263,19 +279,18 @@ void ILI9488_set_window(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 	data[1] = x & 0xFF;
 	data[2] = (x + w - 1) >> 8;
 	data[3] = (x + w - 1) & 0xFF;
-	ILI9488_write_command(0x2A);
+	ILI9488_write_command(ILI9488_CMD_COLUMN_ADDRESS_SET);
 	ILI9488_write_data(data, 4);
+	ILI9488_write_command(ILI9488_CMD_NOP);
 
 	// Set row/page address (0x2B)
 	data[0] = y >> 8;
 	data[1] = y & 0xFF;
 	data[2] = (y + h - 1) >> 8;
 	data[3] = (y + h - 1) & 0xFF;
-	ILI9488_write_command(0x2B);
+	ILI9488_write_command(ILI9488_CMD_PAGE_ADDRESS_SET);
 	ILI9488_write_data(data, 4);
-
-	// Memory write (0x2C)
-	ILI9488_write_command(0x2C);
+	ILI9488_write_command(ILI9488_CMD_NOP);
 }
 
 void ILI9488_write_pixel_rgb888(uint8_t r, uint8_t g, uint8_t b)
@@ -327,7 +342,6 @@ static void ILI9488_read_display_madctrl(void)
 	IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_LOW);
 	IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_HIGH);
 
-	// SPI_transfer(SPI_CHANNEL_DISPLAY, 0xFF); // Dummy byte (ignored)
 	u8_data = SPI_transfer(SPI_CHANNEL_DISPLAY, 0xFF);
 	IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_HIGH);
 
@@ -343,11 +357,9 @@ static void ILI9488_read_display_colmod(void)
 	IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_LOW);
 	IO_set_pin(ILI9488_RS_PIN, IO_PIN_STATE_HIGH);
 
-	// SPI_transfer(SPI_CHANNEL_DISPLAY, 0xFF); // Dummy byte (ignored)
 	u8_data = SPI_transfer(SPI_CHANNEL_DISPLAY, 0xFF);
 
 	IO_set_pin(ILI9488_CSX_PIN, IO_PIN_STATE_HIGH);
 
 	SHELL_printf("COLMOD (raw): 0x%02X\n", u8_data);
 }
-
