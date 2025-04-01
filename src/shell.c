@@ -11,6 +11,7 @@
 #include "sd.h"
 #include "app_fsm.h"
 #include "io.h"
+#include "dac.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -115,6 +116,9 @@ static const SHELL_command_t kp_uart_command_table[];
 // IO command tables
 static const SHELL_command_t kp_io_command_table[];
 
+// DAC command tables
+static const SHELL_command_t kp_dac_command_table[];
+
 /**
  *	Top level commands
  */
@@ -150,6 +154,12 @@ static const SHELL_command_t kp_command_table[] =
 		.kpc_name 			= "chrono",
 		.function 			= NULL,
 		.kp_command_table 	= kp_chrono_command_table,
+		.kpc_docstring		= NULL
+	},
+	{
+		.kpc_name 			= "dac",
+		.function 			= NULL,
+		.kp_command_table 	= kp_dac_command_table,
 		.kpc_docstring		= NULL
 	},
 	{
@@ -656,6 +666,33 @@ static const SHELL_command_t kp_io_command_table[] =
 		.kpc_docstring		= 	(
 									"\tDisplays IO pin map\n"
 									"\tUsage: io map\n"
+								)
+	},
+	//////////
+	SHELL_COMMAND_TABLE_END
+};
+
+/**
+ *	`dac` commands
+ */
+static const SHELL_command_t kp_dac_command_table[] =
+{
+	{
+		.kpc_name 			= "ramp",
+		.function 			= DAC_shell_ramp,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tPerforms a ramp test\n"
+									"\tUsage: dac ramp\n"
+								)
+	},
+	{
+		.kpc_name 			= "write",
+		.function 			= DAC_shell_write,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tWrites data DAC's VOUT\n"
+									"\tUsage: dac write <val>\n"
 								)
 	},
 	//////////
