@@ -55,7 +55,7 @@ static IO_pin_t p_pin_map[IO_PIN_ID_NUM_PINS] =
 	},
 	[IO_PIN_ID_PA02] =
 	{
-		.kpc_name 	= "LCD_DB8",
+		.kpc_name 	= "DAC_VOUT",
 		.group 		= IO_GROUP_A,
 		.u8_number 	= 2
 	},
