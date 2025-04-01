@@ -67,6 +67,7 @@ APP_VPATH = 	main.c  \
 				mempool.c \
 				button.c \
 				ili9488.c \
+				dac.c \
 				json/json.c \
 				fsm/app_fsm.c \
 				fsm/menu_fsm.c \
