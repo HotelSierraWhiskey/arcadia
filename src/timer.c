@@ -14,6 +14,9 @@
 #define TIMER_CTRLA_ENABLE					(TC_CTRLA_MODE_COUNT16 | TC_CTRLA_PRESCALER_DIV1024 | TC_CTRLA_ENABLE(1))
 #define TIMER_CTRLA_DISABLE					(TC_CTRLA_ENABLE(0))
 
+#define TIMER_TC0_AND_TC1_GCLK_ID 			(TC0_GCLK_ID)
+#define TIMER_TC2_AND_TC3_GCLK_ID 			(TC2_GCLK_ID)
+
 /****************************************************************************************************
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
@@ -85,11 +88,11 @@ void TIMER_init(void)
 {
 	IO_config_pin_direction(IO_PIN_ID_PA27, IO_DIRECTION_OUTPUT);
 
-	GCLK_REGS->GCLK_PCHCTRL[30] = 	GCLK_PCHCTRL_CHEN(1) |
-									GCLK_PCHCTRL_GEN_GCLK1;
+	GCLK_REGS->GCLK_PCHCTRL[TIMER_TC0_AND_TC1_GCLK_ID] = 	GCLK_PCHCTRL_CHEN(1) |
+															GCLK_PCHCTRL_GEN_GCLK1;
 
-	GCLK_REGS->GCLK_PCHCTRL[31] = 	GCLK_PCHCTRL_CHEN(1) |
-									GCLK_PCHCTRL_GEN_GCLK1;
+	GCLK_REGS->GCLK_PCHCTRL[TIMER_TC2_AND_TC3_GCLK_ID] = 	GCLK_PCHCTRL_CHEN(1) |
+															GCLK_PCHCTRL_GEN_GCLK1;
 
 	MCLK_REGS->MCLK_APBCMASK |=	MCLK_APBCMASK_TC0(1) |
 								MCLK_APBCMASK_TC1(1) |
