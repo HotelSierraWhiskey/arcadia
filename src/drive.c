@@ -10,6 +10,7 @@
 #include "fsif.h"
 #include "mempool.h"
 #include "ili9488.h"
+#include "dac.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -89,8 +90,10 @@ void DRIVE_task(void * p_params)
 			FSIF_get_volume_label(), FSIF_get_fat_subtype());
 	}
 
-	ILI9488_init(ILI9488_MODE_SPI);
-	DRIVE_LOG_DBG("Display initialized\n");
+	// ILI9488_init(ILI9488_MODE_SPI);
+	// DRIVE_LOG_DBG("Display initialized\n");
+
+	DAC_init();
 
 	while (1)
 	{
