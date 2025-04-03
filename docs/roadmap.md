@@ -37,7 +37,7 @@ The ultimate goal of this roadmap is to reach version 1.0.0, marking the transit
 
 ### ☑️ version 0.4.0 - <i>Display Development</i>
 <b>Hardware</b>:
-- Protoboard setup (SD module, display, pushbuttons, etc., but no battery/ charging)
+- Protoboard setup (SD module, display, pushbuttons, etc. - no battery/ charging)
 
 <b>New firmware features</b>:
 - RAM optimization
