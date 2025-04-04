@@ -484,7 +484,6 @@ uint8_t UART_shell_info(uint8_t argc, char ** argv)
 			}
 		}
 
-
 		SHELL_SEPARATOR();
 	}
 	else
