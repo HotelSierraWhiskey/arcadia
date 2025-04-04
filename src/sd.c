@@ -195,6 +195,13 @@ static void 		SD_display_info						(void);
 
 SD_info_t SD_info;
 
+/**
+ *	Descriptors for SD card types
+ *
+ * 	@todo
+ * 	Add support for high and extended capacity and (maybe) ultra as well.
+ * 	Currently, we only support standard.
+ */
 static const char * const kpc_version_descriptors[SD_CSD_VERSION_NUM_VERSIONS] =
 {
 	[SD_CSD_VERSION_STANDARD_CAPACITY]			= "SD Standard Capacity",
