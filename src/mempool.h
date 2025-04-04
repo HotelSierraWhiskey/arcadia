@@ -11,8 +11,14 @@
 #define MEMPOOL_BUFFER_SIZE_512			(512U)
 #define MEMPOOL_MINIMUM_BLOCK_SIZE		MEMPOOL_BUFFER_SIZE_256
 
+/**
+ *	Generic mempool buffer typedef
+ */
 typedef void * MEMPOOL_buffer_t;
 
+/**
+ *	Fixed buffer size IDs for allocation
+ */
 typedef enum _MEMPOOL_buffer_size_id
 {
 	MEMPOOL_BUFFER_SIZE_ID_256 = 0,

@@ -5,8 +5,8 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define MEMPOOL_SIZE					(2048U)
-#define MEMPOOL_TOTAL_BLOCKS			(MEMPOOL_SIZE / MEMPOOL_MINIMUM_BLOCK_SIZE)
+#define MEMPOOL_TOTAL_SIZE				(2048U)
+#define MEMPOOL_TOTAL_BLOCKS			(MEMPOOL_TOTAL_SIZE / MEMPOOL_MINIMUM_BLOCK_SIZE)
 
 #define MEMPOOL_semaphore_take() 		xSemaphoreTake(MEMPOOL_info.pool_mutex, portMAX_DELAY)
 #define MEMPOOL_semaphore_give() 		xSemaphoreGive(MEMPOOL_info.pool_mutex)
@@ -16,7 +16,7 @@
  */
 typedef struct _MEMPOOL_info
 {
-	uint8_t				pu8_buffer_pool[MEMPOOL_SIZE];
+	uint8_t				pu8_buffer_pool[MEMPOOL_TOTAL_SIZE];
 	uint32_t			pu32_allocation_registry[MEMPOOL_TOTAL_BLOCKS];
 	uint32_t			pool_bitmask;
 	SemaphoreHandle_t 	pool_mutex;
@@ -38,7 +38,7 @@ static MEMPOOL_info_t MEMPOOL_info;
 static const uint32_t kpu8_buffer_sizes[MEMPOOL_BUFFER_SIZE_ID_NUM_SIZES] =
 {
 	[MEMPOOL_BUFFER_SIZE_ID_256] = MEMPOOL_MINIMUM_BLOCK_SIZE,
-	[MEMPOOL_BUFFER_SIZE_ID_512] = 512
+	[MEMPOOL_BUFFER_SIZE_ID_512] = MEMPOOL_BUFFER_SIZE_512
 };
 
 /****************************************************************************************************
@@ -80,10 +80,10 @@ MEMPOOL_buffer_t MEMPOOL_alloc(MEMPOOL_buffer_size_id_t buffer_size_id)
 
 	MEMPOOL_semaphore_take();
 
-	MEMPOOL_buffer_t buffer;
-	uint8_t	u8_blocks_required = kpu8_buffer_sizes[buffer_size_id] / MEMPOOL_MINIMUM_BLOCK_SIZE;
-	uint8_t u8_consecutive_free = 0;
-	uint8_t u8_start_index = 0;
+	MEMPOOL_buffer_t 	buffer;
+	uint8_t				u8_blocks_required = kpu8_buffer_sizes[buffer_size_id] / MEMPOOL_MINIMUM_BLOCK_SIZE;
+	uint8_t 			u8_consecutive_free = 0;
+	uint8_t 			u8_start_index = 0;
 
 	for (uint8_t i = 0; i < MEMPOOL_TOTAL_BLOCKS; i++)
 	{
@@ -136,7 +136,7 @@ void MEMPOOL_free(MEMPOOL_buffer_t buffer)
 	ASSERT(buffer);
 
     // Validate pointer
-    ASSERT((uint8_t *)buffer >= MEMPOOL_info.pu8_buffer_pool && (uint8_t *)buffer < MEMPOOL_info.pu8_buffer_pool + MEMPOOL_SIZE);
+    ASSERT((uint8_t *)buffer >= MEMPOOL_info.pu8_buffer_pool && (uint8_t *)buffer < MEMPOOL_info.pu8_buffer_pool + MEMPOOL_TOTAL_SIZE);
 
     // Check alignment
     ASSERT(((uint8_t *)buffer - MEMPOOL_info.pu8_buffer_pool) % MEMPOOL_MINIMUM_BLOCK_SIZE == 0);
