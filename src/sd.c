@@ -84,59 +84,59 @@ typedef struct _SD_csdv1 {
  *	CSD v2.0 Register
  */
 typedef struct _SD_csdv2 {
-  // byte 0
-  unsigned _reserved_1 				: 6;
-  unsigned csd_ver 					: 2;
-  // byte 1
-  uint8_t taac;
-  // byte 2
-  uint8_t nsac;
-  // byte 3
-  uint8_t tran_speed;
-  // byte 4
-  uint8_t ccc_high;
-  // byte 5
-  unsigned read_bl_len 				: 4;
-  unsigned ccc_low 					: 4;
-  // byte 6
-  unsigned _reserved_2 				: 4;
-  unsigned dsr_imp 					: 1;
-  unsigned read_blk_misalign 		: 1;
-  unsigned write_blk_misalign 		: 1;
-  unsigned read_bl_partial 			: 1;
-  // byte 7
-  unsigned _reserved_3 				: 2;
-  unsigned c_size_high 				: 6;
-  // byte 8
-  uint8_t c_size_mid;
-  // byte 9
-  uint8_t c_size_low;
-  // byte 10
-  unsigned sector_size_high 		: 6;
-  unsigned erase_blk_en 			: 1;
-  unsigned _reserved_4 				: 1;
-  // byte 11
-  unsigned wp_grp_size 				: 7;
-  unsigned sector_size_low 			: 1;
-  // byte 12
-  unsigned write_bl_len_high 		: 2;
-  unsigned r2w_factor 				: 3;
-  unsigned _reserved_5 				: 2;
-  unsigned wp_grp_enable 			: 1;
-  // byte 13
-  unsigned _reserved_6 				: 5;
-  unsigned write_partial 			: 1;
-  unsigned write_bl_len_low 		: 2;
-  // byte 14
-  unsigned _reserved_7				: 2;
-  unsigned file_format 				: 2;
-  unsigned tmp_write_protect 		: 1;
-  unsigned perm_write_protect 		: 1;
-  unsigned copy 					: 1;
-  unsigned file_format_grp 			: 1;
-  // byte 15
-  unsigned always1 					: 1;
-  unsigned crc 						: 7;
+	// byte 0
+	unsigned _reserved_1 				: 6;
+	unsigned csd_ver 					: 2;
+	// byte 1
+	uint8_t taac;
+	// byte 2
+	uint8_t nsac;
+	// byte 3
+	uint8_t tran_speed;
+	// byte 4
+	uint8_t ccc_high;
+	// byte 5
+	unsigned read_bl_len 			: 4;
+	unsigned ccc_low 				: 4;
+	// byte 6
+	unsigned _reserved_2 			: 4;
+	unsigned dsr_imp 				: 1;
+	unsigned read_blk_misalign 		: 1;
+	unsigned write_blk_misalign 	: 1;
+	unsigned read_bl_partial 		: 1;
+	// byte 7
+	unsigned _reserved_3 			: 2;
+	unsigned c_size_high 			: 6;
+	// byte 8
+	uint8_t c_size_mid;
+	// byte 9
+	uint8_t c_size_low;
+	// byte 10
+	unsigned sector_size_high 		: 6;
+	unsigned erase_blk_en 			: 1;
+	unsigned _reserved_4 			: 1;
+	// byte 11
+	unsigned wp_grp_size 			: 7;
+	unsigned sector_size_low 		: 1;
+	// byte 12
+	unsigned write_bl_len_high 		: 2;
+	unsigned r2w_factor 			: 3;
+	unsigned _reserved_5 			: 2;
+	unsigned wp_grp_enable 			: 1;
+	// byte 13
+	unsigned _reserved_6 			: 5;
+	unsigned write_partial 			: 1;
+	unsigned write_bl_len_low 		: 2;
+	// byte 14
+	unsigned _reserved_7			: 2;
+	unsigned file_format 			: 2;
+	unsigned tmp_write_protect 		: 1;
+	unsigned perm_write_protect 	: 1;
+	unsigned copy 					: 1;
+	unsigned file_format_grp 		: 1;
+	// byte 15
+	unsigned always1 				: 1;
+	unsigned crc 					: 7;
 } PACKED SD_csdv2_t;
 
 /**

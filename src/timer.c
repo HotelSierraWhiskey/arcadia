@@ -256,12 +256,16 @@ static void TIMER_config(const TIMER_id_t k_timer_id, uint16_t u16_period, TIMER
 static void TIMER_on_match(const TIMER_id_t k_timer_id)
 {
 	TIMER_info_t * 					p_timer = &p_timer_pool[k_timer_id];
-	ARCADIA_msg_t 					msg;
-	CHRONO_PAYLOAD_timer_elapsed_t 	payload = {.timer_id = k_timer_id};
-	
-	msg.id = ARCADIA_MSG_ID_CHRONO_TIMER_ELAPSED;
-	msg.payload.chrono_payload_timer_elapsed = payload;
-	msg.from = ARCADIA_TASK_ID_CHRONO;
+	CHRONO_PAYLOAD_timer_elapsed_t 	payload =
+	{
+		.timer_id = k_timer_id
+	};
+	ARCADIA_msg_t msg =
+	{
+		.id = ARCADIA_MSG_ID_CHRONO_TIMER_ELAPSED,
+		.from = ARCADIA_TASK_ID_CHRONO,
+		.payload.chrono_payload_timer_elapsed = payload
+	};
 
 	if ((p_timer->p_timer_regs->COUNT16.TC_INTFLAG & TC_INTFLAG_MC0(1)) != 0)
 	{
