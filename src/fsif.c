@@ -386,6 +386,7 @@ bool FSIF_fs_init(void)
 		}
 		else
 		{
+			// @todo do we want to format in some cases here?
 			FSIF_LOG_WARN("Failed to mount file system (status: %u)\r\n", f_result);
 		}
 	}
@@ -440,6 +441,13 @@ FRESULT FSIF_f_mount(void)
 	return f_result;
 }
 
+/****************************************************************************************************
+ *	Maps POSIX open mode flag to actual FatFS open mode
+ *
+ * 	@param[in] kpc_posix_flag The desired open mode flag
+ *
+ *  @return the corresponding FatFS open mode
+ ****************************************************************************************************/
 int32_t FSIF_open_mode_from_posix_flag(const char *kpc_posix_flag)
 {
 	for (uint8_t i = 0; i < FSIF_NUM_OPEN_FLAGS; i++)

@@ -501,7 +501,9 @@ uint8_t	SYS_shell_wm(uint8_t argc, char ** argv)
 	if (argc == 0)
 	{
 		SHELL_SEPARATOR();
+		
 		SHELL_printf("Stack High Watermarks\n");
+
 		SHELL_SEPARATOR();
 		for (uint8_t i = 0; i < ARCADIA_TASK_ID_NUM_IDS; i++)
 		{
