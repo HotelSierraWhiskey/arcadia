@@ -45,6 +45,9 @@ typedef struct _UART_channel
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
 
+/**
+ *	Actual baud rate value constants
+ */
 static const uint32_t kpu8_baud_rates[UART_BAUD_RATE_ID_NUM_BAUD_RATES] =
 {
 	[UART_BAUD_RATE_ID_9600] 	= 9600,
@@ -54,9 +57,7 @@ static const uint32_t kpu8_baud_rates[UART_BAUD_RATE_ID_NUM_BAUD_RATES] =
 };
 
 /**
- *	UART channels
- *
- * 	A registry of logical UART channels
+ * Registry of logical UART channels
  */
 static UART_channel_t p_uart_channels[UART_CHANNEL_NUM_CHANNELS] =
 {
