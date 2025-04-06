@@ -24,25 +24,25 @@
  */
 typedef enum _SYS_osc48m_freq
 {
-	SYS_OSC48M_FREQ_48_MHZ = 0,
-	SYS_OSC48M_FREQ_24_MHZ,
-	SYS_OSC48M_FREQ_16_MHZ,
-	SYS_OSC48M_FREQ_12_MHZ,
-	SYS_OSC48M_FREQ_9_6_MHZ,
-	SYS_OSC48M_FREQ_8_MHZ,
-	SYS_OSC48M_FREQ_6_86_MHZ,
-	SYS_OSC48M_FREQ_6_MHZ,
-	SYS_OSC48M_FREQ_5_33_MHZ,
-	SYS_OSC48M_FREQ_4_8_MHZ,
-	SYS_OSC48M_FREQ_4_36_MHZ,
-	SYS_OSC48M_FREQ_4_MHZ,
-	SYS_OSC48M_FREQ_3_69_MHZ,
-	SYS_OSC48M_FREQ_3_43_MHZ,
-	SYS_OSC48M_FREQ_3_2_MHZ,
-	SYS_OSC48M_FREQ_3_MHZ,
+	SYS_OSC48M_ID_FREQ_48_MHZ = 0,
+	SYS_OSC48M_ID_FREQ_24_MHZ,
+	SYS_OSC48M_ID_FREQ_16_MHZ,
+	SYS_OSC48M_ID_FREQ_12_MHZ,
+	SYS_OSC48M_ID_FREQ_9_6_MHZ,
+	SYS_OSC48M_ID_FREQ_8_MHZ,
+	SYS_OSC48M_ID_FREQ_6_86_MHZ,
+	SYS_OSC48M_ID_FREQ_6_MHZ,
+	SYS_OSC48M_ID_FREQ_5_33_MHZ,
+	SYS_OSC48M_ID_FREQ_4_8_MHZ,
+	SYS_OSC48M_ID_FREQ_4_36_MHZ,
+	SYS_OSC48M_ID_FREQ_4_MHZ,
+	SYS_OSC48M_ID_FREQ_3_69_MHZ,
+	SYS_OSC48M_ID_FREQ_3_43_MHZ,
+	SYS_OSC48M_ID_FREQ_3_2_MHZ,
+	SYS_OSC48M_ID_FREQ_3_MHZ,
 	//////////
-	SYS_OSC48M_FREQ_NUM_FREQ
-} SYS_osc48m_freq_t;
+	SYS_OSC48M_ID_FREQ_NUM_FREQ
+} SYS_osc48m_freq_id_t;
 
 /**
  *	Supported MCU enumerated type
@@ -59,9 +59,9 @@ typedef enum _SYS_part
  */
 typedef struct _SYS_osc48m_info
 {
-	const char * 	kpc_descriptor;
-	uint32_t 		u32_frequency;
-	uint8_t			osc_div_factor;
+	const char * 		kpc_descriptor;
+	uint32_t 			u32_frequency;
+	uint8_t				osc_div_factor;
 } SYS_osc48m_info_t;
 
 /**
@@ -80,99 +80,99 @@ typedef struct _SYS_info
 /**
  *	Table of OSC48M settings
  */
-static const SYS_osc48m_info_t kp_osc48m_settings[SYS_OSC48M_FREQ_NUM_FREQ] =
+static const SYS_osc48m_info_t kp_osc48m_settings[SYS_OSC48M_ID_FREQ_NUM_FREQ] =
 {
-	[SYS_OSC48M_FREQ_48_MHZ] =
+	[SYS_OSC48M_ID_FREQ_48_MHZ] =
 	{
 		.kpc_descriptor = "48 MHz",
 		.osc_div_factor	= OSCCTRL_OSC48MDIV_DIV_DIV1,
 		.u32_frequency	= 48000000
 	},
-	[SYS_OSC48M_FREQ_24_MHZ] =
+	[SYS_OSC48M_ID_FREQ_24_MHZ] =
 	{
 		.kpc_descriptor = "24 MHz",
 		.osc_div_factor	= OSCCTRL_OSC48MDIV_DIV_DIV2,
 		.u32_frequency	= 24000000
 	},
-	[SYS_OSC48M_FREQ_16_MHZ] =
+	[SYS_OSC48M_ID_FREQ_16_MHZ] =
 	{
 		.kpc_descriptor = "16 MHz",
 		.osc_div_factor	= OSCCTRL_OSC48MDIV_DIV_DIV3,
 		.u32_frequency	= 16000000
 	},
-	[SYS_OSC48M_FREQ_12_MHZ] =
+	[SYS_OSC48M_ID_FREQ_12_MHZ] =
 	{
 		.kpc_descriptor = "12 MHz",
 		.osc_div_factor	= OSCCTRL_OSC48MDIV_DIV_DIV4,
 		.u32_frequency	= 12000000
 	},
-	[SYS_OSC48M_FREQ_9_6_MHZ] =
+	[SYS_OSC48M_ID_FREQ_9_6_MHZ] =
 	{
 		.kpc_descriptor = "9.6 MHz",
 		.osc_div_factor	= OSCCTRL_OSC48MDIV_DIV_DIV5,
 		.u32_frequency	= 9600000
 	},
-	[SYS_OSC48M_FREQ_8_MHZ] =
+	[SYS_OSC48M_ID_FREQ_8_MHZ] =
 	{
 		.kpc_descriptor = "8 MHz",
 		.osc_div_factor	= OSCCTRL_OSC48MDIV_DIV_DIV6,
 		.u32_frequency	= 8000000
 	},
-	[SYS_OSC48M_FREQ_6_86_MHZ] =
+	[SYS_OSC48M_ID_FREQ_6_86_MHZ] =
 	{
 		.kpc_descriptor = "6.86 MHz",
 		.osc_div_factor	= OSCCTRL_OSC48MDIV_DIV_DIV7,
 		.u32_frequency	= 6860000
 	},
-	[SYS_OSC48M_FREQ_6_MHZ] =
+	[SYS_OSC48M_ID_FREQ_6_MHZ] =
 	{
 		.kpc_descriptor = "6 MHz",
 		.osc_div_factor	= OSCCTRL_OSC48MDIV_DIV_DIV8,
 		.u32_frequency	= 6000000
 	},
-	[SYS_OSC48M_FREQ_5_33_MHZ] =
+	[SYS_OSC48M_ID_FREQ_5_33_MHZ] =
 	{
 		.kpc_descriptor = "5.33 MHz",
 		.osc_div_factor	= OSCCTRL_OSC48MDIV_DIV_DIV9,
 		.u32_frequency	= 5330000
 	},
-	[SYS_OSC48M_FREQ_4_8_MHZ] =
+	[SYS_OSC48M_ID_FREQ_4_8_MHZ] =
 	{
 		.kpc_descriptor = "4.8 MHz",
 		.osc_div_factor	= OSCCTRL_OSC48MDIV_DIV_DIV10,
 		.u32_frequency	= 4800000
 	},
-	[SYS_OSC48M_FREQ_4_36_MHZ] =
+	[SYS_OSC48M_ID_FREQ_4_36_MHZ] =
 	{
 		.kpc_descriptor = "4.36 MHz",
 		.osc_div_factor	= OSCCTRL_OSC48MDIV_DIV_DIV11,
 		.u32_frequency	= 4360000
 	},
-	[SYS_OSC48M_FREQ_4_MHZ] =
+	[SYS_OSC48M_ID_FREQ_4_MHZ] =
 	{
 		.kpc_descriptor = "4 MHz",
 		.osc_div_factor	= OSCCTRL_OSC48MDIV_DIV_DIV12,
 		.u32_frequency	= 4000000
 	},
-	[SYS_OSC48M_FREQ_3_69_MHZ] =
+	[SYS_OSC48M_ID_FREQ_3_69_MHZ] =
 	{
 		.kpc_descriptor = "3.69 MHz",
 		.osc_div_factor	= OSCCTRL_OSC48MDIV_DIV_DIV13,
 		.u32_frequency	= 3690000
 	},
-	[SYS_OSC48M_FREQ_3_43_MHZ] =
+	[SYS_OSC48M_ID_FREQ_3_43_MHZ] =
 	{
 		.kpc_descriptor = "3.43 MHz",
 		.osc_div_factor	= OSCCTRL_OSC48MDIV_DIV_DIV14,
 		.u32_frequency	= 3430000
 	},
-	[SYS_OSC48M_FREQ_3_2_MHZ] =
+	[SYS_OSC48M_ID_FREQ_3_2_MHZ] =
 	{
 		.kpc_descriptor = "3.2 MHz",
 		.osc_div_factor	= OSCCTRL_OSC48MDIV_DIV_DIV15,
 		.u32_frequency	= 3200000
 	},
-	[SYS_OSC48M_FREQ_3_MHZ] =
+	[SYS_OSC48M_ID_FREQ_3_MHZ] =
 	{
 		.kpc_descriptor = "3 MHz",
 		.osc_div_factor	= OSCCTRL_OSC48MDIV_DIV_DIV16,
@@ -197,7 +197,7 @@ static SYS_info_t SYS_info;
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
-static void 	SYS_osc48m_init			(SYS_osc48m_freq_t osc48m_freq);
+static void 	SYS_osc48m_init			(SYS_osc48m_freq_id_t osc48m_freq);
 static void		SYS_osc32k_init			(void);
 static void 	SYS_clock_init			(void);
 
@@ -213,7 +213,7 @@ void SYS_init(void)
 {
 	SYS_info.k_part = SYS_PART_ATSAMC21E18A;
 
-	SYS_osc48m_init(SYS_OSC48M_FREQ_48_MHZ);
+	SYS_osc48m_init(SYS_OSC48M_ID_FREQ_48_MHZ);
 
 	SYS_osc32k_init();
 
@@ -235,7 +235,7 @@ void SYS_reset(void)
  *	Initializes OSC48M (the internal 48MHz oscillator)
  * 
  ****************************************************************************************************/
-static void SYS_osc48m_init(SYS_osc48m_freq_t osc48m_freq)
+static void SYS_osc48m_init(SYS_osc48m_freq_id_t osc48m_freq)
 {
 	SYS_info.osc48m_info = kp_osc48m_settings[osc48m_freq];
 
@@ -501,7 +501,7 @@ uint8_t	SYS_shell_wm(uint8_t argc, char ** argv)
 	if (argc == 0)
 	{
 		SHELL_SEPARATOR();
-		
+
 		SHELL_printf("Stack High Watermarks\n");
 
 		SHELL_SEPARATOR();
