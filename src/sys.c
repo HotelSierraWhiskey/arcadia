@@ -12,7 +12,12 @@
 
 #define SYS_LOG_DBG(fmt, ...)   			SHELL_printf("\r%-12s" fmt, "[SYS]", ##__VA_ARGS__)
 
-#define SYS_OTP5_OSC32K_CALIBRATION_MASK	(0x0007F000)
+#define SYS_OTP5_OSC32K_CALIBRATION_MASK	(0x0007F000UL)
+
+#define SYS_128_BIT_UID_ADDRESS_WORD_1		(0x0080A00CUL)
+#define SYS_128_BIT_UID_ADDRESS_WORD_2		(0x0080A040UL)
+#define SYS_128_BIT_UID_ADDRESS_WORD_3		(0x0080A044UL)
+#define SYS_128_BIT_UID_ADDRESS_WORD_4		(0x0080A048UL)
 
 /**
  *	Manually derived calibration value
@@ -428,10 +433,10 @@ uint8_t SYS_shell_info(uint8_t argc, char ** argv)
 
 		// Serial number stuff
 		uint32_t uid_buffer[4];
-    	uid_buffer[0] = *(uint32_t *)0x0080A00C;
-		uid_buffer[1] = *(uint32_t *)0x0080A040;
-		uid_buffer[2] = *(uint32_t *)0x0080A044;
-		uid_buffer[3] = *(uint32_t *)0x0080A048;
+    	uid_buffer[0] = *(uint32_t *)SYS_128_BIT_UID_ADDRESS_WORD_1;
+		uid_buffer[1] = *(uint32_t *)SYS_128_BIT_UID_ADDRESS_WORD_2;
+		uid_buffer[2] = *(uint32_t *)SYS_128_BIT_UID_ADDRESS_WORD_3;
+		uid_buffer[3] = *(uint32_t *)SYS_128_BIT_UID_ADDRESS_WORD_4;
 
 		char pc_serial_number[36];
 		sprintf(pc_serial_number, "%08lX-%08lX-%08lX-%08lX", 
@@ -441,13 +446,13 @@ uint8_t SYS_shell_info(uint8_t argc, char ** argv)
 			uid_buffer[3]);
 
 		SHELL_SEPARATOR();
-		SHELL_printf("%-30s: %u.%u.%u\n", "Firmware Version", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
-		SHELL_printf("%-30s: %s\n", "FreeRTOS Version", VERSION_FREERTOS);
-		SHELL_printf("%-30s: %s %s\n", "Compilation Timestamp", __DATE__, __TIME__);
-		SHELL_printf("%-30s: %s\n", "Uptime", pc_time_buffer);
-		SHELL_printf("%-30s: %s (Cortex M0+)\n", "MCU Model Number", kpc_part_descriptors[SYS_info.k_part]);
-		SHELL_printf("%-30s: %s\n", "Clock Source Freq", SYS_info.osc48m_info.kpc_descriptor);
-		SHELL_printf("%-30s: %s\n", "Serial Number", pc_serial_number);
+		SHELL_printf("%-25s: %u.%u.%u\n", "Firmware Version", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+		SHELL_printf("%-25s: %s\n", "FreeRTOS Version", VERSION_FREERTOS);
+		SHELL_printf("%-25s: %s %s\n", "Compilation Timestamp", __DATE__, __TIME__);
+		SHELL_printf("%-25s: %s\n", "Uptime", pc_time_buffer);
+		SHELL_printf("%-25s: %s (Cortex M0+)\n", "MCU Model Number", kpc_part_descriptors[SYS_info.k_part]);
+		SHELL_printf("%-25s: %s\n", "Clock Source Freq", SYS_info.osc48m_info.kpc_descriptor);
+		SHELL_printf("%-25s: %s\n", "Serial Number", pc_serial_number);
 		SHELL_SEPARATOR();
 	}
 
