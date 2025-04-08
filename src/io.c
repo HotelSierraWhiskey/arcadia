@@ -43,7 +43,7 @@ static IO_pin_t p_pin_map[IO_PIN_ID_NUM_PINS] =
 
 	[IO_PIN_ID_PA00] =
 	{
-		.kpc_name 	= "LCD_DB6",
+		.kpc_name 	= "EXTI_DBG",
 		.group 		= IO_GROUP_A,
 		.u8_number 	= 0
 	},
