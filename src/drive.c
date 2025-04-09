@@ -9,8 +9,10 @@
 #include "spi.h"
 #include "fsif.h"
 #include "mempool.h"
+
 #include "ili9488.h"
 #include "dac.h"
+#include "exti.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -94,6 +96,8 @@ void DRIVE_task(void * p_params)
 	// DRIVE_LOG_DBG("Display initialized\n");
 
 	DAC_init();
+
+	EXTI_init();
 
 	while (1)
 	{

@@ -4,37 +4,48 @@
 
 void EXTI_init(void)
 {
-	// Enable APB for EIC
-	MCLK_REGS->MCLK_APBAMASK |= MCLK_APBAMASK_EIC(1);
+    // Enable APB clock for EIC
+    MCLK_REGS->MCLK_APBAMASK |= MCLK_APBAMASK_EIC_Msk;
 
-	// Enable Generic Clock for EIC
-    GCLK_REGS->GCLK_PCHCTRL[EIC_GCLK_ID] = GCLK_PCHCTRL_CHEN(1) | GCLK_PCHCTRL_GEN_GCLK0;
+    // Enable Generic Clock (GCLK0 assumed) for EIC
+    GCLK_REGS->GCLK_PCHCTRL[EIC_GCLK_ID] = GCLK_PCHCTRL_CHEN_Msk | GCLK_PCHCTRL_GEN_GCLK0;
 
-    while (!(GCLK_REGS->GCLK_PCHCTRL[EIC_GCLK_ID] & GCLK_PCHCTRL_CHEN(1)))
-	{
-		continue;
-	}
+    // Wait until GCLK is synchronized
+    while (!(GCLK_REGS->GCLK_PCHCTRL[EIC_GCLK_ID] & GCLK_PCHCTRL_CHEN_Msk));
 
-	// temp, sense0, rising edge
-	EIC_REGS->EIC_CONFIG[0] |= EIC_CONFIG_SENSE0_RISE;
+    // Disable EIC before configuring
+    EIC_REGS->EIC_CTRLA &= ~EIC_CTRLA_ENABLE_Msk;
+    while (EIC_REGS->EIC_SYNCBUSY & EIC_SYNCBUSY_ENABLE_Msk);
 
-	IO_enable_peripheral_function_for_pin(IO_PIN_ID_PA00, IO_PERIPHERAL_FUNCTION_A);
+    // Configure EXTINT[9] (PA09) for rising-edge detection
+    EIC_REGS->EIC_CONFIG[1] &= ~(0x7u << 4); // Clear previous config (SENSE1 is bits [6:4])
+    EIC_REGS->EIC_CONFIG[1] |= (0x1u << 4);  // Set rising-edge detection (0x1 = RISE)
 
-	// Enable
-	EIC_REGS->EIC_CTRLA = EIC_CTRLA_ENABLE(1);
+    // Optional: disable filtering if not needed
+    EIC_REGS->EIC_CONFIG[1] &= ~(1u << 7);   // Clear FILTEN1 (bit 7 for EXTINT[9])
 
-	// Stabilize
-	while ((EIC_REGS->EIC_SYNCBUSY & EIC_SYNCBUSY_ENABLE(1)) == 0)
-	{
-		continue;
-	}
+    // Clear any pending interrupts
+    EIC_REGS->EIC_INTFLAG = (1 << 9);
 
-	NVIC_EnableIRQ(EIC_IRQn);
+    // Enable interrupt for EXTINT[9]
+    EIC_REGS->EIC_INTENSET = (1 << 9);
+
+    // Configure PA09 pin for EXTINT[9] (Peripheral A for PA09)
+    IO_enable_peripheral_function_for_pin(IO_PIN_ID_PA09, IO_PERIPHERAL_FUNCTION_A);
+
+    // Enable EIC
+    EIC_REGS->EIC_CTRLA |= EIC_CTRLA_ENABLE_Msk;
+    while (EIC_REGS->EIC_SYNCBUSY & EIC_SYNCBUSY_ENABLE_Msk);
+
+    // Enable interrupt in NVIC
+    NVIC_EnableIRQ(EIC_IRQn);
 }
 
 void irqEIC(void)
 {
-	SHELL_printf("Wowie!\n");
-
-	NVIC_ClearPendingIRQ(EIC_IRQn);
+    if (EIC_REGS->EIC_INTFLAG & (1 << 9))
+    {
+        EIC_REGS->EIC_INTFLAG = (1 << 9); // Clear interrupt flag for EXTINT[9]
+        SHELL_printf("Wowie!\n");
+    }
 }
