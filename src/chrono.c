@@ -97,7 +97,7 @@ static void CHRONO_handle_message(void)
 	if (ARCADIA_receive(&msg))
 	{
 		CHRONO_LOG_DBG("Received msg %s from %s\n", 
-			ARCADIA_get_msg_type(msg.id), ARCADIA_get_task_name(msg.from));
+			ARCADIA_get_msg_type(msg.id), msg.b_sent_from_isr ? "ISR" : ARCADIA_get_task_name(msg.from));
 
 		switch (msg.id)
 		{
