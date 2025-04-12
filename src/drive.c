@@ -44,21 +44,23 @@ static DRIVE_info_t DRIVE_info;
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
-static void 		DRIVE_handle_message			(void);
-static void 		DRIVE_handle_msg_read_nvm		(ARCADIA_msg_t * p_msg);
-static void 		DRIVE_handle_msg_write_nvm		(ARCADIA_msg_t * p_msg);
-static void 		DRIVE_handle_msg_erase_nvm		(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_message					(void);
+static void 		DRIVE_handle_msg_read_nvm				(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_msg_write_nvm				(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_msg_erase_nvm				(ARCADIA_msg_t * p_msg);
 
-static void 		DRIVE_handle_msg_open_file		(ARCADIA_msg_t * p_msg);
-static void 		DRIVE_handle_msg_close_file		(ARCADIA_msg_t * p_msg);
-static void 		DRIVE_handle_msg_chdir			(ARCADIA_msg_t * p_msg);
-static void			DRIVE_handle_msg_fetch_fnames	(ARCADIA_msg_t * p_msg);
-static void			DRIVE_handle_msg_write			(ARCADIA_msg_t * p_msg);
-static void			DRIVE_handle_msg_read			(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_msg_open_file				(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_msg_close_file				(ARCADIA_msg_t * p_msg);
+static void 		DRIVE_handle_msg_chdir					(ARCADIA_msg_t * p_msg);
+static void			DRIVE_handle_msg_fetch_fnames			(ARCADIA_msg_t * p_msg);
+static void			DRIVE_handle_msg_write					(ARCADIA_msg_t * p_msg);
+static void			DRIVE_handle_msg_read					(ARCADIA_msg_t * p_msg);
+static void			DRIVE_handle_msg_handle_exti	(ARCADIA_msg_t * p_msg);
 
-static file_t * 	DRIVE_allocate_file				(file_handle_t * p_file_handle);
-static void 		DRIVE_free_file					(file_t * p_file);
-static file_t * 	DRIVE_handle_to_file_pointer	(file_handle_t file_handle);
+
+static file_t * 	DRIVE_allocate_file						(file_handle_t * p_file_handle);
+static void 		DRIVE_free_file							(file_t * p_file);
+static file_t * 	DRIVE_handle_to_file_pointer			(file_handle_t file_handle);
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -117,7 +119,7 @@ static void DRIVE_handle_message(void)
 	if (ARCADIA_receive(&msg))
 	{
 		DRIVE_LOG_DBG("Received msg %s from %s\n", 
-			ARCADIA_get_msg_type(msg.id), ARCADIA_get_task_name(msg.from));
+			ARCADIA_get_msg_type(msg.id), msg.b_sent_from_isr ? "ISR" : ARCADIA_get_task_name(msg.from));
 
 		switch (msg.id)
 		{
@@ -160,6 +162,10 @@ static void DRIVE_handle_message(void)
 				DRIVE_handle_msg_read(&msg);
 				break;
 			
+			case ARCADIA_MSG_ID_DRIVE_HANDLE_EXTI:
+				DRIVE_handle_msg_handle_exti(&msg);
+				break;
+
 			default:
 				DRIVE_LOG_DBG("Unexpected message: %u\n", msg.id);
 		}
@@ -481,6 +487,17 @@ static void	DRIVE_handle_msg_fetch_fnames(ARCADIA_msg_t * p_msg)
 
 	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_fetch_fnames.p_result_status);
+}
+
+static void	DRIVE_handle_msg_handle_exti(ARCADIA_msg_t * p_msg)
+{
+
+	for (uint8_t i = 0; i < EXTI_SOURCE_ID_NUM_IDS; i++)
+	{
+		DRIVE_LOG_DBG("Beep: %u\n", i);
+	}
+
+	DRIVE_LOG_DBG("Handled msg %s\n", ARCADIA_get_msg_type(p_msg->id));
 }
 
 /****************************************************************************************************
