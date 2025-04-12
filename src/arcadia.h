@@ -32,6 +32,7 @@ typedef enum _ARCADIA_msg_id
 	ARCADIA_MSG_ID_DRIVE_CHDIR,
 	ARCADIA_MSG_ID_DRIVE_WRITE,
 	ARCADIA_MSG_ID_DRIVE_READ,
+	ARCADIA_MSG_ID_DRIVE_HANDLE_EXTI,
 
 	// CHRONO task messages
 	ARCADIA_MSG_ID_CHRONO_TIMER_ELAPSED,
@@ -64,6 +65,7 @@ typedef struct _ARCADIA_msg
 {
 	ARCADIA_msg_id_t		id;
 	ARCADIA_task_id_t		from;
+	bool					b_sent_from_isr;
 	ARCADIA_payload_t		payload;
 	SemaphoreHandle_t		semaphore;
 	StaticSemaphore_t		semaphore_buffer;
