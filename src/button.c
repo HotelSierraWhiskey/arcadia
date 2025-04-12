@@ -29,41 +29,41 @@ typedef struct _button_map
  */
 static BUTTON_map_entry_t BUTTON_map[BUTTON_ID_NUM_BUTTONS] =
 {
-	[BUTTON_ID_A] =
+	[BUTTON_ID_DEBUG] =
 	{
 		.u32_history 	= BUTTON_RELEASED,
 		.pin 			= IO_PIN_ID_PA08
 	},
-	[BUTTON_ID_B] =
-	{
-		.u32_history 	= BUTTON_RELEASED,
-		.pin 			= IO_PIN_ID_PA09
-	},
-	[BUTTON_ID_DPAD_UP] =
-	{
-		.u32_history 	= BUTTON_RELEASED,
-		.pin 			= IO_PIN_ID_PA10
-	},
-	[BUTTON_ID_DPAD_DOWN] =
-	{
-		.u32_history 	= BUTTON_RELEASED,
-		.pin 			= IO_PIN_ID_PA11
-	},
-	[BUTTON_ID_DPAD_LEFT] =
-	{
-		.u32_history 	= BUTTON_RELEASED,
-		.pin 			= IO_PIN_ID_PA12
-	},
-	[BUTTON_ID_DPAD_RIGHT] =
-	{
-		.u32_history 	= BUTTON_RELEASED,
-		.pin 			= IO_PIN_ID_PA13
-	},
-	[BUTTON_ID_MENU] =
-	{
-		.u32_history 	= BUTTON_RELEASED,
-		.pin 			= IO_PIN_ID_PA14
-	},
+	// [BUTTON_ID_B] =
+	// {
+	// 	.u32_history 	= BUTTON_RELEASED,
+	// 	.pin 			= IO_PIN_ID_PA09
+	// },
+	// [BUTTON_ID_DPAD_UP] =
+	// {
+	// 	.u32_history 	= BUTTON_RELEASED,
+	// 	.pin 			= IO_PIN_ID_PA10
+	// },
+	// [BUTTON_ID_DPAD_DOWN] =
+	// {
+	// 	.u32_history 	= BUTTON_RELEASED,
+	// 	.pin 			= IO_PIN_ID_PA11
+	// },
+	// [BUTTON_ID_DPAD_LEFT] =
+	// {
+	// 	.u32_history 	= BUTTON_RELEASED,
+	// 	.pin 			= IO_PIN_ID_PA12
+	// },
+	// [BUTTON_ID_DPAD_RIGHT] =
+	// {
+	// 	.u32_history 	= BUTTON_RELEASED,
+	// 	.pin 			= IO_PIN_ID_PA13
+	// },
+	// [BUTTON_ID_MENU] =
+	// {
+	// 	.u32_history 	= BUTTON_RELEASED,
+	// 	.pin 			= IO_PIN_ID_PA14
+	// },
 };
 
 /****************************************************************************************************
