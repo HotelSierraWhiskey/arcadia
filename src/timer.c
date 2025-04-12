@@ -263,7 +263,7 @@ static void TIMER_on_match(const TIMER_id_t k_timer_id)
 	ARCADIA_msg_t msg =
 	{
 		.id = ARCADIA_MSG_ID_CHRONO_TIMER_ELAPSED,
-		.from = ARCADIA_TASK_ID_CHRONO,
+		.b_sent_from_isr = true,
 		.payload.chrono_payload_timer_elapsed = payload
 	};
 
