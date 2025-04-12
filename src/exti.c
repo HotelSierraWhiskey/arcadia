@@ -2,6 +2,7 @@
 #include "io.h"
 #include "utils.h"
 #include "shell.h"
+#include "arcadia.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -24,28 +25,18 @@ typedef enum _EXTI_edge_detectionid_
 	EXTI_EDGE_DETECTION_NUM_IDS,
 } EXTI_edge_detection_id_t;
 
-typedef enum _EXTI_source_id
-{
-	EXTI_SOURCE_ID_DEBUG_BUTTON = 0,
-	//////////
-	EXTI_SOURCE_ID_NUM_IDS
-} EXTI_source_id_t;
-
-typedef void (* EXTI_callback_t)(void);
-
 typedef struct _EXTI_source_config_entry
 {
 	IO_pin_id_t					pin_id;
 	uint8_t						u8_extint;
 	EXTI_edge_detection_id_t	edge_detection_id;
-	EXTI_callback_t				callback;
 } EXTI_source_config_entry_t;
 
 /****************************************************************************************************
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
-static void EXTI_debug_callback (void);
+// None
 
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
@@ -61,7 +52,6 @@ static EXTI_source_config_entry_t EXTI_source_configs[EXTI_SOURCE_ID_NUM_IDS] =
 		.pin_id				= IO_PIN_ID_PA09,
 		.u8_extint			= 9,
 		.edge_detection_id 	= EXTI_EDGE_DETECTION_ID_RISE,
-		.callback			= EXTI_debug_callback
 	}
 };
 
@@ -122,19 +112,18 @@ void EXTI_init(void)
 	NVIC_EnableIRQ(EIC_IRQn);
 }
 
-static void EXTI_debug_callback (void)
-{
-	EXTI_LOG_DBG("Beep!\n");
-}
-
 void irqEIC(void)
 {
-	for (uint8_t i = 0; i < EXTI_SOURCE_ID_NUM_IDS; i++)
+	ARCADIA_msg_t msg =
 	{
-		if (EIC_REGS->EIC_INTFLAG & (1 << EXTI_source_configs[i].u8_extint))
-		{
-			EXTI_source_configs[i].callback();
-			EIC_REGS->EIC_INTFLAG |= (1 << EXTI_source_configs[i].u8_extint);
-		}
-	}
+		.id 				= ARCADIA_MSG_ID_DRIVE_HANDLE_EXTI,
+		.b_sent_from_isr 	= true
+	};
+
+	ARCADIA_send_from_isr(ARCADIA_TASK_ID_DRIVE, &msg);
+
+	// Nuke the whole register. We're handling EXTI sources in drive task context
+	EIC_REGS->EIC_INTFLAG = 0xFFFFFFFF;
+
+	NVIC_ClearPendingIRQ(EIC_IRQn);
 }
