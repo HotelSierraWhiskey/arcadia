@@ -5,6 +5,7 @@
 #include "shell.h"
 #include "drive.h"
 #include "chrono.h"
+#include "media.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -13,9 +14,10 @@
 #define ARCADIA_Q_LENGTH				(3U)
 #define ARCADIA_Q_ITEM_SIZE				sizeof(ARCADIA_msg_t)
 
-#define ARCADIA_SHELL_STACK_SIZE		BYTES_TO_WORDS(2048U)
-#define ARCADIA_DRIVE_STACK_SIZE		BYTES_TO_WORDS(2048U)
+#define ARCADIA_SHELL_STACK_SIZE		BYTES_TO_WORDS(1536U)
+#define ARCADIA_DRIVE_STACK_SIZE		BYTES_TO_WORDS(1536U)
 #define ARCADIA_CHRONO_STACK_SIZE		BYTES_TO_WORDS(1024U)
+#define ARCADIA_MEDIA_STACK_SIZE		BYTES_TO_WORDS(1536U)
 
 /**
  *	Main task loop function pointer prototype
@@ -76,6 +78,11 @@ StackType_t drive_stack[ARCADIA_DRIVE_STACK_SIZE];
 StackType_t chrono_stack[ARCADIA_CHRONO_STACK_SIZE];
 
 /**
+ *	MEDIA stack
+ */
+StackType_t media_stack[ARCADIA_MEDIA_STACK_SIZE];
+
+/**
  *	Main RTOS task table
  */
 static ARCADIA_rtos_task_t rtos_tasks[ARCADIA_TASK_ID_NUM_IDS] =
@@ -112,6 +119,17 @@ static ARCADIA_rtos_task_t rtos_tasks[ARCADIA_TASK_ID_NUM_IDS] =
 		},
 		.task 		= CHRONO_task,
 		.init		= CHRONO_init
+	},
+		{
+		.task_id 	= ARCADIA_TASK_ID_MEDIA,
+		.kpc_name 	= "MEDIA",
+		.stack 		= 
+		{
+			.p_stack 	= media_stack,
+			.u32_words 	= ARCADIA_MEDIA_STACK_SIZE
+		},
+		.task 		= MEDIA_task,
+		.init		= MEDIA_init
 	},
 };
 
@@ -192,6 +210,7 @@ void NORETURN ARCADIA_start(void)
 	ARCADIA_create_task(ARCADIA_TASK_ID_SHELL);
 	ARCADIA_create_task(ARCADIA_TASK_ID_DRIVE);
 	ARCADIA_create_task(ARCADIA_TASK_ID_CHRONO);
+	ARCADIA_create_task(ARCADIA_TASK_ID_MEDIA);
 
 	vTaskStartScheduler();
 

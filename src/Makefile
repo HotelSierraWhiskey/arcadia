@@ -56,11 +56,13 @@ APP_VPATH = 	main.c  \
 				utils.c \
 				nvmctrl.c \
 				arcadia.c \
+				timer.c \
 				drive.c \
 				drive_api.c \
-				timer.c \
 				chrono.c \
 				chrono_api.c \
+				media.c \
+				media_api.c \
 				spi.c \
 				sd.c \
 				fsif.c \
