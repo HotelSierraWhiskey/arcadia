@@ -491,13 +491,29 @@ static void	DRIVE_handle_msg_fetch_fnames(ARCADIA_msg_t * p_msg)
 
 static void	DRIVE_handle_msg_handle_exti(ARCADIA_msg_t * p_msg)
 {
+	IO_pin_id_t pin_id;
 
 	for (uint8_t i = 0; i < EXTI_SOURCE_ID_NUM_IDS; i++)
 	{
-		DRIVE_LOG_DBG("Beep: %u\n", i);
+		if (EXTI_source_asserted(i))
+		{
+			pin_id = EXTI_get_pin_from_source(i);
+
+			// Small block for debounce
+			CHRONO_delay_ms(5);
+
+			if (IO_PIN_STATE_HIGH == IO_read_pin(pin_id))
+			{
+				DRIVE_LOG_DBG("EXTI source %u asserted on pin %s\n", i, IO_get_pin_string(pin_id));
+			}
+			else
+			{
+				EXTI_deassert_source(i);
+			}
+		}
 	}
 
-	DRIVE_LOG_DBG("Handled msg %s\n", ARCADIA_get_msg_type(p_msg->id));
+	// Handle chords here
 }
 
 /****************************************************************************************************

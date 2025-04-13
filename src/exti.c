@@ -30,6 +30,7 @@ typedef struct _EXTI_source_config_entry
 	IO_pin_id_t					pin_id;
 	uint8_t						u8_extint;
 	EXTI_edge_detection_id_t	edge_detection_id;
+	bool						b_asserted;
 } EXTI_source_config_entry_t;
 
 /****************************************************************************************************
@@ -112,6 +113,24 @@ void EXTI_init(void)
 	NVIC_EnableIRQ(EIC_IRQn);
 }
 
+IO_pin_id_t	EXTI_get_pin_from_source(EXTI_source_id_t source)
+{
+	ASSERT(source < EXTI_SOURCE_ID_NUM_IDS);
+	return EXTI_source_configs[source].pin_id;
+}
+
+bool EXTI_source_asserted(EXTI_source_id_t source)
+{
+	ASSERT(source < EXTI_SOURCE_ID_NUM_IDS);
+	return EXTI_source_configs[source].b_asserted;
+}
+
+void EXTI_deassert_source(EXTI_source_id_t source)
+{
+	ASSERT(source < EXTI_SOURCE_ID_NUM_IDS);
+	EXTI_source_configs[source].b_asserted = false;
+}
+
 void irqEIC(void)
 {
 	ARCADIA_msg_t msg =
@@ -120,10 +139,17 @@ void irqEIC(void)
 		.b_sent_from_isr 	= true
 	};
 
-	ARCADIA_send_from_isr(ARCADIA_TASK_ID_DRIVE, &msg);
+	for (uint8_t i = 0; i < EXTI_SOURCE_ID_NUM_IDS; i++)
+	{
+		if (EIC_REGS->EIC_INTFLAG & (1 << EXTI_source_configs[i].u8_extint))
+		{
+			EXTI_source_configs[i].b_asserted = true;
+			EIC_REGS->EIC_INTFLAG |= (1 << EXTI_source_configs[i].u8_extint);
+		}
+	}
 
-	// Nuke the whole register. We're handling EXTI sources in drive task context
-	EIC_REGS->EIC_INTFLAG = 0xFFFFFFFF;
+	// Tell DRIVE to handle whatever EXTI state changes have taken place
+	ARCADIA_send_from_isr(ARCADIA_TASK_ID_DRIVE, &msg);
 
 	NVIC_ClearPendingIRQ(EIC_IRQn);
 }
