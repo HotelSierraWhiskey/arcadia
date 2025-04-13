@@ -678,6 +678,15 @@ static const SHELL_command_t kp_io_command_table[] =
 static const SHELL_command_t kp_dac_command_table[] =
 {
 	{
+		.kpc_name 			= "sine",
+		.function 			= DAC_shell_sine,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tEmits a sine wave\n"
+									"\tUsage: dac sine\n"
+								)
+	},
+	{
 		.kpc_name 			= "ramp",
 		.function 			= DAC_shell_ramp,
 		.kp_command_table 	= NULL,

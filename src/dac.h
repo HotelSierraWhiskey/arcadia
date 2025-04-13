@@ -12,5 +12,6 @@ void 		DAC_write			(uint16_t u16_data);
 
 uint8_t 	DAC_shell_ramp		(uint8_t argc, char ** argv);
 uint8_t 	DAC_shell_write		(uint8_t argc, char ** argv);
+uint8_t 	DAC_shell_sine		(uint8_t argc, char ** argv);
 
 #endif // DAC_H

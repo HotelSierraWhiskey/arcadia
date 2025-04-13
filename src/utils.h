@@ -28,9 +28,11 @@
 } while (0)
 #endif // UNIT_TEST
 
-#define STRINGIFY(x) #x
-#define TO_STRING(x) STRINGIFY(x)
-#define EXPAND(x) x
+#define STRINGIFY(x) 		#x
+#define TO_STRING(x) 		STRINGIFY(x)
+#define EXPAND(x) 			x
+
+#define PI 					(3.14159265358979323846)
 
 /****************************************************************************************************
  *	F U N C T I O N S
