@@ -75,6 +75,10 @@ void DRIVE_init(void)
 	// Initialize NVMCTRL module
 	NVMCTRL_init();
 
+	// Initialize EIC driver here,
+	// since external interrupts are all handled in DRIVE context
+	EXTI_init();
+
 	// Initialize SD card SPI channel
 	SPI_init(SPI_CHANNEL_SD_CARD);
 }
@@ -93,13 +97,6 @@ void DRIVE_task(void * p_params)
 		DRIVE_LOG_DBG("File system mounted (%s, %s)\n",
 			FSIF_get_volume_label(), FSIF_get_fat_subtype());
 	}
-
-	// ILI9488_init(ILI9488_MODE_SPI);
-	// DRIVE_LOG_DBG("Display initialized\n");
-
-	DAC_init();
-
-	EXTI_init();
 
 	while (1)
 	{

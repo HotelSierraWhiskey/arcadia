@@ -807,7 +807,7 @@ uint8_t DRIVE_API_shell_close(uint8_t argc, char ** argv)
 	}
 	else
 	{
-		SHELL_printf("Usage: drive fs close <fname>\n");
+		SHELL_printf("Usage: drive fs close <handle>\n");
 	}
 	
 	return SHELL_COMMAND_SUCCESS;

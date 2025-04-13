@@ -524,7 +524,6 @@ uint8_t	SYS_shell_wm(uint8_t argc, char ** argv)
 				u16_used_stack_space,
 				u32_total_stack_size,
 				((float)u16_used_stack_space / (float)(u32_total_stack_size)) * 100.0F);
-				CHRONO_delay_ms(5);
 		}
 		SHELL_SEPARATOR();
 

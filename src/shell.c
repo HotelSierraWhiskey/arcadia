@@ -326,7 +326,7 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
 									"\tCloses a file\n"
-									"\tUsage: drive fs close <fname>\n"
+									"\tUsage: drive fs close <handle>\n"
 								)
 	},
 	{
@@ -370,8 +370,7 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 		.function 			= DRIVE_API_shell_read,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tRuns FatFs f_mount, mounts the file system\n"
-									"\tUsage: drive mount\n"
+									"\tUNIMPLEMENTED\n"
 								)
 	},
 	{
