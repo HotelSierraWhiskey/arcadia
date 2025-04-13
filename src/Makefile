@@ -162,7 +162,7 @@ $(APP_BASENAME).o: $(APP_OBJECTS)
 # app/build/app.elf
 $(APP_BUILD_DIR)/$(APP_BASENAME).elf: $(APP_OBJECTS)
 	@echo $@
-	@$(CC) $(APP_CFLAGS) -o $@ $(APP_OBJECTS)
+	@$(CC) $(APP_CFLAGS) -o $@ $(APP_OBJECTS) -lm
 
 # alias for above
 $(APP_BASENAME).elf: $(APP_BUILD_DIR)/$(APP_BASENAME).elf
