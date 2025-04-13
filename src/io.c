@@ -517,7 +517,7 @@ IO_pin_state_t IO_read_pin(IO_pin_id_t pin_id)
 {
 	IO_pin_t pin = p_pin_map[pin_id];
 
-	return (IO_pin_state_t)PORT_REGS->GROUP[pin.group].PORT_IN & (1 << pin.u8_number);
+	return (IO_pin_state_t)((PORT_REGS->GROUP[pin.group].PORT_IN >> pin.u8_number) & 1);
 }
 
 /****************************************************************************************************
