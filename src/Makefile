@@ -39,14 +39,27 @@ APP_INC = 	-I./ \
 			-I../lib/CMSIS_5/CMSIS/Core/Include \
 			-I../lib/samc21/include \
 			-I/usr/local/arm-gnu-toolchain-13.2.Rel1-x86_64-arm-none-eabi/include \
+			-I./tasks/shell \
+			-I./tasks/drive \
+			-I./tasks/chrono \
+			-I./tasks/media \
 			-I./fsm \
 			-I./json \
 			-I./json/jsmn \
 			$(FREERTOS_INC) \
 			$(FATFS_INC)
 
+APP_TASKS = 	tasks/shell/shell.c \
+				tasks/drive/drive.c \
+				tasks/drive/drive_api.c \
+				tasks/chrono/chrono.c \
+				tasks/chrono/chrono_api.c \
+				tasks/media/media.c \
+				tasks/media/media_api.c \
+
 # App C files
-APP_VPATH = 	main.c  \
+APP_VPATH = 	$(APP_TASKS) \
+				main.c  \
 				nvic.c  \
 				sys.c  \
 				io.c \
@@ -57,8 +70,6 @@ APP_VPATH = 	main.c  \
 				nvmctrl.c \
 				arcadia.c \
 				timer.c \
-				drive.c \
-				drive_api.c \
 				chrono.c \
 				chrono_api.c \
 				media.c \
@@ -153,6 +164,11 @@ $(APP_BUILD_DIR)/%.o: json/%.c | $(APP_BUILD_DIR)
 
 # fsm .c files in common for app/build
 $(APP_BUILD_DIR)/%.o: fsm/%.c | $(APP_BUILD_DIR)
+	@echo $@
+	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
+
+# task .c files in common for app/build
+$(APP_BUILD_DIR)/%.o: tasks/*/%.c | $(APP_BUILD_DIR)
 	@echo $@
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
