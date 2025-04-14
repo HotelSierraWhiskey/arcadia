@@ -5,12 +5,15 @@
  *	V A R I A B L E S
  ****************************************************************************************************/
 
+/**
+ *	GCLK ID mappings for logical SERCOM channels
+ */
 static const uint8_t pu8_sercom_PCHCTRL_register_indices[SERCOM_CHANNEL_ID_NUM_CHANNELS] =
 {
-	[SERCOM_CHANNEL_ID_0] = 19,
-	[SERCOM_CHANNEL_ID_1] = 20,
-	[SERCOM_CHANNEL_ID_2] = 21,
-	[SERCOM_CHANNEL_ID_3] = 22
+	[SERCOM_CHANNEL_ID_0] = SERCOM0_GCLK_ID_CORE,
+	[SERCOM_CHANNEL_ID_1] = SERCOM1_GCLK_ID_CORE,
+	[SERCOM_CHANNEL_ID_2] = SERCOM2_GCLK_ID_CORE,
+	[SERCOM_CHANNEL_ID_3] = SERCOM3_GCLK_ID_CORE
 };
 
 /****************************************************************************************************

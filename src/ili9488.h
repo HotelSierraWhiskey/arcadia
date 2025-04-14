@@ -1,5 +1,5 @@
-#ifndef ILI9488
-#define ILI9488
+#ifndef ILI9488_H
+#define ILI9488_H
 
 #include "common.h"
 
@@ -20,4 +20,4 @@ typedef enum _ILI9488_mode
 
 void        ILI9488_init       	(ILI9488_mode_t mode);
 
-#endif // ILI9488
+#endif // ILI9488_H

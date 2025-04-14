@@ -762,7 +762,7 @@ uint8_t DRIVE_API_shell_touch(uint8_t argc, char ** argv)
 	}
 	else
 	{
-		SHELL_printf("Usage: drive fs wtest\n");
+		SHELL_printf("Usage: touch <fname>\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;
@@ -807,7 +807,7 @@ uint8_t DRIVE_API_shell_close(uint8_t argc, char ** argv)
 	}
 	else
 	{
-		SHELL_printf("Usage: drive fs open <fname>\n");
+		SHELL_printf("Usage: drive fs close <handle>\n");
 	}
 	
 	return SHELL_COMMAND_SUCCESS;
@@ -837,7 +837,7 @@ uint8_t DRIVE_API_shell_rm(uint8_t argc, char ** argv)
 	}
 	else
 	{
-		SHELL_printf("Usage: drive fs open <fname>\n");
+		SHELL_printf("Usage: rm <fname>\n");
 	}
 	
 	return SHELL_COMMAND_SUCCESS;

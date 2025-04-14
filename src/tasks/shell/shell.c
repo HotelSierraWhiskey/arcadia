@@ -326,7 +326,7 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
 									"\tCloses a file\n"
-									"\tUsage: drive fs close <fname>\n"
+									"\tUsage: drive fs close <handle>\n"
 								)
 	},
 	{
@@ -370,8 +370,7 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 		.function 			= DRIVE_API_shell_read,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tRuns FatFs f_mount, mounts the file system\n"
-									"\tUsage: drive mount\n"
+									"\tUNIMPLEMENTED\n"
 								)
 	},
 	{
@@ -678,6 +677,15 @@ static const SHELL_command_t kp_io_command_table[] =
 static const SHELL_command_t kp_dac_command_table[] =
 {
 	{
+		.kpc_name 			= "sine",
+		.function 			= DAC_shell_sine,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tEmits a sine wave\n"
+									"\tUsage: dac sine\n"
+								)
+	},
+	{
 		.kpc_name 			= "ramp",
 		.function 			= DAC_shell_ramp,
 		.kp_command_table 	= NULL,
@@ -855,7 +863,7 @@ static void SHELL_handle_msg(void)
 	if (ARCADIA_receive_nb(&msg))
 	{
 		SHELL_LOG_DBG("Received msg %s from %s\n", 
-			ARCADIA_get_msg_type(msg.id), ARCADIA_get_task_name(msg.from));
+			ARCADIA_get_msg_type(msg.id), msg.b_sent_from_isr ? "ISR" : ARCADIA_get_task_name(msg.from));
 
 		switch (msg.id)
 		{

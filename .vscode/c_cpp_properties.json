@@ -15,6 +15,11 @@
 				"${workspaceFolder}/test/Unity/extras/fixture/src",
 				"${workspaceFolder}/test/Unity/extras/memory/src",
 				"${workspaceFolder}/src",
+				"${workspaceFolder}/src/tasks/chrono",
+				"${workspaceFolder}/src/tasks/drive",
+				"${workspaceFolder}/src/tasks/media",
+				"${workspaceFolder}/src/tasks/shell",
+				"${workspaceFolder}/src/tasks",
 				"${workspaceFolder}/src/fsm",
 				"${workspaceFolder}/src/json",
 				"${workspaceFolder}/src/json/jsmn"

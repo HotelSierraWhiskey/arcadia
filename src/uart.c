@@ -30,7 +30,7 @@ typedef struct _UART_channel
 	IO_pin_id_t						tx_pin;
 	uint32_t						u32_rx_pad;
 	uint32_t						u32_tx_pad;
-	UART_baud_rate_id_t				baud_rate;
+	UART_baud_rate_id_t				baud_rate_id;
 	UART_buffer_t					rx_buffer;
 	UART_buffer_t					tx_buffer;
 	SERCOM_channel_id_t				sercom_channel_id;
@@ -45,7 +45,10 @@ typedef struct _UART_channel
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
 
-static const uint32_t kpu8_baud_descriptors[UART_BAUD_RATE_ID_NUM_BAUD_RATES] =
+/**
+ *	Actual baud rate value constants
+ */
+static const uint32_t kpu8_baud_rates[UART_BAUD_RATE_ID_NUM_BAUD_RATES] =
 {
 	[UART_BAUD_RATE_ID_9600] 	= 9600,
 	[UART_BAUD_RATE_ID_19200] 	= 19200,
@@ -54,26 +57,7 @@ static const uint32_t kpu8_baud_descriptors[UART_BAUD_RATE_ID_NUM_BAUD_RATES] =
 };
 
 /**
- *	Canned values to write in the SERCOM's BAUD register
- *
- * 	TODO:
- * 	These should be clock frequency agnostic. Right now they only work at 48MHz
- *
- * 	Formula for the baud register value is:
- * 	65536 - (65536 * 16 * u32_baud_rate) / SYS_CLOCK_FREQ
- */
-static const uint32_t kpu32_pre_calculated_baud_register_values[UART_BAUD_RATE_ID_NUM_BAUD_RATES] =
-{
-	[UART_BAUD_RATE_ID_9600] 	= 65326UL,
-	[UART_BAUD_RATE_ID_19200] 	= 65116UL,
-	[UART_BAUD_RATE_ID_38400] 	= 64697UL,
-	[UART_BAUD_RATE_ID_115200] 	= 63019UL
-};
-
-/**
- *	UART channels
- *
- * 	A registry of logical UART channels
+ * Registry of logical UART channels
  */
 static UART_channel_t p_uart_channels[UART_CHANNEL_NUM_CHANNELS] =
 {
@@ -84,7 +68,7 @@ static UART_channel_t p_uart_channels[UART_CHANNEL_NUM_CHANNELS] =
 		.tx_pin 				= IO_PIN_ID_PA06,
 		.u32_rx_pad 			= SERCOM_USART_INT_CTRLA_RXPO_PAD3,
 		.u32_tx_pad 			= SERCOM_USART_INT_CTRLA_TXPO_PAD1,
-		.baud_rate				= UART_BAUD_RATE_ID_115200,
+		.baud_rate_id			= UART_BAUD_RATE_ID_115200,
 		.sercom_channel_id 		= SERCOM_CHANNEL_ID_0,
 		.peripheral_function 	= IO_PERIPHERAL_FUNCTION_D
 	}
@@ -94,17 +78,19 @@ static UART_channel_t p_uart_channels[UART_CHANNEL_NUM_CHANNELS] =
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
-static void		UART_buffers_init			(UART_channel_id_t channel_id);
+static void			UART_buffers_init			(UART_channel_id_t channel_id);
 
-static void 	UART_rx_buffer_push			(UART_channel_id_t channel_id, uint8_t u8_byte);
-static uint8_t 	UART_rx_buffer_pop			(UART_channel_id_t channel_id);
-static bool 	UART_rx_buffer_is_empty		(UART_channel_id_t channel_id);
-static bool 	UART_rx_buffer_is_full		(UART_channel_id_t channel_id);
+static void 		UART_rx_buffer_push			(UART_channel_id_t channel_id, uint8_t u8_byte);
+static uint8_t 		UART_rx_buffer_pop			(UART_channel_id_t channel_id);
+static bool 		UART_rx_buffer_is_empty		(UART_channel_id_t channel_id);
+static bool 		UART_rx_buffer_is_full		(UART_channel_id_t channel_id);
 
-static void 	UART_tx_buffer_push			(UART_channel_id_t channel_id, uint8_t u8_byte);
-static uint8_t 	UART_tx_buffer_pop			(UART_channel_id_t channel_id);
-static bool 	UART_tx_buffer_is_empty		(UART_channel_id_t channel_id);
-static bool 	UART_tx_buffer_is_full		(UART_channel_id_t channel_id);
+static void 		UART_tx_buffer_push			(UART_channel_id_t channel_id, uint8_t u8_byte);
+static uint8_t 		UART_tx_buffer_pop			(UART_channel_id_t channel_id);
+static bool 		UART_tx_buffer_is_empty		(UART_channel_id_t channel_id);
+static bool 		UART_tx_buffer_is_full		(UART_channel_id_t channel_id);
+
+static uint32_t		UART_calculate_baud_value	(UART_baud_rate_id_t baud_id);
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -163,7 +149,7 @@ void UART_init(UART_channel_id_t channel_id)
 	p_channel->_p_sercom_registers->SERCOM_CTRLA = 	p_channel->u32_rx_pad | 
 																p_channel->u32_tx_pad;
 
-	p_channel->_p_sercom_registers->SERCOM_BAUD = kpu32_pre_calculated_baud_register_values[p_channel->baud_rate];
+	p_channel->_p_sercom_registers->SERCOM_BAUD = UART_calculate_baud_value(p_channel->baud_rate_id);
 
 	p_channel->_p_sercom_registers->SERCOM_CTRLA |=	SERCOM_USART_INT_CTRLA_MODE_USART_INT_CLK |
 													SERCOM_USART_INT_CTRLA_FORM_USART_FRAME_NO_PARITY |
@@ -448,6 +434,25 @@ void irqSERCOM0()
 }
 
 /****************************************************************************************************
+ *	Maps a baud ID to its corresponding BAUD register value according to the configured system clock
+ *	frequency.
+ *
+ * 	Formula for the baud register value is:
+ * 	65536 - (65536 * 16 * u32_baud_rate) / SYS_CLOCK_FREQ
+ *
+ * 	@param[in] baud_id the ID of the desired baud rate
+ *
+ *	@return the corresponding BAUD register value
+ ****************************************************************************************************/
+static uint32_t UART_calculate_baud_value(UART_baud_rate_id_t baud_id)
+{
+	uint32_t u32_sys_clock_freq = SYS_get_source_clock_freq();
+	uint64_t u64_numerator = (uint64_t)65536 * 16 * kpu8_baud_rates[baud_id];
+	uint32_t u32_baud_value = 65536 - (uint32_t)((u64_numerator + (u32_sys_clock_freq / 2)) / u32_sys_clock_freq);
+	return u32_baud_value;
+}
+
+/****************************************************************************************************
  *	S H E L L   F U N C T I O N S
  ****************************************************************************************************/
 
@@ -474,7 +479,7 @@ uint8_t UART_shell_info(uint8_t argc, char ** argv)
 			p_uart = &p_uart_channels[i];
 
 			SHELL_printf("%-20s: %s\r\n", "Channel Name", p_uart->kpc_name);
-			SHELL_printf("%-20s: %u\r\n", "Baud Rate",  kpu8_baud_descriptors[p_uart->baud_rate]);
+			SHELL_printf("%-20s: %u\r\n", "Baud Rate",  kpu8_baud_rates[p_uart->baud_rate_id]);
 			SHELL_printf("%-20s: %s\r\n", "TX", IO_get_pin_string(p_uart->tx_pin));
 			SHELL_printf("%-20s: %s\r\n", "RX", IO_get_pin_string(p_uart->rx_pin));
 			
@@ -483,7 +488,6 @@ uint8_t UART_shell_info(uint8_t argc, char ** argv)
 				SHELL_printf("\n");
 			}
 		}
-
 
 		SHELL_SEPARATOR();
 	}

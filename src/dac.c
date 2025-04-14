@@ -126,3 +126,48 @@ uint8_t DAC_shell_write(uint8_t argc, char ** argv)
 
 	return SHELL_COMMAND_SUCCESS;
 }
+
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Performs a sine wave test
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
+uint8_t DAC_shell_sine(uint8_t argc, char ** argv)
+{
+	// #define TABLE_SIZE 128
+	// #define FREQ_HZ    64
+	// #define SAMPLE_RATE_HZ 8000
+	// #define DELAY_MS   (1000 / SAMPLE_RATE_HZ)
+
+	// uint16_t sine_table[TABLE_SIZE];
+
+	// if (argc != 0)
+	// {
+	// 	SHELL_printf("Usage: dac sine\n");
+	// 	return SHELL_COMMAND_SUCCESS;
+	// }
+
+	// for (int i = 0; i < TABLE_SIZE; i++)
+	// {
+	// 	float theta = (2.0f * PI * i) / TABLE_SIZE;
+	// 	float sine = sinf(theta);
+	// 	sine_table[i] = (uint16_t)((sine + 1.0f) * 0.5f * DAC_MAXVAL);
+	// }
+
+	// uint32_t index = 0;
+	// uint32_t step_size = (TABLE_SIZE * FREQ_HZ) / SAMPLE_RATE_HZ;
+
+	// for (;;)
+	// {
+	// 	DAC_write(sine_table[index]);
+	// 	index = (index + step_size) % TABLE_SIZE;
+	// 	CHRONO_delay_ms(DELAY_MS);
+	// }
+
+	return SHELL_COMMAND_SUCCESS;
+}

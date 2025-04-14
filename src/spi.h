@@ -1,5 +1,5 @@
 #ifndef SPI_H
-#define SPIH
+#define SPI_H
 
 #include "common.h"
 

@@ -1,15 +1,11 @@
-#ifndef INTERRUPTS_H
-#define INTERRUPTS_H
+#ifndef MEDIA_H
+#define MEDIA_H
 
 /****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-void 	irqSERCOM0	(void);
-void 	irqTC0		(void);
-void 	irqTC1		(void);
-void 	irqTC2		(void);
-void 	irqTC3		(void);
-void	irqEIC		(void);
+void MEDIA_init(void);
+void MEDIA_task(void * p_params);
 
-#endif // INTERRUPTS_H
+#endif // MEDIA_H

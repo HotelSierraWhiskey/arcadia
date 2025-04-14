@@ -43,7 +43,7 @@ static IO_pin_t p_pin_map[IO_PIN_ID_NUM_PINS] =
 
 	[IO_PIN_ID_PA00] =
 	{
-		.kpc_name 	= "LCD_DB6",
+		.kpc_name 	= "EXTI_DBG",
 		.group 		= IO_GROUP_A,
 		.u8_number 	= 0
 	},
@@ -127,7 +127,7 @@ static IO_pin_t p_pin_map[IO_PIN_ID_NUM_PINS] =
 	},
 	[IO_PIN_ID_PA14] =
 	{
-		.kpc_name 	= "BUTTON_DPAD_MENU",
+		.kpc_name 	= "GCLK_IO_0",
 		.group 		= IO_GROUP_A,
 		.u8_number 	= 14
 	},
@@ -517,7 +517,7 @@ IO_pin_state_t IO_read_pin(IO_pin_id_t pin_id)
 {
 	IO_pin_t pin = p_pin_map[pin_id];
 
-	return (IO_pin_state_t)PORT_REGS->GROUP[pin.group].PORT_IN & (1 << pin.u8_number);
+	return (IO_pin_state_t)((PORT_REGS->GROUP[pin.group].PORT_IN >> pin.u8_number) & 1);
 }
 
 /****************************************************************************************************
