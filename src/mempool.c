@@ -5,7 +5,7 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-#define MEMPOOL_TOTAL_SIZE				(2048U)
+#define MEMPOOL_TOTAL_SIZE				(4096U)
 #define MEMPOOL_TOTAL_BLOCKS			(MEMPOOL_TOTAL_SIZE / MEMPOOL_MINIMUM_BLOCK_SIZE)
 
 #define MEMPOOL_semaphore_take() 		xSemaphoreTake(MEMPOOL_info.pool_mutex, portMAX_DELAY)
