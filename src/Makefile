@@ -82,6 +82,7 @@ APP_VPATH = 	$(APP_TASKS) \
 				ili9488.c \
 				dac.c \
 				exti.c \
+				dma.c \
 				json/json.c \
 				fsm/app_fsm.c \
 				fsm/menu_fsm.c \
