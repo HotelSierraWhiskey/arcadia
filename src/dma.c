@@ -43,7 +43,7 @@ __attribute__((aligned(16))) static DMA_channel_config_t DMA_channel_configs[DMA
                     			DMAC_BTCTRL_VALID(1),
 			.u16_beat_count = 			16,
 			.u32_source_address =		(uint32_t)u8_source_demo_buffer + 16,
-			.u32_destination_address = 	(uint32_t)u8_dest_demo_buffer,
+			.u32_destination_address = 	(uint32_t)u8_dest_demo_buffer + 16, // ??
 			.u32_descriptor_address = 	0
 		}
 	}
@@ -53,6 +53,9 @@ void DMA_init(void)
 {
 	// Enable AHB clock for DAC
 	MCLK_REGS->MCLK_AHBMASK |= MCLK_AHBMASK_DMAC(1);
+
+
+	// MCLK_REGS->MCLK_APBBMASK |= MCLK_AHBMASK_HMATRIXHS(1); ??
 
 	// before DMAC is enabled:
 	// 		The SRAM address of where the descriptor memory section is located must be written to the Description Base Address (BASEADDR) register
@@ -106,10 +109,10 @@ uint8_t DMA_shell_test(uint8_t argc, char ** argv)
 
 	DMAC_REGS->DMAC_SWTRIGCTRL = DMAC_SWTRIGCTRL_SWTRIG0(1);
 
-	// while (!(DMAC_REGS->DMAC_CHINTFLAG & DMAC_CHINTFLAG_TCMPL_Msk))
-	// {
-	// 	continue;
-	// }
+	while (!(DMAC_REGS->DMAC_CHINTFLAG & DMAC_CHINTFLAG_TCMPL_Msk))
+	{
+		continue;
+	}
 
 	DMAC_REGS->DMAC_CHINTFLAG = DMAC_CHINTFLAG_TCMPL_Msk;  // Clear flag
 
