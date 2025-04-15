@@ -12,6 +12,7 @@
 #include "app_fsm.h"
 #include "io.h"
 #include "dac.h"
+#include "dma.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -569,6 +570,15 @@ static const SHELL_command_t kp_sys_command_table[] =
 		.kpc_docstring		= 	(
 									"\tView task high watermarks\n"
 									"\tUsage: sys wm\n"
+								)
+	},
+		{
+		.kpc_name 			= "dma",
+		.function 			= DMA_shell_test,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tVasdcasdc\n"
+									"\tUasdccasdm\n"
 								)
 	},
 	//////////

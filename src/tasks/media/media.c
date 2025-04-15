@@ -1,6 +1,7 @@
 #include "arcadia.h"
 #include "utils.h"
 #include "dac.h"
+#include "dma.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -23,6 +24,9 @@ void MEDIA_init(void)
 {
 	// Initialize DAC driver
 	DAC_init();
+
+	// Initialize DMA channels
+	DMA_init();
 }
 
 /****************************************************************************************************
