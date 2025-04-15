@@ -9,9 +9,6 @@
 #include "spi.h"
 #include "fsif.h"
 #include "mempool.h"
-
-#include "ili9488.h"
-#include "dac.h"
 #include "exti.h"
 
 /****************************************************************************************************

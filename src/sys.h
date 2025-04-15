@@ -10,6 +10,7 @@
 void 				SYS_init 					(void);
 uint32_t			SYS_get_source_clock_freq 	(void);
 void				SYS_reset					(void);
+void 				SYS_boot_report				(void);
 
 /****************************************************************************************************
  *	S H E L L   F U N C T I O N S
