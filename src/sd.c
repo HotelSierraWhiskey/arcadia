@@ -258,7 +258,8 @@ bool SD_card_init(void)
 
 	do
 	{
-		CHRONO_delay_ms(700);
+		CHRONO_delay_ms(250);
+
 		u8_response =  SD_cmd_app_cmd();
 
 		u8_response = SD_cmd_send_op_cond();
