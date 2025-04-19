@@ -95,6 +95,7 @@ void DMA_software_transfer(DMA_channel_id_t channel_id)
 	switch (channel_id)
 	{
 		case DMA_CHANNEL_ID_AUDIO:
+			DMA_audio_channel_config.descriptor.DMAC_BTCTRL |= DMAC_BTCTRL_VALID(1);
 			DMAC_REGS->DMAC_CHCTRLA = DMAC_CHCTRLA_ENABLE(1);
 			DMAC_REGS->DMAC_SWTRIGCTRL |= DMAC_SWTRIGCTRL_SWTRIG0(1);
 			break;
@@ -141,12 +142,12 @@ uint8_t DMA_shell_test(uint8_t argc, char ** argv)
 
 	SHELL_printf("\n");
 
-	for (uint8_t i = 0; i < 16; i++)
-	{
-		SHELL_printf("%02X ", u8_dest_demo_buffer_2[i]);
-	}
+	// for (uint8_t i = 0; i < 16; i++)
+	// {
+	// 	SHELL_printf("%02X ", u8_dest_demo_buffer_2[i]);
+	// }
 
-	SHELL_printf("\n");
+	// SHELL_printf("\n");
 
 	DMA_software_transfer(DMA_CHANNEL_ID_AUDIO);
 
@@ -159,25 +160,28 @@ uint8_t DMA_shell_test(uint8_t argc, char ** argv)
 
 	SHELL_printf("\n");
 
-	for (uint8_t i = 0; i < 16; i++)
-	{
-		SHELL_printf("%02X ", u8_dest_demo_buffer_2[i]);
-	}
+	// for (uint8_t i = 0; i < 16; i++)
+	// {
+	// 	SHELL_printf("%02X ", u8_dest_demo_buffer_2[i]);
+	// }
 
-	SHELL_printf("\n");
+	// SHELL_printf("\n");
+	
+	// #include "media_api.h"
+	// MEDIA_API_play_audio("nothing.wav");
 
-	if (DMA_audio_channel_config.buffer_id == DMA_AUDIO_BUFFER_ID_ONE)
-	{
-		memset(u8_dest_demo_buffer_1, 0, 16);
-		DMA_audio_channel_config.buffer_id = DMA_AUDIO_BUFFER_ID_TWO;
-		DMA_audio_channel_config.descriptor.DMAC_DSTADDR = (uint32_t)(u8_dest_demo_buffer_2 + DMA_AUDIO_BLOCK_TRANSFER_COUNT);
-	}
-	else
-	{
-		memset(u8_dest_demo_buffer_2, 0, 16);
-		DMA_audio_channel_config.buffer_id = DMA_AUDIO_BUFFER_ID_ONE;
-		DMA_audio_channel_config.descriptor.DMAC_DSTADDR = (uint32_t)(u8_dest_demo_buffer_1 + DMA_AUDIO_BLOCK_TRANSFER_COUNT);
-	}
+	// if (DMA_audio_channel_config.buffer_id == DMA_AUDIO_BUFFER_ID_ONE)
+	// {
+	// 	memset(u8_dest_demo_buffer_1, 0, 16);
+	// 	DMA_audio_channel_config.buffer_id = DMA_AUDIO_BUFFER_ID_TWO;
+	// 	DMA_audio_channel_config.descriptor.DMAC_DSTADDR = (uint32_t)(u8_dest_demo_buffer_2 + DMA_AUDIO_BLOCK_TRANSFER_COUNT);
+	// }
+	// else
+	// {
+	// 	memset(u8_dest_demo_buffer_2, 0, 16);
+	// 	DMA_audio_channel_config.buffer_id = DMA_AUDIO_BUFFER_ID_ONE;
+	// 	DMA_audio_channel_config.descriptor.DMAC_DSTADDR = (uint32_t)(u8_dest_demo_buffer_1 + DMA_AUDIO_BLOCK_TRANSFER_COUNT);
+	// }
 
 	return SHELL_COMMAND_SUCCESS;
 }

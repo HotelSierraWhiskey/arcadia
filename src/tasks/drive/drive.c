@@ -433,7 +433,7 @@ static void	DRIVE_handle_msg_chdir(ARCADIA_msg_t * p_msg)
 	else
 	{
 		DRIVE_LOG_WARN("Failed to change directory to %s (status: %u)\n", kpc_dirname, f_result);
-		*p_msg->payload.drive_payload_chdir.p_result_status = ARCADIA_STATUS_DIRECTORY_ERROR;
+		*p_msg->payload.drive_payload_chdir.p_result_status = ARCADIA_STATUS_DRIVE_DIRECTORY_ERROR;
 	}
 
 	MEMPOOL_free(buffer);
