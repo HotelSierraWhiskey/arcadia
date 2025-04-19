@@ -90,13 +90,13 @@ void DMA_software_transfer(DMA_channel_id_t channel_id)
 
 	DMAC_REGS->DMAC_CHID = channel_id;
 
-	DMAC_REGS->DMAC_CHCTRLA &= ~DMAC_CHCTRLA_ENABLE(1);
+	// DMAC_REGS->DMAC_CHCTRLA &= ~DMAC_CHCTRLA_ENABLE(1);
 
 	switch (channel_id)
 	{
 		case DMA_CHANNEL_ID_AUDIO:
-			DMA_audio_channel_config.descriptor.DMAC_BTCTRL |= DMAC_BTCTRL_VALID(1);
-			DMAC_REGS->DMAC_CHCTRLA = DMAC_CHCTRLA_ENABLE(1);
+			// DMA_audio_channel_config.descriptor.DMAC_BTCTRL |= DMAC_BTCTRL_VALID(1);
+			// DMAC_REGS->DMAC_CHCTRLA = DMAC_CHCTRLA_ENABLE(1);
 			DMAC_REGS->DMAC_SWTRIGCTRL |= DMAC_SWTRIGCTRL_SWTRIG0(1);
 			break;
 		default:
@@ -123,7 +123,7 @@ static void DMA_channel_init(DMA_channel_id_t channel_id)
 	DMAC_REGS->DMAC_CHID = channel_id;
 
 	// Configure the channel for software trigger
-	DMAC_REGS->DMAC_CHCTRLB =	DMAC_CHCTRLB_TRIGACT_BLOCK |
+	DMAC_REGS->DMAC_CHCTRLB =	DMAC_CHCTRLB_TRIGACT_BEAT |
 								DMAC_CHCTRLB_TRIGSRC(0);
 
 	DMAC_REGS->DMAC_CHCTRLA = DMAC_CHCTRLA_ENABLE(1);
