@@ -168,11 +168,13 @@ uint8_t DMA_shell_test(uint8_t argc, char ** argv)
 
 	if (DMA_audio_channel_config.buffer_id == DMA_AUDIO_BUFFER_ID_ONE)
 	{
+		memset(u8_dest_demo_buffer_1, 0, 16);
 		DMA_audio_channel_config.buffer_id = DMA_AUDIO_BUFFER_ID_TWO;
 		DMA_audio_channel_config.descriptor.DMAC_DSTADDR = (uint32_t)(u8_dest_demo_buffer_2 + DMA_AUDIO_BLOCK_TRANSFER_COUNT);
 	}
 	else
 	{
+		memset(u8_dest_demo_buffer_2, 0, 16);
 		DMA_audio_channel_config.buffer_id = DMA_AUDIO_BUFFER_ID_ONE;
 		DMA_audio_channel_config.descriptor.DMAC_DSTADDR = (uint32_t)(u8_dest_demo_buffer_1 + DMA_AUDIO_BLOCK_TRANSFER_COUNT);
 	}
@@ -192,14 +194,12 @@ void irqDMAC(void)
 			if (DMAC_REGS->DMAC_CHINTFLAG & DMAC_CHINTFLAG_TCMPL_Msk)
 			{
 				DMAC_REGS->DMAC_CHINTFLAG = DMAC_CHINTFLAG_TCMPL_Msk;
-				// SHELL_printf("[DMA CH %u] Transfer complete\n", ch);
 			}
 
-			// Transfer error
+			// Transfer error (TODO: this should be handled properly)
 			if (DMAC_REGS->DMAC_CHINTFLAG & DMAC_CHINTFLAG_TERR_Msk)
 			{
 				DMAC_REGS->DMAC_CHINTFLAG = DMAC_CHINTFLAG_TERR_Msk;
-				// SHELL_printf("[DMA CH %u] Transfer error\n", ch);
 			}
 		}
 	}
