@@ -5,8 +5,8 @@
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
-
-#define DMA_AUDIO_BLOCK_TRANSFER_COUNT (16U)
+#define DMA_NO_DESC_ADDR				(0U)
+#define DMA_AUDIO_BLOCK_TRANSFER_COUNT 	(16U)
 
 typedef enum _DMA_channel_id
 {
@@ -15,11 +15,20 @@ typedef enum _DMA_channel_id
 	DMA_CHANNEL_ID_NUM_IDS
 } DMA_channel_id_t;
 
+typedef enum _DMA_audio_buffer_id
+{
+	DMA_AUDIO_BUFFER_ID_ONE = 0,
+	DMA_AUDIO_BUFFER_ID_TWO,
+	//////////
+	DMA_AUDIO_BUFFER_NUM_BUFFER_IDS
+} DMA_audio_buffer_id_t;
+
 typedef struct _DMA_channel_config
 {
+	DMA_audio_buffer_id_t		buffer_id;
 	dmac_descriptor_registers_t descriptor;
 	dmac_descriptor_registers_t _writeback;
-} DMA_channel_config_t;
+} DMA_audio_channel_config_t;
 
 /****************************************************************************************************
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
@@ -31,26 +40,24 @@ static void			DMA_channel_init		(DMA_channel_id_t channel_id);
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
 
-uint8_t u8_source_demo_buffer[16];
-uint8_t u8_dest_demo_buffer[32];
+uint8_t u8_source_demo_buffer[16] = { 0 };
+uint8_t u8_dest_demo_buffer_1[16] = { 0 };
+uint8_t u8_dest_demo_buffer_2[16] = { 0 };
 
-
-__attribute__((aligned(16))) volatile static DMA_channel_config_t DMA_channel_configs[DMA_CHANNEL_ID_NUM_IDS] =
+static volatile DMA_audio_channel_config_t DMA_audio_channel_config =
 {
-	[DMA_CHANNEL_ID_AUDIO] =
+	.buffer_id = 			DMA_AUDIO_BUFFER_ID_ONE,
+	.descriptor =
 	{
-		.descriptor =
-		{
-			.DMAC_BTCTRL = 		DMAC_BTCTRL_BEATSIZE_BYTE |
-								DMAC_BTCTRL_SRCINC(1) |
-								DMAC_BTCTRL_DSTINC(1) |
-								DMAC_BTCTRL_VALID(1),
-			.DMAC_BTCNT = 		DMA_AUDIO_BLOCK_TRANSFER_COUNT,
-			.DMAC_SRCADDR =		(uint32_t)(u8_source_demo_buffer + DMA_AUDIO_BLOCK_TRANSFER_COUNT),
-			.DMAC_DSTADDR = 	(uint32_t)(u8_dest_demo_buffer + DMA_AUDIO_BLOCK_TRANSFER_COUNT),
-			.DMAC_DESCADDR = 	0
-		}
-	}
+		.DMAC_BTCTRL = 		DMAC_BTCTRL_BEATSIZE_BYTE |
+							DMAC_BTCTRL_SRCINC(1) |
+							DMAC_BTCTRL_DSTINC(1) |
+							DMAC_BTCTRL_VALID(1),
+		.DMAC_BTCNT = 		DMA_AUDIO_BLOCK_TRANSFER_COUNT,
+		.DMAC_SRCADDR =		(uint32_t)(u8_source_demo_buffer + DMA_AUDIO_BLOCK_TRANSFER_COUNT),
+		.DMAC_DSTADDR = 	(uint32_t)(u8_dest_demo_buffer_1 + DMA_AUDIO_BLOCK_TRANSFER_COUNT),
+		.DMAC_DESCADDR = 	DMA_NO_DESC_ADDR,
+	},
 };
 
 /****************************************************************************************************
@@ -62,8 +69,8 @@ void DMA_init(void)
 	// Enable AHB clock for DAC. (APB is synchronous here, so just AHB required)
 	MCLK_REGS->MCLK_AHBMASK |= MCLK_AHBMASK_DMAC(1);
 
-	DMAC_REGS->DMAC_BASEADDR = (uint32_t)&DMA_channel_configs[0].descriptor;
-	DMAC_REGS->DMAC_WRBADDR  = (uint32_t)&DMA_channel_configs[0]._writeback;
+	DMAC_REGS->DMAC_BASEADDR = (uint32_t)&DMA_audio_channel_config.descriptor;
+	DMAC_REGS->DMAC_WRBADDR  = (uint32_t)&DMA_audio_channel_config._writeback;
 
 	DMAC_REGS->DMAC_CHINTENSET |= DMAC_CHINTENSET_TCMPL(1);
 
@@ -81,14 +88,14 @@ void DMA_software_transfer(DMA_channel_id_t channel_id)
 {
 	ASSERT(channel_id < DMA_CHANNEL_ID_NUM_IDS);
 
-	DMA_channel_configs[channel_id].descriptor.DMAC_BTCTRL |= DMAC_BTCTRL_VALID(1);
+	DMAC_REGS->DMAC_CHID = channel_id;
 
-	SHELL_printf("\n--> DMAC_SRCADDR: %p\n", DMA_channel_configs[channel_id].descriptor.DMAC_SRCADDR);
-	SHELL_printf("\n--> DMAC_DSTADDR: %p\n", DMA_channel_configs[channel_id].descriptor.DMAC_DSTADDR);
+	DMAC_REGS->DMAC_CHCTRLA &= ~DMAC_CHCTRLA_ENABLE(1);
 
 	switch (channel_id)
 	{
 		case DMA_CHANNEL_ID_AUDIO:
+			DMAC_REGS->DMAC_CHCTRLA = DMAC_CHCTRLA_ENABLE(1);
 			DMAC_REGS->DMAC_SWTRIGCTRL |= DMAC_SWTRIGCTRL_SWTRIG0(1);
 			break;
 		default:
@@ -100,6 +107,17 @@ void DMA_software_transfer(DMA_channel_id_t channel_id)
 static void DMA_channel_init(DMA_channel_id_t channel_id)
 {
 	ASSERT(channel_id < DMA_CHANNEL_ID_NUM_IDS);
+
+	// Channels are already mostly defined. The descriptors just need to be linked together
+	switch (channel_id)
+	{
+		case DMA_CHANNEL_ID_AUDIO:
+			// Nothing to do for audio
+			break;
+		default:
+			// Should be unreachable
+			ASSERT(0);
+	}
 
 	DMAC_REGS->DMAC_CHID = channel_id;
 
@@ -115,22 +133,49 @@ uint8_t DMA_shell_test(uint8_t argc, char ** argv)
 	uint8_t b[] = {0xd, 0xe, 0xa, 0xd, 0xb, 0xe, 0xe, 0xf, 0xd, 0xe, 0xa, 0xd, 0xb, 0xe, 0xe, 0xf};
 
 	memcpy(u8_source_demo_buffer, b, 16);
-	memset(u8_dest_demo_buffer, 0, 32);
 
-	for (uint8_t i = 0; i < 32; i++)
+	for (uint8_t i = 0; i < 16; i++)
 	{
-		SHELL_printf("%02X ", u8_dest_demo_buffer[i]);
+		SHELL_printf("%02X ", u8_dest_demo_buffer_1[i]);
 	}
+
+	SHELL_printf("\n");
+
+	for (uint8_t i = 0; i < 16; i++)
+	{
+		SHELL_printf("%02X ", u8_dest_demo_buffer_2[i]);
+	}
+
+	SHELL_printf("\n");
 
 	DMA_software_transfer(DMA_CHANNEL_ID_AUDIO);
 
 	SHELL_printf("\n");
 
-	for (uint8_t i = 0; i < 32; i++)
+	for (uint8_t i = 0; i < 16; i++)
 	{
-		SHELL_printf("%02X ", u8_dest_demo_buffer[i]);
+		SHELL_printf("%02X ", u8_dest_demo_buffer_1[i]);
 	}
+
 	SHELL_printf("\n");
+
+	for (uint8_t i = 0; i < 16; i++)
+	{
+		SHELL_printf("%02X ", u8_dest_demo_buffer_2[i]);
+	}
+
+	SHELL_printf("\n");
+
+	if (DMA_audio_channel_config.buffer_id == DMA_AUDIO_BUFFER_ID_ONE)
+	{
+		DMA_audio_channel_config.buffer_id = DMA_AUDIO_BUFFER_ID_TWO;
+		DMA_audio_channel_config.descriptor.DMAC_DSTADDR = (uint32_t)(u8_dest_demo_buffer_2 + DMA_AUDIO_BLOCK_TRANSFER_COUNT);
+	}
+	else
+	{
+		DMA_audio_channel_config.buffer_id = DMA_AUDIO_BUFFER_ID_ONE;
+		DMA_audio_channel_config.descriptor.DMAC_DSTADDR = (uint32_t)(u8_dest_demo_buffer_1 + DMA_AUDIO_BLOCK_TRANSFER_COUNT);
+	}
 
 	return SHELL_COMMAND_SUCCESS;
 }
