@@ -11,8 +11,12 @@
 
 #define TIMER_LOG_DBG(fmt, ...)   			SHELL_printf("\r%-12s" fmt, "[TIMER]", ##__VA_ARGS__)
 
-#define TIMER_CTRLA_ENABLE					(TC_CTRLA_MODE_COUNT16 | TC_CTRLA_PRESCALER_DIV1024 | TC_CTRLA_ENABLE(1))
-#define TIMER_CTRLA_DISABLE					(TC_CTRLA_ENABLE(0))
+#define TIMER_CTRLA_ENABLE_POOL_TIMER		(TC_CTRLA_MODE_COUNT16 | TC_CTRLA_PRESCALER_DIV1024 | TC_CTRLA_ENABLE(1))
+#define TIMER_CTRLA_DISABLE_POOL_TIMER		(TC_CTRLA_ENABLE(0))
+
+#define TIMER_CTRLA_ENABLE_DMA_TIMER		(TC_CTRLA_MODE_COUNT16 | TC_CTRLA_PRESCALER_DIV1 | TC_CTRLA_ENABLE(1))
+#define TIMER_CTRLA_DISABLE_DMA_TIMER		(TC_CTRLA_ENABLE(0))
+#define TIMER_DMA_44K1HZ_PRESCALED_VALUE	(1088U)
 
 #define TIMER_TC0_AND_TC1_GCLK_ID 			(TC0_GCLK_ID)
 #define TIMER_TC2_AND_TC3_GCLK_ID 			(TC2_GCLK_ID)
@@ -64,6 +68,21 @@ static TIMER_info_t p_timer_pool[TIMER_ID_NUM_TIMERS] =
 };
 
 /**
+ *	Standalone timer, sourced by GCLK0
+ *	
+ *	@warning 
+ *	For driving DMA transfers only. This is not part of the timer pool 
+ *	and shouldn't be directly exposed at the API layer
+ */
+static TIMER_info_t dma_timer =
+{
+	.u16_period		= TIMER_AVAILABLE,
+	.mode			= TIMER_MODE_SINGLE_SHOT,
+	.p_timer_regs 	= TC4_REGS,
+	.u8_irq_id		= TC4_IRQn
+};
+
+/**
  *	String representations of timer operation modes
  */
 const char * const kpc_mode_descriptors[TIMER_MODE_NUM_MODES] =
@@ -77,33 +96,47 @@ const char * const kpc_mode_descriptors[TIMER_MODE_NUM_MODES] =
  ****************************************************************************************************/
 
 /****************************************************************************************************
- *	Initializes TC0, TC1, TC2, and TC3 in 16-bit mode.
+ *	Initializes TC0, TC1, TC2, TC3, and TC4 (the DMA timer) in 16-bit mode.
  *
  *	TC0 & TC1 are muxed into peripheral channel 30, TC2 & TC3 are muxed into peripheral channel 31.
  *	All timers have their APB clocks enabled and their "Match or Compare Channel 0" interrupt enabled.
  *	Compare/ Capture registers for each timer are hardcoded to 32.
+ *
+ *	All timers in the timer pool are clocked by GCLK1 (which is sourced by OSC32768 @ 1Hz).
  * 
  ****************************************************************************************************/
 void TIMER_init(void)
 {
-	IO_config_pin_direction(IO_PIN_ID_PA27, IO_DIRECTION_OUTPUT);
+	IO_config_pin_direction(IO_PIN_ID_PA27, IO_DIRECTION_OUTPUT); // temporary, for debugging, delete
 
+	// Clock peripheral channels for TC0 and TC1 with GLCK1
 	GCLK_REGS->GCLK_PCHCTRL[TIMER_TC0_AND_TC1_GCLK_ID] = 	GCLK_PCHCTRL_CHEN(1) |
 															GCLK_PCHCTRL_GEN_GCLK1;
 
+	// Same as above for TC2 and TC3
 	GCLK_REGS->GCLK_PCHCTRL[TIMER_TC2_AND_TC3_GCLK_ID] = 	GCLK_PCHCTRL_CHEN(1) |
 															GCLK_PCHCTRL_GEN_GCLK1;
 
+	// Enable the peripheral busses
 	MCLK_REGS->MCLK_APBCMASK |=	MCLK_APBCMASK_TC0(1) |
 								MCLK_APBCMASK_TC1(1) |
 								MCLK_APBCMASK_TC2(1) |
 								MCLK_APBCMASK_TC3(1);
 
+	// Configure interrupts for pool timers
 	for (uint8_t i = 0; i < TIMER_ID_NUM_TIMERS; i++)
 	{
 		p_timer_pool[i].p_timer_regs->COUNT16.TC_INTENSET = TC_INTENSET_MC0(1);
 		NVIC_DisableIRQ(p_timer_pool[i].u8_irq_id);
 	}
+
+	// Similar configuration for the standalone DMA timer, clocked by GCLK0 (48MHz nominally)
+	GCLK_REGS->GCLK_PCHCTRL[TC4_GCLK_ID] = 	GCLK_PCHCTRL_CHEN(1) |
+											GCLK_PCHCTRL_GEN_GCLK0;
+	MCLK_REGS->MCLK_APBCMASK |= MCLK_APBCMASK_TC4(1);
+	dma_timer.p_timer_regs->COUNT16.TC_CC[0] = TIMER_DMA_44K1HZ_PRESCALED_VALUE;
+	dma_timer.p_timer_regs->COUNT16.TC_INTENSET = TC_INTENSET_MC0(1);
+	NVIC_DisableIRQ(dma_timer.u8_irq_id);
 }
 
 /****************************************************************************************************
@@ -162,7 +195,7 @@ void TIMER_start(const TIMER_id_t k_timer_id)
 
 	NVIC_EnableIRQ(p_timer->u8_irq_id);
 
-	p_timer->p_timer_regs->COUNT16.TC_CTRLA |= TIMER_CTRLA_ENABLE;
+	p_timer->p_timer_regs->COUNT16.TC_CTRLA |= TIMER_CTRLA_ENABLE_POOL_TIMER;
 
 	while (p_timer->p_timer_regs->COUNT16.TC_SYNCBUSY & TC_SYNCBUSY_ENABLE(1))
 	{
@@ -185,7 +218,7 @@ void TIMER_stop(const TIMER_id_t k_timer_id)
 
 	TIMER_info_t * p_timer = &p_timer_pool[k_timer_id];
 
-	p_timer->p_timer_regs->COUNT16.TC_CTRLA &= ~TIMER_CTRLA_ENABLE;
+	p_timer->p_timer_regs->COUNT16.TC_CTRLA &= ~TIMER_CTRLA_ENABLE_POOL_TIMER;
 	p_timer->p_timer_regs->COUNT16.TC_INTFLAG = TC_INTFLAG_MC0(1);
 	p_timer->u16_period = TIMER_AVAILABLE;
 
@@ -219,6 +252,25 @@ uint16_t TIMER_get_timer_count(const TIMER_id_t k_timer_id)
 	}
 
 	return p_timer->p_timer_regs->COUNT16.TC_COUNT;
+}
+
+void TIMER_start_dma_timer(void)
+{
+	NVIC_EnableIRQ(dma_timer.u8_irq_id);
+
+	dma_timer.p_timer_regs->COUNT16.TC_CTRLA |= TIMER_CTRLA_ENABLE_DMA_TIMER;
+
+	while (dma_timer.p_timer_regs->COUNT16.TC_SYNCBUSY & TC_SYNCBUSY_ENABLE(1))
+	{
+		continue;
+	}
+}
+
+void TIMER_stop_dma_timer(void)
+{
+	dma_timer.p_timer_regs->COUNT16.TC_CTRLA &= ~TIMER_CTRLA_ENABLE_DMA_TIMER;
+	dma_timer.p_timer_regs->COUNT16.TC_INTFLAG = TC_INTFLAG_MC0(1);
+	NVIC_DisableIRQ(dma_timer.u8_irq_id);
 }
 
 /****************************************************************************************************
@@ -320,6 +372,27 @@ void irqTC2(void)
 void irqTC3(void)
 {
 	TIMER_on_match(TIMER_ID_3);
+}
+
+/****************************************************************************************************
+ *	TC4 Interrupt Service Routine
+ *
+ ****************************************************************************************************/
+void irqTC4(void)
+{
+	static bool b_state = false;
+
+	if (dma_timer.p_timer_regs->COUNT16.TC_INTFLAG & TC_INTFLAG_MC0(1))
+	{
+		// Clear the interrupt first
+		dma_timer.p_timer_regs->COUNT16.TC_INTFLAG = TC_INTFLAG_MC0(1);
+
+		// Toggle the debug pin
+		IO_set_pin(IO_PIN_ID_PA27, b_state ? IO_PIN_STATE_HIGH : IO_PIN_STATE_LOW);
+		b_state = !b_state;
+	}
+
+	NVIC_ClearPendingIRQ(dma_timer.u8_irq_id);
 }
 
 /****************************************************************************************************

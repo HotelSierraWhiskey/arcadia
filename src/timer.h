@@ -58,6 +58,8 @@ void 					TIMER_stop					(const TIMER_id_t k_timer_id);
 TIMER_id_t				TIMER_alloc					(uint16_t u16_period, TIMER_mode_t mode);
 const TIMER_info_t *	TIMER_get_timer_info		(const TIMER_id_t k_timer_id);
 uint16_t		 		TIMER_get_timer_count		(const TIMER_id_t k_timer_id);
+void 					TIMER_start_dma_timer		(void);
+void 					TIMER_stop_dma_timer		(void);
 
 /****************************************************************************************************
  *	S H E L L   F U N C T I O N S
