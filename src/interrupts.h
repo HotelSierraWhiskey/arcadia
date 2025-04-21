@@ -10,6 +10,7 @@ void 	irqTC0		(void);
 void 	irqTC1		(void);
 void 	irqTC2		(void);
 void 	irqTC3		(void);
+void 	irqTC4		(void);
 void	irqEIC		(void);
 
 #endif // INTERRUPTS_H

@@ -16,7 +16,7 @@
 
 #define TIMER_CTRLA_ENABLE_DMA_TIMER		(TC_CTRLA_MODE_COUNT16 | TC_CTRLA_PRESCALER_DIV1 | TC_CTRLA_ENABLE(1))
 #define TIMER_CTRLA_DISABLE_DMA_TIMER		(TC_CTRLA_ENABLE(0))
-#define TIMER_DMA_44K1HZ_PRESCALED_VALUE	(1088U)
+#define TIMER_DMA_44K1HZ_PRESCALED_VALUE	(422U)
 
 #define TIMER_TC0_AND_TC1_GCLK_ID 			(TC0_GCLK_ID)
 #define TIMER_TC2_AND_TC3_GCLK_ID 			(TC2_GCLK_ID)
@@ -117,11 +117,16 @@ void TIMER_init(void)
 	GCLK_REGS->GCLK_PCHCTRL[TIMER_TC2_AND_TC3_GCLK_ID] = 	GCLK_PCHCTRL_CHEN(1) |
 															GCLK_PCHCTRL_GEN_GCLK1;
 
+	// Similar configuration for the standalone DMA timer, clocked by GCLK0 (48MHz nominally)
+	GCLK_REGS->GCLK_PCHCTRL[TC4_GCLK_ID] = 	GCLK_PCHCTRL_CHEN(1) |
+											GCLK_PCHCTRL_GEN_GCLK0;
+
 	// Enable the peripheral busses
 	MCLK_REGS->MCLK_APBCMASK |=	MCLK_APBCMASK_TC0(1) |
 								MCLK_APBCMASK_TC1(1) |
 								MCLK_APBCMASK_TC2(1) |
-								MCLK_APBCMASK_TC3(1);
+								MCLK_APBCMASK_TC3(1) |
+								MCLK_APBCMASK_TC4(1);
 
 	// Configure interrupts for pool timers
 	for (uint8_t i = 0; i < TIMER_ID_NUM_TIMERS; i++)
@@ -130,11 +135,6 @@ void TIMER_init(void)
 		NVIC_DisableIRQ(p_timer_pool[i].u8_irq_id);
 	}
 
-	// Similar configuration for the standalone DMA timer, clocked by GCLK0 (48MHz nominally)
-	GCLK_REGS->GCLK_PCHCTRL[TC4_GCLK_ID] = 	GCLK_PCHCTRL_CHEN(1) |
-											GCLK_PCHCTRL_GEN_GCLK0;
-	MCLK_REGS->MCLK_APBCMASK |= MCLK_APBCMASK_TC4(1);
-	dma_timer.p_timer_regs->COUNT16.TC_CC[0] = TIMER_DMA_44K1HZ_PRESCALED_VALUE;
 	dma_timer.p_timer_regs->COUNT16.TC_INTENSET = TC_INTENSET_MC0(1);
 	NVIC_DisableIRQ(dma_timer.u8_irq_id);
 }
@@ -256,9 +256,14 @@ uint16_t TIMER_get_timer_count(const TIMER_id_t k_timer_id)
 
 void TIMER_start_dma_timer(void)
 {
+	TIMER_LOG_DBG("Starting DMA timer\n");
+
 	NVIC_EnableIRQ(dma_timer.u8_irq_id);
 
-	dma_timer.p_timer_regs->COUNT16.TC_CTRLA |= TIMER_CTRLA_ENABLE_DMA_TIMER;
+	// Config
+	dma_timer.p_timer_regs->COUNT16.TC_CC[0] = TIMER_DMA_44K1HZ_PRESCALED_VALUE;
+
+	dma_timer.p_timer_regs->COUNT16.TC_CTRLA = TIMER_CTRLA_ENABLE_DMA_TIMER;
 
 	while (dma_timer.p_timer_regs->COUNT16.TC_SYNCBUSY & TC_SYNCBUSY_ENABLE(1))
 	{
@@ -378,10 +383,9 @@ void irqTC3(void)
  *	TC4 Interrupt Service Routine
  *
  ****************************************************************************************************/
+static bool b_state = false;
 void irqTC4(void)
 {
-	static bool b_state = false;
-
 	if (dma_timer.p_timer_regs->COUNT16.TC_INTFLAG & TC_INTFLAG_MC0(1))
 	{
 		// Clear the interrupt first
@@ -390,7 +394,10 @@ void irqTC4(void)
 		// Toggle the debug pin
 		IO_set_pin(IO_PIN_ID_PA27, b_state ? IO_PIN_STATE_HIGH : IO_PIN_STATE_LOW);
 		b_state = !b_state;
+		// TIMER_LOG_DBG("BEEP!\n");
 	}
+
+	dma_timer.p_timer_regs->COUNT16.TC_CTRLBSET = TC_CTRLBSET_CMD_RETRIGGER;
 
 	NVIC_ClearPendingIRQ(dma_timer.u8_irq_id);
 }

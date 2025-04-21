@@ -18,9 +18,5 @@ void main(void)
 
 	MEMPOOL_init();
 
-	#include "timer.h"
-	#warning "remove me"
-	TIMER_start_dma_timer();
-
 	ARCADIA_start();
 }

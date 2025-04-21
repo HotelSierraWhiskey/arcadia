@@ -46,7 +46,7 @@ static void 		DRIVE_handle_msg_chdir					(ARCADIA_msg_t * p_msg);
 static void			DRIVE_handle_msg_fetch_fnames			(ARCADIA_msg_t * p_msg);
 static void			DRIVE_handle_msg_write					(ARCADIA_msg_t * p_msg);
 static void			DRIVE_handle_msg_read					(ARCADIA_msg_t * p_msg);
-static void			DRIVE_handle_msg_handle_exti	(ARCADIA_msg_t * p_msg);
+static void			DRIVE_handle_msg_handle_exti			(ARCADIA_msg_t * p_msg);
 
 
 static file_t * 	DRIVE_allocate_file						(file_handle_t * p_file_handle);
