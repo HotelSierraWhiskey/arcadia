@@ -5,6 +5,7 @@
 #include "arcadia_task.h"
 #include "drive_payload.h"
 #include "chrono_payload.h"
+#include "media_payload.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -38,6 +39,11 @@ typedef enum _ARCADIA_msg_id
 	ARCADIA_MSG_ID_CHRONO_TIMER_ELAPSED,
 	ARCADIA_MSG_ID_CHRONO_SCHEDULE_MSG_FOR_TASK,
 	ARCADIA_MSG_ID_CHRONO_CANCEL_SCHEDULED_MSG,
+
+	// MEDIA task messages
+	ARCADIA_MSG_ID_MEDIA_PLAY_AUDIO,
+	ARCADIA_MSG_ID_MEDIA_STOP_AUDIO,
+
 	//////////
 	ARCADIA_MSG_ID_NUM_IDS
 } ARCADIA_msg_id_t;
@@ -59,6 +65,10 @@ typedef union _ARCADIA_payload
 	CHRONO_PAYLOAD_timer_elapsed_t			chrono_payload_timer_elapsed;
 	CHRONO_PAYLOAD_schedule_msg_for_task_t	chrono_payload_schedule_msg_for_task;
 	CHRONO_PAYLOAD_cancel_scheduled_msg_t	chrono_payload_cancel_scheduled_msg;
+
+	// MEDIA task payloads
+	MEDIA_PAYLOAD_play_audio_t				media_payload_play_audio;
+	MEDIA_PAYLOAD_stop_audio_t				media_payload_stop_audio;
 } ARCADIA_payload_t;
 
 typedef struct _ARCADIA_msg

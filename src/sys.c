@@ -25,7 +25,7 @@
 #define SYS_OSC32K_CALIB_VALUE				(0x46)
 
 /**
- *	Clock frequency enumerated type
+ *	Clock frequency ids
  */
 typedef enum _SYS_osc48m_freq
 {
@@ -48,6 +48,21 @@ typedef enum _SYS_osc48m_freq
 	//////////
 	SYS_OSC48M_ID_FREQ_NUM_FREQ
 } SYS_osc48m_freq_id_t;
+
+/**
+ *	System reset causes
+ */
+typedef enum _SYS_reset_cause
+{
+	SYS_RESET_CAUSE_POR = 0,
+	SYS_RESET_CAUSE_BODCORE,
+	SYS_RESET_CAUSE_BODVDD,
+	SYS_RESET_CAUSE_EXT,
+	SYS_RESET_CAUSE_WDT,
+	SYS_RESET_CAUSE_SYST,
+	//////////
+	SYS_RESET_CAUSE_NUM_CAUSES
+} SYS_reset_cause_t;
 
 /**
  *	Supported MCU enumerated type
@@ -183,6 +198,19 @@ static const SYS_osc48m_info_t kp_osc48m_settings[SYS_OSC48M_ID_FREQ_NUM_FREQ] =
 		.osc_div_factor	= OSCCTRL_OSC48MDIV_DIV_DIV16,
 		.u32_frequency	= 3000000
 	},
+};
+
+/**
+ *	System reset descriptors
+ */
+static const char * const kpc_reset_descriptors[SYS_RESET_CAUSE_NUM_CAUSES] =
+{
+	[SYS_RESET_CAUSE_POR] = 		"Power On Reset",
+	[SYS_RESET_CAUSE_BODCORE] = 	"Brown Out Core Detector Reset",
+	[SYS_RESET_CAUSE_BODVDD] = 		"Brown Out VDD Detector Reset",
+	[SYS_RESET_CAUSE_EXT] = 		"External Reset",
+	[SYS_RESET_CAUSE_WDT] = 		"Watchdog Reset",
+	[SYS_RESET_CAUSE_SYST] = 		"System Reset Request"
 };
 
 /**
@@ -332,6 +360,9 @@ static void SYS_clock_init(void)
 									GCLK_GENCTRL_OE(1) |
 								 	GCLK_GENCTRL_IDC(1) |
 									GCLK_GENCTRL_GENEN(1);
+
+	// Enable peripheral clock for reset controller
+	MCLK_REGS->MCLK_APBAMASK |= MCLK_APBAMASK_RSTC(1);
 }
 
 /****************************************************************************************************
@@ -343,6 +374,32 @@ static void SYS_clock_init(void)
 uint32_t SYS_get_source_clock_freq(void)
 {
 	return SYS_info.osc48m_info.u32_frequency;
+}
+
+/****************************************************************************************************
+ *	Displays a low level system report 
+ *
+ ****************************************************************************************************/
+void SYS_boot_report(void)
+{
+	uint8_t pu8_causes[SYS_RESET_CAUSE_NUM_CAUSES] =
+	{
+		RSTC_RCAUSE_POR(1),
+		RSTC_RCAUSE_BODCORE(1),
+		RSTC_RCAUSE_BODVDD(1),
+		RSTC_RCAUSE_EXT(1),
+		RSTC_RCAUSE_WDT(1),
+		RSTC_RCAUSE_SYST(1),
+	};
+
+	for (uint8_t i = 0; i < SYS_RESET_CAUSE_NUM_CAUSES; i++)
+	{
+		if (RSTC_REGS->RSTC_RCAUSE & pu8_causes[i])
+		{
+			SYS_LOG_DBG("%s\n", kpc_reset_descriptors[i]);
+			break;
+		}
+	}
 }
 
 /****************************************************************************************************

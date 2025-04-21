@@ -740,7 +740,8 @@ void SHELL_init(void)
 
 	APP_FSM_init();
 
-	SHELL_printf("%s", SHELL_PROMPT);
+	// Shell is first to initialize. May as well do a system boot report here.
+	SYS_boot_report();
 }
 
 /****************************************************************************************************

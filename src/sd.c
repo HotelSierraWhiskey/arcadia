@@ -3,6 +3,7 @@
 #include "shell.h"
 #include "chrono.h"
 #include "utils.h"
+#include "mempool.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -166,7 +167,6 @@ typedef enum _SD_csd_version
 typedef struct _SD_info
 {
 	SD_csd_info_t		csd_info;
-	uint8_t				pu8_buffer[SD_BLOCK_SIZE];
 	bool				b_initialized;
 } SD_info_t;
 
@@ -232,8 +232,6 @@ bool SD_card_init(void)
 
 	SD_info.b_initialized = false;
 
-	memset(SD_info.pu8_buffer, 0 , SD_BLOCK_SIZE);
-
 	SPI_ss_pin_high(SPI_CHANNEL_SD_CARD);
 
 	// send 74+ clock cycles with SS high
@@ -260,7 +258,8 @@ bool SD_card_init(void)
 
 	do
 	{
-		CHRONO_delay_ms(700);
+		CHRONO_delay_ms(250);
+
 		u8_response =  SD_cmd_app_cmd();
 
 		u8_response = SD_cmd_send_op_cond();
@@ -804,29 +803,34 @@ static void SD_display_info(void)
  ****************************************************************************************************/
 uint8_t SD_shell_read(uint8_t argc, char ** argv)
 {
-	uint32_t 	u32_address;
-	char		pc_line[97]; // 32 bytes * 3 chars (2 hex digits + space) + 1 null terminator
-	char *		pc_char_ptr;
+	uint32_t 			u32_address;
+	char *				pc_char_ptr;
+	MEMPOOL_buffer_t 	line_buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_256);
+	MEMPOOL_buffer_t 	block_buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_512);
+
+	ASSERT(line_buffer);
+	ASSERT(block_buffer);
+
 	if (argc == 1)
 	{
 		if (UTILS_string_to_u32(argv[0], &u32_address))
 		{
-			memset(SD_info.pu8_buffer, 0, SD_BLOCK_SIZE);
+			memset(block_buffer, 0, SD_BLOCK_SIZE);
 
-			SD_read_block(u32_address, SD_info.pu8_buffer);
+			SD_read_block(u32_address, block_buffer);
 
 			SHELL_SEPARATOR();
 
 			for (uint16_t i = 0; i < SD_BLOCK_SIZE / 32; i++)
 			{	
-				pc_char_ptr = pc_line;
+				pc_char_ptr = (char *)line_buffer;
 
 				for (uint16_t j = 0; j < 32; j++)
 				{
-					pc_char_ptr += sprintf(pc_char_ptr, "%02X ", SD_info.pu8_buffer[i * 32 + j]);
+					pc_char_ptr += sprintf(pc_char_ptr, "%02X ", ((char *)block_buffer)[i * 32 + j]);
 				}
 				*pc_char_ptr = '\0';
-				SHELL_printf("%s\n", pc_line);
+				SHELL_printf("%s\n", line_buffer);
 			}
 
 			SHELL_SEPARATOR();
@@ -836,6 +840,9 @@ uint8_t SD_shell_read(uint8_t argc, char ** argv)
 	{
 		SHELL_printf("Usage: sd read <addr>\n");
 	}
+
+	MEMPOOL_free(line_buffer);
+	MEMPOOL_free(block_buffer);
 
 	return SHELL_COMMAND_SUCCESS;
 }
@@ -852,23 +859,26 @@ uint8_t SD_shell_read(uint8_t argc, char ** argv)
  ****************************************************************************************************/
 uint8_t SD_shell_wtest(uint8_t argc, char ** argv)
 {
-	uint32_t u32_address;
+	uint32_t 			u32_address;
+	MEMPOOL_buffer_t 	block_buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_512);
+
+	ASSERT(block_buffer);
 
 	if (argc == 1)
 	{
 		if (UTILS_string_to_u32(argv[0], &u32_address))
 		{
 
-			memset(SD_info.pu8_buffer, 0, SD_BLOCK_SIZE);
+			memset(block_buffer, 0, SD_BLOCK_SIZE);
 
 			// Add some 0xCOFFEE
-			SD_info.pu8_buffer[0] = 0xC0;
-			SD_info.pu8_buffer[1] = 0xFF;
-			SD_info.pu8_buffer[2] = 0xEE;
+			((char *)block_buffer)[0] = 0xC0;
+			((char *)block_buffer)[1] = 0xFF;
+			((char *)block_buffer)[2] = 0xEE;
 
-			SD_write_block(u32_address, SD_info.pu8_buffer);
+			SD_write_block(u32_address, block_buffer);
 
-			memset(SD_info.pu8_buffer, 0, SD_BLOCK_SIZE);
+			memset(block_buffer, 0, SD_BLOCK_SIZE);
 
 			SHELL_printf("Wrote block to address 0x%08X\n", u32_address);
 		}
@@ -877,6 +887,8 @@ uint8_t SD_shell_wtest(uint8_t argc, char ** argv)
 	{
 		SHELL_printf("Usage: sd wtest <addr>\n");
 	}
+
+	MEMPOOL_free(block_buffer);
 
 	return SHELL_COMMAND_SUCCESS;
 }
@@ -893,18 +905,21 @@ uint8_t SD_shell_wtest(uint8_t argc, char ** argv)
  ****************************************************************************************************/
 uint8_t SD_shell_erase(uint8_t argc, char ** argv)
 {
-	uint32_t u32_address;
+	uint32_t 			u32_address;
+	MEMPOOL_buffer_t 	block_buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_512);
+
+	ASSERT(block_buffer);
 
 	if (argc == 1)
 	{
 		if (UTILS_string_to_u32(argv[0], &u32_address))
 		{
 
-			memset(SD_info.pu8_buffer, 0, SD_BLOCK_SIZE);
+			memset(block_buffer, 0, SD_BLOCK_SIZE);
 
-			SD_write_block(u32_address, SD_info.pu8_buffer);
+			SD_write_block(u32_address, block_buffer);
 
-			memset(SD_info.pu8_buffer, 0, SD_BLOCK_SIZE);
+			memset(block_buffer, 0, SD_BLOCK_SIZE);
 
 			SHELL_printf("Erased block at address 0x%08X\n", u32_address);
 		}
@@ -913,6 +928,8 @@ uint8_t SD_shell_erase(uint8_t argc, char ** argv)
 	{
 		SHELL_printf("Usage: sd erase <addr>\n");
 	}
+
+	MEMPOOL_free(block_buffer);
 
 	return SHELL_COMMAND_SUCCESS;
 }
@@ -986,7 +1003,11 @@ uint8_t SD_shell_init(uint8_t argc, char ** argv)
  ****************************************************************************************************/
 uint8_t SD_shell_wipe(uint8_t argc, char ** argv)
 {
-	static const uint8_t kpu8_blank_block[SD_BLOCK_SIZE] = {0};
+	MEMPOOL_buffer_t buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_512);
+	
+	ASSERT(buffer);
+
+	memset(buffer, 0, SD_BLOCK_SIZE);
 
 	if (argc == 0)
 	{
@@ -996,7 +1017,7 @@ uint8_t SD_shell_wipe(uint8_t argc, char ** argv)
 
 			for (uint32_t i = 0; i < SD_get_capacity() / SD_BLOCK_SIZE; i++)
 			{
-				SD_write_block(i * SD_BLOCK_SIZE, kpu8_blank_block);
+				SD_write_block(i * SD_BLOCK_SIZE, buffer);
 			}
 			SHELL_printf("SD card wiped\n");
 		}
