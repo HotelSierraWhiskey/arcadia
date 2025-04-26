@@ -371,7 +371,15 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 		.function 			= DRIVE_API_shell_read,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\tUNIMPLEMENTED\n"
+									"\"Usage: drive fs read <file_handle> <bytes to read>\n"
+								)
+	},
+	{
+		.kpc_name 			= "seek",
+		.function 			= DRIVE_API_shell_seek,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"Usage: drive fs seek <file_handle> <offset>\n"
 								)
 	},
 	{
