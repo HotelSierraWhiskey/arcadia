@@ -74,4 +74,11 @@ typedef struct _DRIVE_PAYLOAD_read
 	ARCADIA_status_t *		p_result_status;
 } DRIVE_PAYLOAD_read_t;
 
+typedef struct _DRIVE_PAYLOAD_seek
+{
+	file_handle_t 			file_handle;
+	uint32_t				u32_offset;
+	ARCADIA_status_t *		p_result_status;
+} DRIVE_PAYLOAD_seek_t;
+
 #endif // DRIVE_PAYLOAD_H
