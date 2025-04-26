@@ -46,12 +46,12 @@ static void 		DRIVE_handle_msg_chdir					(ARCADIA_msg_t * p_msg);
 static void			DRIVE_handle_msg_fetch_fnames			(ARCADIA_msg_t * p_msg);
 static void			DRIVE_handle_msg_write					(ARCADIA_msg_t * p_msg);
 static void			DRIVE_handle_msg_read					(ARCADIA_msg_t * p_msg);
+static void			DRIVE_handle_msg_seek					(ARCADIA_msg_t * p_msg);
 static void			DRIVE_handle_msg_handle_exti			(ARCADIA_msg_t * p_msg);
-
 
 static file_t * 	DRIVE_allocate_file						(file_handle_t * p_file_handle);
 static void 		DRIVE_free_file							(file_t * p_file);
-static file_t * 	DRIVE_handle_to_file_pointer			(file_handle_t file_handle);
+static file_t * 	DRIVE_file_handle_to_file_pointer		(file_handle_t file_handle);
 
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
@@ -154,6 +154,10 @@ static void DRIVE_handle_message(void)
 
 			case ARCADIA_MSG_ID_DRIVE_READ:
 				DRIVE_handle_msg_read(&msg);
+				break;
+
+			case ARCADIA_MSG_ID_DRIVE_SEEK:
+				DRIVE_handle_msg_seek(&msg);
 				break;
 			
 			case ARCADIA_MSG_ID_DRIVE_HANDLE_EXTI:
@@ -303,7 +307,7 @@ static void DRIVE_handle_msg_open_file(ARCADIA_msg_t * p_msg)
 static void DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
 {
 	file_handle_t 	file_handle = p_msg->payload.drive_payload_close_file.file_handle;
-	file_t * 		p_file = DRIVE_handle_to_file_pointer(file_handle);
+	file_t * 		p_file = DRIVE_file_handle_to_file_pointer(file_handle);
 	FRESULT 		f_result = f_close(p_file);
 
 	if (FR_OK == f_result)
@@ -335,7 +339,7 @@ static void DRIVE_handle_msg_close_file(ARCADIA_msg_t * p_msg)
 static void	DRIVE_handle_msg_write(ARCADIA_msg_t * p_msg)
 {
 	file_handle_t 		file_handle = p_msg->payload.drive_payload_close_file.file_handle;
-	file_t * 			p_file = DRIVE_handle_to_file_pointer(file_handle);
+	file_t * 			p_file = DRIVE_file_handle_to_file_pointer(file_handle);
 	const char * 		kpc_data = p_msg->payload.drive_payload_write.kpc_data;
 	uint32_t			u32_bytes_to_write = strlen(kpc_data);
 	uint32_t			u32_bytes_written = 0;
@@ -365,7 +369,7 @@ static void	DRIVE_handle_msg_write(ARCADIA_msg_t * p_msg)
 /****************************************************************************************************
  *	Blocking message handler for `ARCADIA_MSG_ID_DRIVE_READ`
  *
- *	Reads data provided data to the specified file.
+ *	Reads data from the file specified by the incoming message.
  *	Attempts to write the full length of the input string and verifies success by checking
  *	the number of bytes written.
  * 
@@ -374,7 +378,7 @@ static void	DRIVE_handle_msg_write(ARCADIA_msg_t * p_msg)
 static void	DRIVE_handle_msg_read(ARCADIA_msg_t * p_msg)
 {
 	file_handle_t 		file_handle = p_msg->payload.drive_payload_close_file.file_handle;
-	file_t * 			p_file = DRIVE_handle_to_file_pointer(file_handle);
+	file_t * 			p_file = DRIVE_file_handle_to_file_pointer(file_handle);
 	char *		 		kpc_data = p_msg->payload.drive_payload_read.pc_data;
 	uint32_t			u32_bytes_to_read = p_msg->payload.drive_payload_read.u32_bytes_to_read;
 	uint32_t			u32_bytes_read = 0;
@@ -388,7 +392,7 @@ static void	DRIVE_handle_msg_read(ARCADIA_msg_t * p_msg)
 	}
 	else
 	{
-		DRIVE_LOG_WARN("Failed to read data from file (status: %u)\n", f_result);
+		DRIVE_LOG_WARN("Failed to seek (status: %u)\n", f_result);
 		*p_msg->payload.drive_payload_read.p_result_status = ARCADIA_STATUS_FAILED;
 	}
 
@@ -396,6 +400,48 @@ static void	DRIVE_handle_msg_read(ARCADIA_msg_t * p_msg)
 
 	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
 			ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_read.p_result_status);
+}
+
+/****************************************************************************************************
+ *	Blocking message handler for `ARCADIA_MSG_ID_DRIVE_SEEK`
+ *
+ *	Seeks the internal file system's file pointer forward by the provided offset
+ * 
+ *	@param[in] p_msg A pointer to the received message
+ ****************************************************************************************************/
+static void	DRIVE_handle_msg_seek(ARCADIA_msg_t * p_msg)
+{
+	file_handle_t 		file_handle = p_msg->payload.drive_payload_close_file.file_handle;
+	file_t * 			p_file = DRIVE_file_handle_to_file_pointer(file_handle);
+	uint32_t	 		u32_offset = p_msg->payload.drive_payload_seek.u32_offset;
+	uint32_t			u32_file_size = f_size(p_file);
+	FRESULT				f_result;
+
+	if (u32_offset < u32_file_size)
+	{
+		f_result = f_lseek(p_file, u32_offset);
+
+		if (FR_OK == f_result)
+		{
+			DRIVE_LOG_DBG("Seeked forward %u bytes in file %u\n", u32_offset, file_handle);
+			*p_msg->payload.drive_payload_seek.p_result_status = ARCADIA_STATUS_OK;
+		}
+		else
+		{
+			DRIVE_LOG_WARN("Failed to read data from file (status: %u)\n", f_result);
+			*p_msg->payload.drive_payload_seek.p_result_status = ARCADIA_STATUS_FAILED;
+		}
+	}
+	else
+	{
+		DRIVE_LOG_WARN("Out of bounds file seek request (offset: %u, file size: %u)\n", u32_offset, u32_file_size);
+		*p_msg->payload.drive_payload_seek.p_result_status = ARCADIA_STATUS_DRIVE_OOB_SEEK_ERROR;
+	}
+
+	ARCADIA_semaphore_give(p_msg->semaphore);
+
+	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
+			ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_seek.p_result_status);
 }
 
 /****************************************************************************************************
@@ -568,7 +614,7 @@ static void DRIVE_free_file(file_t * p_file)
  *	
  *	@return A pointer to the corresponding file structure, or NULL if the handle is invalid.
  ****************************************************************************************************/
-static file_t * DRIVE_handle_to_file_pointer(file_handle_t file_handle)
+static file_t * DRIVE_file_handle_to_file_pointer(file_handle_t file_handle)
 {
 	if (file_handle >= DRIVE_MAX_OPEN_FILES || !DRIVE_info.file_pool[file_handle].b_in_use)
 	{
