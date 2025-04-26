@@ -340,6 +340,38 @@ ARCADIA_status_t DRIVE_API_read(file_handle_t file_handle, char * pc_data, uint3
 	return status;
 }
 
+ARCADIA_status_t DRIVE_API_seek(file_handle_t file_handle, uint32_t u32_offset)
+{
+	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
+
+	DRIVE_PAYLOAD_seek_t payload =
+	{
+		.file_handle = file_handle,
+		.u32_offset = u32_offset,
+		.p_result_status = &status
+	};
+
+	ARCADIA_msg_t msg =
+	{
+		.id = ARCADIA_MSG_ID_DRIVE_SEEK,
+		.from = ARCADIA_get_current_task_id(),
+		.payload.drive_payload_seek = payload
+	};
+
+	msg.semaphore = ARCADIA_semaphore_alloc(&msg.semaphore_buffer);
+
+	ARCADIA_send(ARCADIA_TASK_ID_DRIVE, &msg);
+
+	if (!ARCADIA_semaphore_take(msg.semaphore))
+	{
+		status = ARCADIA_STATUS_API_TIMEOUT;
+	}
+
+	ARCADIA_semaphore_free(msg.semaphore);
+
+	return status;
+}
+
 /****************************************************************************************************
  *	S H E L L   F U N C T I O N S
  ****************************************************************************************************/
@@ -815,6 +847,71 @@ uint8_t DRIVE_API_shell_close(uint8_t argc, char ** argv)
 
 uint8_t DRIVE_API_shell_read(uint8_t argc, char ** argv)
 {
+	uint32_t 			file_handle;
+	MEMPOOL_buffer_t 	file_buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_512);
+	uint32_t			u32_file_size;
+	uint32_t			u32_bytes_to_read;
+	bool				b_res = false;
+
+	if (argc == 2)
+	{
+		if (UTILS_string_to_u32(argv[0], &file_handle))
+		{
+			if (UTILS_string_to_u32(argv[1], &u32_bytes_to_read))
+			{
+				if (u32_bytes_to_read < MEMPOOL_BUFFER_SIZE_512)
+				{
+					if (ARCADIA_STATUS_OK == DRIVE_API_read(file_handle, file_buffer, u32_bytes_to_read))
+					{
+						((char *)(file_buffer))[MEMPOOL_BUFFER_SIZE_512 - 1] = '\0';
+						b_res = true;
+					}
+				}
+				else
+				{
+					SHELL_printf("Bytes to read must be smaller than %u\n", MEMPOOL_BUFFER_SIZE_512);
+				}
+			}
+		}
+	}
+
+	if (b_res)
+	{
+		SHELL_printf("%s\n", (char *)file_buffer);
+	}
+	else
+	{
+		SHELL_printf("Usage: drive fs read <file_handle> <bytes to read>\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
+
+uint8_t DRIVE_API_shell_seek(uint8_t argc, char ** argv)
+{
+	uint32_t 			file_handle;
+	uint32_t			u32_offset;
+	bool				b_res = false;
+
+	if (argc == 2)
+	{
+		if (UTILS_string_to_u32(argv[0], &file_handle))
+		{
+			if (UTILS_string_to_u32(argv[1], &u32_offset))
+			{
+				if (ARCADIA_STATUS_OK == DRIVE_API_seek(file_handle, u32_offset))
+				{
+					b_res = true;
+				}
+			}
+		}
+	}
+
+	if (!b_res)
+	{
+		SHELL_printf("Usage: drive fs seek <file_handle> <offset>\n");
+	}
+
 	return SHELL_COMMAND_SUCCESS;
 }
 
