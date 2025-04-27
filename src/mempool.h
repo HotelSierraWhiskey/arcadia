@@ -33,6 +33,6 @@ typedef enum _MEMPOOL_buffer_size_id
 
 void				MEMPOOL_init	(void);
 MEMPOOL_buffer_t	MEMPOOL_alloc	(MEMPOOL_buffer_size_id_t buffer_size_id);
-void				MEMPOOL_free	(MEMPOOL_buffer_t p_buffer);
+void				MEMPOOL_free	(MEMPOOL_buffer_t buffer);
 
 #endif // MEMPOOL_H
