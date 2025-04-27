@@ -2,6 +2,8 @@
 #include "utils.h"
 #include "dac.h"
 #include "dma.h"
+#include "drive_api.h"
+#include "mempool.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -18,9 +20,17 @@ typedef enum _MEDIA_audio_state
 	MEDIA_AUDIO_STATE_NUM_STATES
 } MEDIA_audio_state_t;
 
+typedef struct _MEDIA_audio_info
+{
+	file_handle_t		file;
+	MEDIA_audio_state_t state;
+	MEMPOOL_buffer_t	buffer_1;
+	MEMPOOL_buffer_t	buffer_2;
+} MEDIA_audio_info_t;
+
 typedef struct _MEDIA_info_t
 {
-	MEDIA_audio_state_t audio_state;
+	MEDIA_audio_info_t audio;
 } MEDIA_info_t;
 
 /****************************************************************************************************
@@ -53,7 +63,7 @@ void MEDIA_init(void)
 	// Initialize DMA channels
 	DMA_init();
 
-	MEDIA_info.audio_state = MEDIA_AUDIO_STATE_STOPPED;
+	MEDIA_info.audio.state = MEDIA_AUDIO_STATE_STOPPED;
 }
 
 /****************************************************************************************************
@@ -106,29 +116,48 @@ static void MEDIA_handle_message(void)
 
 static void MEDIA_handle_message_play_audio(ARCADIA_msg_t * p_msg)
 {
-	if (MEDIA_AUDIO_STATE_PLAYING == MEDIA_info.audio_state)
+	if (MEDIA_AUDIO_STATE_PLAYING != MEDIA_info.audio.state)
 	{
-		*p_msg->payload.media_payload_play_audio.p_result_status = ARCADIA_STATUS_MEDIA_AUDIO_BUSY;
+		if (ARCADIA_STATUS_OK == DRIVE_API_open_file(&MEDIA_info.audio.file, p_msg->payload.media_payload_play_audio.kpc_fname, "r"))
+		{
+			MEDIA_info.audio.buffer_1 = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_512);
+			MEDIA_info.audio.buffer_2 = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_512);
+			TIMER_start_dma_timer();
+		}
+
+		*p_msg->payload.media_payload_play_audio.p_result_status = ARCADIA_STATUS_OK;
 	}
 	else
 	{
-		*p_msg->payload.media_payload_play_audio.p_result_status = ARCADIA_STATUS_OK;
+		*p_msg->payload.media_payload_play_audio.p_result_status = ARCADIA_STATUS_MEDIA_AUDIO_BUSY;
 	}
 
 	ARCADIA_semaphore_give(p_msg->semaphore);
 
 	MEDIA_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.media_payload_play_audio.p_result_status);
-				
 }
 
 static void MEDIA_handle_message_stop_audio(ARCADIA_msg_t * p_msg)
 {
-	MEDIA_info.audio_state = MEDIA_AUDIO_STATE_STOPPED;
 	*p_msg->payload.media_payload_play_audio.p_result_status = ARCADIA_STATUS_OK;
+
+	if (MEDIA_AUDIO_STATE_PLAYING == MEDIA_info.audio.state)
+	{
+		TIMER_stop_dma_timer();
+		DRIVE_API_close_file(MEDIA_info.audio.file);
+		MEMPOOL_free(MEDIA_info.audio.buffer_1);
+		MEMPOOL_free(MEDIA_info.audio.buffer_2);
+		MEDIA_info.audio.state = MEDIA_AUDIO_STATE_STOPPED;
+	}
 
 	ARCADIA_semaphore_give(p_msg->semaphore);
 
 	MEDIA_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.media_payload_stop_audio.p_result_status);
+}
+
+void MEDIA_update_audio_buffers(void)
+{
+
 }
