@@ -371,7 +371,8 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 		.function 			= DRIVE_API_shell_read,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"\"Usage: drive fs read <file_handle> <bytes to read>\n"
+									"\tBlock read from an open file (512 bytes max per read)\n"
+									"\tUsage: drive fs read <file_handle> <bytes to read>\n"
 								)
 	},
 	{
@@ -379,7 +380,8 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 		.function 			= DRIVE_API_shell_seek,
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
-									"Usage: drive fs seek <file_handle> <offset>\n"
+									"\tSeeks forward in an open file\n"
+									"\tUsage: drive fs seek <file_handle> <offset>\n"
 								)
 	},
 	{
