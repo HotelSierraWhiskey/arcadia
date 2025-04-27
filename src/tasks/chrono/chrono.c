@@ -73,9 +73,6 @@ void CHRONO_task(void * p_params)
 {
 	UNUSED(p_params);
 
-	#warning "remove me"
-	TIMER_start_dma_timer();
-
 	while (1)
 	{
 		CHRONO_handle_message();
