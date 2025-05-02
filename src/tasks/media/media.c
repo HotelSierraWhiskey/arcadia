@@ -41,6 +41,9 @@ static void 	MEDIA_handle_message				(void);
 static void 	MEDIA_handle_message_play_audio		(ARCADIA_msg_t * p_msg);
 static void 	MEDIA_handle_message_stop_audio		(ARCADIA_msg_t * p_msg);
 
+static void 	MEDIA_init_audio_buffers			(void);
+static void 	MEDIA_deinit_audio_buffers			(void);
+
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
@@ -114,16 +117,10 @@ static void MEDIA_handle_message(void)
 	}
 }
 
-static void MEDIA_handle_message_play_audio(ARCADIA_msg_t * p_msg)
+static void MEDIA_handle_message_play_audio_request(ARCADIA_msg_t * p_msg)
 {
 	if (MEDIA_AUDIO_STATE_PLAYING != MEDIA_info.audio.state)
 	{
-		if (ARCADIA_STATUS_OK == DRIVE_API_open_file(&MEDIA_info.audio.file, p_msg->payload.media_payload_play_audio.kpc_fname, "r"))
-		{
-			MEDIA_info.audio.buffer_1 = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_512);
-			MEDIA_info.audio.buffer_2 = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_512);
-			TIMER_start_dma_timer();
-		}
 
 		*p_msg->payload.media_payload_play_audio.p_result_status = ARCADIA_STATUS_OK;
 	}
@@ -133,6 +130,12 @@ static void MEDIA_handle_message_play_audio(ARCADIA_msg_t * p_msg)
 	}
 
 	ARCADIA_semaphore_give(p_msg->semaphore);
+
+	if (ARCADIA_STATUS_OK == DRIVE_API_open_file(&MEDIA_info.audio.file, p_msg->payload.media_payload_play_audio.kpc_fname, "r"))
+	{
+		MEDIA_init_audio_buffers();
+		TIMER_start_dma_timer();
+	}
 
 	MEDIA_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.media_payload_play_audio.p_result_status);
@@ -146,8 +149,7 @@ static void MEDIA_handle_message_stop_audio(ARCADIA_msg_t * p_msg)
 	{
 		TIMER_stop_dma_timer();
 		DRIVE_API_close_file(MEDIA_info.audio.file);
-		MEMPOOL_free(MEDIA_info.audio.buffer_1);
-		MEMPOOL_free(MEDIA_info.audio.buffer_2);
+		MEDIA_deinit_audio_buffers();
 		MEDIA_info.audio.state = MEDIA_AUDIO_STATE_STOPPED;
 	}
 
@@ -160,4 +162,18 @@ static void MEDIA_handle_message_stop_audio(ARCADIA_msg_t * p_msg)
 void MEDIA_update_audio_buffers(void)
 {
 
+}
+
+static void MEDIA_init_audio_buffers(void)
+{
+	MEDIA_info.audio.buffer_1 = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_512);
+	MEDIA_info.audio.buffer_2 = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_512);
+	memset(MEDIA_info.audio.buffer_1, 0, MEMPOOL_BUFFER_SIZE_256);
+	memset(MEDIA_info.audio.buffer_2, 0, MEMPOOL_BUFFER_SIZE_256);
+}
+
+static void MEDIA_deinit_audio_buffers(void)
+{
+	MEMPOOL_free(MEDIA_info.audio.buffer_1);
+	MEMPOOL_free(MEDIA_info.audio.buffer_2);
 }
