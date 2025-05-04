@@ -121,7 +121,7 @@ static void MEDIA_handle_message_play_audio_request(ARCADIA_msg_t * p_msg)
 {
 	if (MEDIA_AUDIO_STATE_PLAYING != MEDIA_info.audio.state)
 	{
-
+		MEDIA_info.audio.state = MEDIA_AUDIO_STATE_PLAYING;
 		*p_msg->payload.media_payload_play_audio.p_result_status = ARCADIA_STATUS_OK;
 	}
 	else
@@ -129,13 +129,10 @@ static void MEDIA_handle_message_play_audio_request(ARCADIA_msg_t * p_msg)
 		*p_msg->payload.media_payload_play_audio.p_result_status = ARCADIA_STATUS_MEDIA_AUDIO_BUSY;
 	}
 
-	ARCADIA_semaphore_give(p_msg->semaphore);
+	MEDIA_init_audio_buffers();
+	TIMER_start_dma_timer();
 
-	if (ARCADIA_STATUS_OK == DRIVE_API_open_file(&MEDIA_info.audio.file, p_msg->payload.media_payload_play_audio.kpc_fname, "r"))
-	{
-		MEDIA_init_audio_buffers();
-		TIMER_start_dma_timer();
-	}
+	ARCADIA_semaphore_give(p_msg->semaphore);
 
 	MEDIA_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.media_payload_play_audio.p_result_status);
@@ -148,7 +145,7 @@ static void MEDIA_handle_message_stop_audio(ARCADIA_msg_t * p_msg)
 	if (MEDIA_AUDIO_STATE_PLAYING == MEDIA_info.audio.state)
 	{
 		TIMER_stop_dma_timer();
-		DRIVE_API_close_file(MEDIA_info.audio.file);
+		DAC_write(0);
 		MEDIA_deinit_audio_buffers();
 		MEDIA_info.audio.state = MEDIA_AUDIO_STATE_STOPPED;
 	}
