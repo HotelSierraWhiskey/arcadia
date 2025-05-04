@@ -72,6 +72,8 @@
 		"mempool.h": "c",
 		"story_fsm.h": "c",
 		"inttypes.h": "c",
-		"dac.h": "c"
+		"dac.h": "c",
+		"newlib-freertos.h": "c",
+		"task.h": "c"
 	}
 }
