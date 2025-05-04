@@ -37,8 +37,9 @@ static MEMPOOL_info_t MEMPOOL_info;
  */
 static const uint32_t kpu8_buffer_sizes[MEMPOOL_BUFFER_SIZE_ID_NUM_SIZES] =
 {
-	[MEMPOOL_BUFFER_SIZE_ID_256] = MEMPOOL_MINIMUM_BLOCK_SIZE,
-	[MEMPOOL_BUFFER_SIZE_ID_512] = MEMPOOL_BUFFER_SIZE_512
+	[MEMPOOL_BUFFER_SIZE_ID_256]	= MEMPOOL_MINIMUM_BLOCK_SIZE,
+	[MEMPOOL_BUFFER_SIZE_ID_512]	= MEMPOOL_BUFFER_SIZE_512,
+	[MEMPOOL_BUFFER_SIZE_ID_1K] 	= MEMPOOL_BUFFER_SIZE_1024
 };
 
 /****************************************************************************************************
