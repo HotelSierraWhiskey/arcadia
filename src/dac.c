@@ -57,9 +57,14 @@ void DAC_write(uint16_t u16_data)
     }
 }
 
-const uint32_t * DAC_get_data_register(void)
+/****************************************************************************************************
+ *	Retrieves the address of the DAC's DATA register
+ * 
+ *	@return The address of the DAC's DATA register
+ ****************************************************************************************************/
+const uint16_t * DAC_get_data_register(void)
 {
-	return DAC_REGS->DAC_DATA;
+	return (const uint16_t *)&DAC_REGS->DAC_DATA;
 }
 
 /****************************************************************************************************
