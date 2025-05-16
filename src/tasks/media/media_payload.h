@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "arcadia_status.h"
+#include "fsif.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S

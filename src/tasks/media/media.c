@@ -135,7 +135,7 @@ static void MEDIA_handle_message_play_audio_request(ARCADIA_msg_t * p_msg)
 	ARCADIA_semaphore_give(p_msg->semaphore);
 
 	MEDIA_LOG_DBG("Handled msg %s with status %u\n",
-				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.media_payload_play_audio.p_result_status);
+		ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.media_payload_play_audio.p_result_status);
 }
 
 static void MEDIA_handle_message_stop_audio(ARCADIA_msg_t * p_msg)
@@ -153,7 +153,7 @@ static void MEDIA_handle_message_stop_audio(ARCADIA_msg_t * p_msg)
 	ARCADIA_semaphore_give(p_msg->semaphore);
 
 	MEDIA_LOG_DBG("Handled msg %s with status %u\n",
-				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.media_payload_stop_audio.p_result_status);
+		ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.media_payload_stop_audio.p_result_status);
 }
 
 void MEDIA_update_audio_buffers(void)
