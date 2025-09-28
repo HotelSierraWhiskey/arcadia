@@ -29,7 +29,9 @@ typedef void (* ARCADIA_task_t)(void *);
  */
 typedef void (* ARCADIA_task_init_t)(void);
 
-
+/**
+ * 	Task stack typedef
+ */
 typedef struct _ARCADIA_stack
 {
 	StackType_t *	p_stack;

@@ -13,7 +13,7 @@
 
 #define EXTI_MAX_SOURCES	(16U)
 
-typedef enum _EXTI_edge_detectionid_
+typedef enum _EXTI_edge_detection_id_
 {
 	EXTI_EDGE_DETECTION_ID_NONE = 0,
 	EXTI_EDGE_DETECTION_ID_RISE,

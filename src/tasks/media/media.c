@@ -117,7 +117,7 @@ static void MEDIA_handle_message(void)
 	}
 }
 
-static void MEDIA_handle_message_play_audio_request(ARCADIA_msg_t * p_msg)
+static void MEDIA_handle_message_play_audio(ARCADIA_msg_t * p_msg)
 {
 	if (MEDIA_AUDIO_STATE_PLAYING != MEDIA_info.audio.state)
 	{
