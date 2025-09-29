@@ -23,5 +23,7 @@ void 			EXTI_init					(void);
 IO_pin_id_t		EXTI_get_pin_from_source	(EXTI_source_id_t source);
 bool			EXTI_source_asserted		(EXTI_source_id_t source);
 void			EXTI_deassert_source		(EXTI_source_id_t source);
+void 			EXTI_enable_isr				(EXTI_source_id_t source);
+void 			EXTI_disable_isr			(EXTI_source_id_t source);
 
 #endif // EXTI_H

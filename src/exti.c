@@ -131,6 +131,18 @@ void EXTI_deassert_source(EXTI_source_id_t source)
 	EXTI_source_configs[source].b_asserted = false;
 }
 
+void EXTI_enable_isr(EXTI_source_id_t source)
+{
+	ASSERT(source < EXTI_SOURCE_ID_NUM_IDS);
+	EIC_REGS->EIC_INTENSET |= (1 << EXTI_source_configs[source].u8_extint);
+}
+
+void EXTI_disable_isr(EXTI_source_id_t source)
+{
+	ASSERT(source < EXTI_SOURCE_ID_NUM_IDS);
+	EIC_REGS->EIC_INTENCLR |= (1 << EXTI_source_configs[source].u8_extint);
+}
+
 void irqEIC(void)
 {
 	ARCADIA_msg_t msg =
@@ -145,10 +157,14 @@ void irqEIC(void)
 		{
 			EXTI_source_configs[i].b_asserted = true;
 			EIC_REGS->EIC_INTFLAG |= (1 << EXTI_source_configs[i].u8_extint);
+
+			// Disable the interrupt, re-enable when handled
+			EXTI_disable_isr(i);
 		}
 	}
 
 	// Tell DRIVE to handle whatever EXTI state changes have taken place
+	// TODO: Why DRIVE? Why not tell the task associated with the EXTI channel?
 	ARCADIA_send_from_isr(ARCADIA_TASK_ID_DRIVE, &msg);
 
 	NVIC_ClearPendingIRQ(EIC_IRQn);

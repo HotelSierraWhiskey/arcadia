@@ -539,8 +539,6 @@ static void	DRIVE_handle_msg_handle_exti(ARCADIA_msg_t * p_msg)
 		{
 			pin_id = EXTI_get_pin_from_source(i);
 
-			// Small block for debounce
-			CHRONO_delay_ms(5);
 
 			if (IO_PIN_STATE_HIGH == IO_read_pin(pin_id))
 			{
@@ -550,6 +548,11 @@ static void	DRIVE_handle_msg_handle_exti(ARCADIA_msg_t * p_msg)
 			{
 				EXTI_deassert_source(i);
 			}
+
+			// Small block for debounce
+			CHRONO_delay_ms(40);
+
+			EXTI_enable_isr(i);
 		}
 	}
 
