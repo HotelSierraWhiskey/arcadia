@@ -47,7 +47,6 @@ static void			DRIVE_handle_msg_fetch_fnames			(ARCADIA_msg_t * p_msg);
 static void			DRIVE_handle_msg_write					(ARCADIA_msg_t * p_msg);
 static void			DRIVE_handle_msg_read					(ARCADIA_msg_t * p_msg);
 static void			DRIVE_handle_msg_seek					(ARCADIA_msg_t * p_msg);
-static void			DRIVE_handle_msg_handle_exti			(ARCADIA_msg_t * p_msg);
 
 static file_t * 	DRIVE_allocate_file						(file_handle_t * p_file_handle);
 static void 		DRIVE_free_file							(file_t * p_file);
@@ -158,10 +157,6 @@ static void DRIVE_handle_message(void)
 
 			case ARCADIA_MSG_ID_DRIVE_SEEK:
 				DRIVE_handle_msg_seek(&msg);
-				break;
-			
-			case ARCADIA_MSG_ID_DRIVE_HANDLE_EXTI:
-				DRIVE_handle_msg_handle_exti(&msg);
 				break;
 
 			default:
@@ -527,36 +522,6 @@ static void	DRIVE_handle_msg_fetch_fnames(ARCADIA_msg_t * p_msg)
 
 	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_fetch_fnames.p_result_status);
-}
-
-static void	DRIVE_handle_msg_handle_exti(ARCADIA_msg_t * p_msg)
-{
-	IO_pin_id_t pin_id;
-
-	for (uint8_t i = 0; i < EXTI_SOURCE_ID_NUM_IDS; i++)
-	{
-		if (EXTI_source_asserted(i))
-		{
-			pin_id = EXTI_get_pin_from_source(i);
-
-
-			if (IO_PIN_STATE_HIGH == IO_read_pin(pin_id))
-			{
-				DRIVE_LOG_DBG("EXTI source %u asserted on pin %s\n", i, IO_get_pin_string(pin_id));
-			}
-			else
-			{
-				EXTI_deassert_source(i);
-			}
-
-			// Small block for debounce
-			CHRONO_delay_ms(40);
-
-			EXTI_enable_isr(i);
-		}
-	}
-
-	// Handle chords here
 }
 
 /****************************************************************************************************

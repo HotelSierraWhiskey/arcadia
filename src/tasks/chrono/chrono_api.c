@@ -13,14 +13,14 @@
  *
  * 	@param[in] p_msg 				A pointer to the message to be scheduled
  * 	@param[in] task_id 				The task to whom the message will be sent
- * 	@param[in] u16_delta_seconds 	The number of seconds in the future the message will be sent
+ * 	@param[in] u64_delta_ms 		The number of ms in the future the message will be sent
  * 	@param[in] mode 				The operation mode of the associated hardware timer
  * 
  *	@return 
  * 	`TIMER_INVALID` if the timer pool was empty, else the ID of the allocated timer
  * 
  ****************************************************************************************************/
-TIMER_id_t CHRONO_API_schedule_msg_for_task(ARCADIA_msg_t * p_msg, ARCADIA_task_id_t task_id, uint16_t u16_delta_seconds, TIMER_mode_t mode)
+TIMER_id_t CHRONO_API_schedule_msg_for_task(ARCADIA_msg_t * p_msg, ARCADIA_task_id_t task_id, uint64_t u64_delta_ms, TIMER_mode_t mode)
 {
 	TIMER_id_t 			timer_id = TIMER_INVALID;
 	ARCADIA_msg_t		payload_msg;
@@ -35,7 +35,7 @@ TIMER_id_t CHRONO_API_schedule_msg_for_task(ARCADIA_msg_t * p_msg, ARCADIA_task_
 	{
 		.p_msg 				= &payload_msg,
 		.task_id 			= task_id,
-		.u16_delta_seconds 	= u16_delta_seconds,
+		.u64_delta_ms	 	= u64_delta_ms,
 		.p_timer_id			= &timer_id,
 		.mode				= mode
 	};
@@ -134,7 +134,7 @@ uint8_t CHRONO_API_shell_sn(uint8_t argc, char ** argv)
 
 		if (b_res && UTILS_string_to_u32(argv[1], &delay))
 		{
-			if (delay > UINT16_MAX)
+			if (delay > UINT64_MAX)
 			{
 				b_res = false;
 			}
@@ -219,7 +219,7 @@ uint8_t CHRONO_API_shell_info(uint8_t argc, char ** argv)
 	TIMER_info_t * 					p_timer_info;
 	CHRONO_msg_schedule_entry_t *	p_msg_schedule_entry;
 	uint32_t 						u32_current_count;
-	uint32_t 						u32_time_remaining;
+	uint64_t 						u64_time_remaining_ms;
 	uint32_t 						u32_hours;
 	uint32_t 						u32_minutes;
 	uint32_t 						u32_seconds;
@@ -236,19 +236,23 @@ uint8_t CHRONO_API_shell_info(uint8_t argc, char ** argv)
 
 			SHELL_printf("Slot %u\n", i);
 
-			if (TIMER_AVAILABLE == p_timer_info->u16_period)
+			if (TIMER_AVAILABLE == p_timer_info->u64_period_ms)
 			{
 				SHELL_printf("\t%-20s: Unscheduled\n", "Status");
 			}
 			else
 			{
-				u32_current_count = TIMER_get_timer_count(i) / TIMER_PRESCALED_SECOND_COUNT_VALUE;
+				u32_current_count = (uint32_t)(((uint64_t)TIMER_get_timer_count(i) * 1000ULL
+										+ (TIMER_PRESCALED_SECOND_COUNT_VALUE / 2U))
+										/ (uint64_t)TIMER_PRESCALED_SECOND_COUNT_VALUE);
 
-				u32_time_remaining = p_timer_info->u16_period - u32_current_count;
+				u64_time_remaining_ms = (p_timer_info->u64_period_ms > u32_current_count)
+					? (p_timer_info->u64_period_ms - u32_current_count)
+					: 0ULL;
 
-				u32_hours = u32_time_remaining / 3600;
-				u32_minutes = (u32_time_remaining % 3600) / 60;
-				u32_seconds = u32_time_remaining % 60;
+				u32_hours   = (uint32_t)(u64_time_remaining_ms / 3600000ULL);
+				u32_minutes = (uint32_t)((u64_time_remaining_ms % 3600000ULL) / 60000ULL);
+				u32_seconds = (uint32_t)((u64_time_remaining_ms % 60000ULL) / 1000ULL);
 
 				snprintf(pc_time_buffer, sizeof(pc_time_buffer), "%02lu:%02lu:%02lu", u32_hours, u32_minutes, u32_seconds);
 

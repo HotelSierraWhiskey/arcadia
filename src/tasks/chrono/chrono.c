@@ -5,6 +5,7 @@
 #include "shell.h"
 #include "utils.h"
 #include "arcadia.h"
+#include "exti.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -23,19 +24,23 @@ static CHRONO_msg_schedule_entry_t p_msg_schedule[TIMER_ID_NUM_TIMERS] =
 {
 	[TIMER_ID_0] =
 	{
-		.task_id	= ARCADIA_INVALID_TASK
+		.task_id	= ARCADIA_INVALID_TASK,
+		.p_callback = NULL
 	},
 	[TIMER_ID_1] =
 	{
-		.task_id	= ARCADIA_INVALID_TASK
+		.task_id	= ARCADIA_INVALID_TASK,
+		.p_callback = NULL
 	},
 	[TIMER_ID_2] =
 	{
-		.task_id	= ARCADIA_INVALID_TASK
+		.task_id	= ARCADIA_INVALID_TASK,
+		.p_callback = NULL
 	},
 	[TIMER_ID_3] =
 	{
-		.task_id	= ARCADIA_INVALID_TASK
+		.task_id	= ARCADIA_INVALID_TASK,
+		.p_callback = NULL
 	},
 };
 
@@ -48,6 +53,7 @@ static void 	CHRONO_handle_message						(void);
 static void 	CHRONO_handle_msg_timer_elapsed				(ARCADIA_msg_t * p_msg);
 static void 	CHRONO_handle_msg_schedule_msg_for_task		(ARCADIA_msg_t * p_msg);
 static void 	CHRONO_handle_msg_cancel_scheduled_msg		(ARCADIA_msg_t * p_msg);
+static void		CHRONO_handle_msg_debounce_exti				(ARCADIA_msg_t * p_msg);
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -115,6 +121,10 @@ static void CHRONO_handle_message(void)
 			case ARCADIA_MSG_ID_CHRONO_CANCEL_SCHEDULED_MSG:
 				CHRONO_handle_msg_cancel_scheduled_msg(&msg);
 				break;
+
+			case ARCADIA_MSG_ID_CHRONO_DEBOUNCE_EXTI:
+				CHRONO_handle_msg_debounce_exti(&msg);
+				break;
 			
 			default:
 				CHRONO_LOG_DBG("Unexpected message: %u\n", msg.id);
@@ -124,28 +134,36 @@ static void CHRONO_handle_message(void)
 
 static void	CHRONO_handle_msg_timer_elapsed(ARCADIA_msg_t * p_msg)
 {
-	TIMER_id_t 				timer_id = p_msg->payload.chrono_payload_timer_elapsed.timer_id;
-	ARCADIA_task_id_t 		task_id = p_msg_schedule[timer_id].task_id;
-	ARCADIA_msg_t * 		p_scheduled_msg = &p_msg_schedule[timer_id].msg;
-	const TIMER_info_t * 	kp_timer_info = TIMER_get_timer_info(timer_id);
+	TIMER_id_t 						timer_id = p_msg->payload.chrono_payload_timer_elapsed.timer_id;
+	CHRONO_msg_schedule_entry_t	* 	p_sched_entry = &p_msg_schedule[timer_id];
+	ARCADIA_task_id_t 				task_id = p_sched_entry->task_id;
+	ARCADIA_msg_t * 				p_scheduled_msg = &p_sched_entry->msg;
+	const TIMER_info_t * 			kp_timer_info = TIMER_get_timer_info(timer_id);
 
-	if (task_id != ARCADIA_INVALID_TASK)
+	// Don't self-block
+	if (task_id != ARCADIA_INVALID_TASK && task_id != ARCADIA_TASK_ID_CHRONO)
 	{
 		CHRONO_LOG_DBG("Timer %u Elapsed. Relaying msg %s to task %s\n", 
-			timer_id, ARCADIA_get_msg_type(p_msg_schedule[timer_id].msg.id), ARCADIA_get_task_name(task_id));
+			timer_id, ARCADIA_get_msg_type(p_sched_entry->msg.id), ARCADIA_get_task_name(task_id));
 		
 		ARCADIA_send(task_id, p_scheduled_msg);
 
 		// This semaphore was allocated when the message was copied into the schedule
-		ARCADIA_semaphore_take(p_msg_schedule[timer_id].msg.semaphore);
-		ARCADIA_semaphore_free(p_msg_schedule[timer_id].msg.semaphore);
+		ARCADIA_semaphore_take(p_sched_entry->msg.semaphore);
+		ARCADIA_semaphore_free(p_sched_entry->msg.semaphore);
 
 		// Clean up the schedule slot that was used, if applicable
 		if (TIMER_MODE_SINGLE_SHOT == kp_timer_info->mode)
 		{
-			memset(&p_msg_schedule[timer_id].msg, 0, sizeof(ARCADIA_msg_t));
-			p_msg_schedule[timer_id].task_id = ARCADIA_INVALID_TASK;
+			memset(&p_sched_entry->msg, 0, sizeof(ARCADIA_msg_t));
+			p_sched_entry->task_id = ARCADIA_INVALID_TASK;
 		}
+	}
+	if (p_sched_entry->p_callback)
+	{
+		p_sched_entry->p_callback(p_sched_entry->u32_callback_args);
+		p_sched_entry->p_callback = NULL;
+		p_sched_entry->u32_callback_args = 0;
 	}
 
 	CHRONO_LOG_DBG("Handled msg %s\n", ARCADIA_get_msg_type(p_msg->id));
@@ -153,7 +171,7 @@ static void	CHRONO_handle_msg_timer_elapsed(ARCADIA_msg_t * p_msg)
 
 static void CHRONO_handle_msg_schedule_msg_for_task(ARCADIA_msg_t * p_msg)
 {
-	uint16_t 		u16_period = p_msg->payload.chrono_payload_schedule_msg_for_task.u16_delta_seconds;
+	uint16_t 		u16_period = p_msg->payload.chrono_payload_schedule_msg_for_task.u64_delta_ms;
 	TIMER_mode_t	mode = p_msg->payload.chrono_payload_schedule_msg_for_task.mode;
 	TIMER_id_t 		timer_id = TIMER_alloc(u16_period, mode);
 
@@ -172,7 +190,7 @@ static void CHRONO_handle_msg_schedule_msg_for_task(ARCADIA_msg_t * p_msg)
 		CHRONO_LOG_DBG("Message %s scheduled for transmission to %s in %u seconds\n",
 			ARCADIA_get_msg_type(p_msg_schedule[timer_id].msg.id),
 			ARCADIA_get_task_name(p_msg_schedule[timer_id].task_id),
-			p_msg->payload.chrono_payload_schedule_msg_for_task.u16_delta_seconds);
+			p_msg->payload.chrono_payload_schedule_msg_for_task.u64_delta_ms);
 	}
 	else
 	{
@@ -206,6 +224,19 @@ static void CHRONO_handle_msg_cancel_scheduled_msg (ARCADIA_msg_t * p_msg)
 	}
 
 	ARCADIA_semaphore_give(p_msg->semaphore);
+}
+
+static void CHRONO_handle_msg_debounce_exti (ARCADIA_msg_t * p_msg)
+{
+	TIMER_id_t timer_id = TIMER_alloc(EXTI_DEBOUNCE_MS, TIMER_MODE_SINGLE_SHOT);
+
+	if (timer_id != TIMER_INVALID)
+	{
+		p_msg_schedule[timer_id].p_callback = EXTI_update;
+		p_msg_schedule[timer_id].u32_callback_args = p_msg->payload.chrono_payload_debounce_exti.u32_sources;
+	}							
+	
+	TIMER_start(timer_id);
 }
 
 uint32_t CHRONO_ticks_since(uint32_t start_ticks)

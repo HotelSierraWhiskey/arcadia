@@ -12,10 +12,14 @@
 #define CHRONO_delay_ms(ms)				vTaskDelay(pdMS_TO_TICKS(ms))
 #define CHRONO_get_ticks()				xTaskGetTickCount()
 
+typedef void (* CHRONO_timer_callback_t)(uint32_t);
+
 typedef struct _CHRONO_msg_schedule_entry
 {
-	ARCADIA_task_id_t	task_id;
-	ARCADIA_msg_t		msg;
+	ARCADIA_task_id_t		task_id;
+	ARCADIA_msg_t			msg;
+	CHRONO_timer_callback_t	p_callback;
+	uint32_t				u32_callback_args;
 } CHRONO_msg_schedule_entry_t;
 
 /****************************************************************************************************

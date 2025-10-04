@@ -34,12 +34,12 @@ typedef enum _ARCADIA_msg_id
 	ARCADIA_MSG_ID_DRIVE_WRITE,
 	ARCADIA_MSG_ID_DRIVE_READ,
 	ARCADIA_MSG_ID_DRIVE_SEEK,
-	ARCADIA_MSG_ID_DRIVE_HANDLE_EXTI,
 
 	// CHRONO task messages
 	ARCADIA_MSG_ID_CHRONO_TIMER_ELAPSED,
 	ARCADIA_MSG_ID_CHRONO_SCHEDULE_MSG_FOR_TASK,
 	ARCADIA_MSG_ID_CHRONO_CANCEL_SCHEDULED_MSG,
+	ARCADIA_MSG_ID_CHRONO_DEBOUNCE_EXTI,
 
 	// MEDIA task messages
 	ARCADIA_MSG_ID_MEDIA_PLAY_AUDIO,
@@ -67,6 +67,7 @@ typedef union _ARCADIA_payload
 	CHRONO_PAYLOAD_timer_elapsed_t			chrono_payload_timer_elapsed;
 	CHRONO_PAYLOAD_schedule_msg_for_task_t	chrono_payload_schedule_msg_for_task;
 	CHRONO_PAYLOAD_cancel_scheduled_msg_t	chrono_payload_cancel_scheduled_msg;
+	CHRONO_PAYLOAD_debounce_exti_t			chrono_payload_debounce_exti;
 
 	// MEDIA task payloads
 	MEDIA_PAYLOAD_play_audio_t				media_payload_play_audio;

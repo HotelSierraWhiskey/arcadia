@@ -26,7 +26,7 @@
  ****************************************************************************************************/
 
 static void 		TIMER_on_match			(const TIMER_id_t k_timer_id);
-static void 		TIMER_config			(const TIMER_id_t k_timer_id, uint16_t u16_period, TIMER_mode_t mode);
+static void 		TIMER_config			(const TIMER_id_t k_timer_id, uint64_t u64_period_ms, TIMER_mode_t mode);
 
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
@@ -39,28 +39,28 @@ static TIMER_info_t p_timer_pool[TIMER_ID_NUM_TIMERS] =
 {
 	[TIMER_ID_0] =
 	{
-		.u16_period		= TIMER_AVAILABLE,
+		.u64_period_ms	= TIMER_AVAILABLE,
 		.mode			= TIMER_MODE_SINGLE_SHOT,
 		.p_timer_regs 	= TC0_REGS,
 		.u8_irq_id		= TC0_IRQn, 
 	},
 	[TIMER_ID_1] =
 	{
-		.u16_period		= TIMER_AVAILABLE,
+		.u64_period_ms	= TIMER_AVAILABLE,
 		.mode			= TIMER_MODE_SINGLE_SHOT,
 		.p_timer_regs 	= TC1_REGS,
 		.u8_irq_id		= TC1_IRQn, 
 	},
 	[TIMER_ID_2] =
 	{
-		.u16_period		= TIMER_AVAILABLE,
+		.u64_period_ms	= TIMER_AVAILABLE,
 		.mode			= TIMER_MODE_SINGLE_SHOT,
 		.p_timer_regs 	= TC2_REGS,
 		.u8_irq_id		= TC2_IRQn, 
 	},
 	[TIMER_ID_3] =
 	{
-		.u16_period		= TIMER_AVAILABLE,
+		.u64_period_ms	= TIMER_AVAILABLE,
 		.mode			= TIMER_MODE_SINGLE_SHOT,
 		.p_timer_regs 	= TC3_REGS,
 		.u8_irq_id		= TC3_IRQn, 
@@ -76,7 +76,7 @@ static TIMER_info_t p_timer_pool[TIMER_ID_NUM_TIMERS] =
  */
 static TIMER_info_t dma_timer =
 {
-	.u16_period		= TIMER_AVAILABLE,
+	.u64_period_ms	= TIMER_AVAILABLE,
 	.mode			= TIMER_MODE_SINGLE_SHOT,
 	.p_timer_regs 	= TC4_REGS,
 	.u8_irq_id		= TC4_IRQn
@@ -142,21 +142,21 @@ void TIMER_init(void)
 /****************************************************************************************************
  *	Allocates and configures a timer from the timer pool
  *
- * 	@param[in] u16_period 	The number of seconds before the timer elapses
+ * 	@param[in] u64_period_ms 	The number of ms before the timer elapses
  * 	@param[in] mode 		The operation mode of the timer
  * 
  *	@return A timer iD if one was allocated, else `TIMER_INVALID` if the pool was empty
  *
  ****************************************************************************************************/
-TIMER_id_t TIMER_alloc(uint16_t u16_period, TIMER_mode_t mode)
+TIMER_id_t TIMER_alloc(uint64_t u64_period_ms, TIMER_mode_t mode)
 {
 	TIMER_id_t timer_id = TIMER_INVALID;
 
 	for (uint8_t i = 0; i < TIMER_ID_NUM_TIMERS; i++)
 	{
-		if (TIMER_AVAILABLE == p_timer_pool[i].u16_period)
+		if (TIMER_AVAILABLE == p_timer_pool[i].u64_period_ms)
 		{
-			TIMER_config(i, u16_period, mode);
+			TIMER_config(i, u64_period_ms, mode);
 			timer_id = i;
 			break;
 		}
@@ -220,7 +220,7 @@ void TIMER_stop(const TIMER_id_t k_timer_id)
 
 	p_timer->p_timer_regs->COUNT16.TC_CTRLA &= ~TIMER_CTRLA_ENABLE_POOL_TIMER;
 	p_timer->p_timer_regs->COUNT16.TC_INTFLAG = TC_INTFLAG_MC0(1);
-	p_timer->u16_period = TIMER_AVAILABLE;
+	p_timer->u64_period_ms = TIMER_AVAILABLE;
 
 	NVIC_DisableIRQ(p_timer->u8_irq_id);
 }
@@ -282,18 +282,18 @@ void TIMER_stop_dma_timer(void)
  *	Configures a hardware timer
  *
  * 	@param[in] k_timer_id 	The ID of the timer to configure
- * 	@param[in] u16_period 	The number of seconds before the timer's associated ISR fires
+ * 	@param[in] u64_period 	The number of ms before the timer's associated ISR fires
  * 	@param[in] mode 		The desired operation mode
  *
  ****************************************************************************************************/
-static void TIMER_config(const TIMER_id_t k_timer_id, uint16_t u16_period, TIMER_mode_t mode)
+static void TIMER_config(const TIMER_id_t k_timer_id, uint64_t u64_period_ms, TIMER_mode_t mode)
 {
-	TIMER_info_t * p_timer = &p_timer_pool[k_timer_id];
+	TIMER_info_t * 	p_timer = &p_timer_pool[k_timer_id];
 
-	p_timer->u16_period = u16_period;
+	p_timer->u64_period_ms = u64_period_ms;
 	p_timer->mode = mode;
 
-	p_timer->p_timer_regs->COUNT16.TC_CC[0] = (u16_period * TIMER_PRESCALED_SECOND_COUNT_VALUE);
+	p_timer->p_timer_regs->COUNT16.TC_CC[0] = (uint16_t)((u64_period_ms * TIMER_PRESCALED_SECOND_COUNT_VALUE + 500U) / 1000);
 }
 
 /****************************************************************************************************
@@ -450,7 +450,7 @@ uint8_t	TIMER_shell_start_timer(uint8_t argc, char ** argv)
 
 	if (b_res)
 	{
-		if (TIMER_AVAILABLE == p_timer_pool[timer_id].u16_period)
+		if (TIMER_AVAILABLE == p_timer_pool[timer_id].u64_period_ms)
 		{
 			TIMER_config(timer_id, u32_seconds, mode);
 			TIMER_start(timer_id);
@@ -536,7 +536,7 @@ uint8_t	TIMER_shell_info(uint8_t argc, char ** argv)
 		{
 			SHELL_printf("Timer ID %u:\r\n", i);
 
-			if (TIMER_AVAILABLE == p_timer_pool[i].u16_period)
+			if (TIMER_AVAILABLE == p_timer_pool[i].u64_period_ms)
 			{
 				SHELL_printf("\t%-20s: Not Running\r\n", "Status");
 			}
@@ -544,7 +544,7 @@ uint8_t	TIMER_shell_info(uint8_t argc, char ** argv)
 			{
 				u32_current_count = TIMER_get_timer_count(i) / TIMER_PRESCALED_SECOND_COUNT_VALUE;
 
-				u32_time_remaining = p_timer_pool[i].u16_period - u32_current_count;
+				u32_time_remaining = p_timer_pool[i].u64_period_ms - u32_current_count;
 
 				u32_hours = u32_time_remaining / 3600;
 				u32_minutes = (u32_time_remaining % 3600) / 60;

@@ -8,6 +8,8 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
+#define EXTI_DEBOUNCE_MS	(100U)
+
 typedef enum _EXTI_source_id
 {
 	EXTI_SOURCE_ID_DEBUG_BUTTON = 0,
@@ -25,5 +27,6 @@ bool			EXTI_source_asserted		(EXTI_source_id_t source);
 void			EXTI_deassert_source		(EXTI_source_id_t source);
 void 			EXTI_enable_isr				(EXTI_source_id_t source);
 void 			EXTI_disable_isr			(EXTI_source_id_t source);
+void 			EXTI_update					(uint32_t u32_sources);
 
 #endif // EXTI_H

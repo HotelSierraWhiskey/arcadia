@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "shell.h"
 #include "arcadia.h"
+#include "chrono.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -25,13 +26,25 @@ typedef enum _EXTI_edge_detection_id_
 	EXTI_EDGE_DETECTION_NUM_IDS,
 } EXTI_edge_detection_id_t;
 
-typedef struct _EXTI_source_config_entry
+typedef struct _EXTI_source_config
 {
 	IO_pin_id_t					pin_id;
 	uint8_t						u8_extint;
 	EXTI_edge_detection_id_t	edge_detection_id;
+	const char * const			kpc_name;
+} EXTI_source_config_t;
+
+typedef struct _EXTI_source_state
+{
 	bool						b_asserted;
-} EXTI_source_config_entry_t;
+	uint32_t					u32_last_event;
+} EXTI_source_state_t;
+
+typedef struct _EXTI_source_entry
+{
+	EXTI_source_config_t		config;
+	EXTI_source_state_t			state;
+} EXTI_source_entry_t;
 
 /****************************************************************************************************
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
@@ -46,13 +59,17 @@ typedef struct _EXTI_source_config_entry
 /**
  *	Registry of logical external interrupt channels
  */
-static EXTI_source_config_entry_t EXTI_source_configs[EXTI_SOURCE_ID_NUM_IDS] =
+static EXTI_source_entry_t EXTI_source_configs[EXTI_SOURCE_ID_NUM_IDS] =
 {
 	[EXTI_SOURCE_ID_DEBUG_BUTTON] =
 	{
-		.pin_id				= IO_PIN_ID_PA09,
-		.u8_extint			= 9,
-		.edge_detection_id 	= EXTI_EDGE_DETECTION_ID_RISE,
+		.config =
+		{
+			.pin_id				= IO_PIN_ID_PA09,
+			.u8_extint			= 9,
+			.edge_detection_id 	= EXTI_EDGE_DETECTION_ID_BOTH,
+			.kpc_name			= "DEBUG_BUTTON"
+		}
 	}
 };
 
@@ -64,7 +81,7 @@ void EXTI_init(void)
 {
 	ASSERT(EXTI_SOURCE_ID_NUM_IDS <= EXTI_MAX_SOURCES);
 
-	EXTI_source_config_entry_t * p_source_config;
+	EXTI_source_config_t * p_source_config;
 
 	// Enable APB clock for EIC
 	MCLK_REGS->MCLK_APBAMASK |= MCLK_APBAMASK_EIC_Msk;
@@ -82,7 +99,7 @@ void EXTI_init(void)
 	// Init all registered sources
 	for (uint8_t i = 0; i < EXTI_SOURCE_ID_NUM_IDS; i++)
 	{
-		p_source_config = &EXTI_source_configs[i];
+		p_source_config = &EXTI_source_configs[i].config;
 
 		// Configure edge detection. EIC has two configuration registers, each contains 8 source configs
 		if (p_source_config->u8_extint < (EXTI_MAX_SOURCES / 2))
@@ -116,56 +133,85 @@ void EXTI_init(void)
 IO_pin_id_t	EXTI_get_pin_from_source(EXTI_source_id_t source)
 {
 	ASSERT(source < EXTI_SOURCE_ID_NUM_IDS);
-	return EXTI_source_configs[source].pin_id;
+	return EXTI_source_configs[source].config.pin_id;
 }
 
 bool EXTI_source_asserted(EXTI_source_id_t source)
 {
 	ASSERT(source < EXTI_SOURCE_ID_NUM_IDS);
-	return EXTI_source_configs[source].b_asserted;
+	return EXTI_source_configs[source].state.b_asserted;
 }
 
 void EXTI_deassert_source(EXTI_source_id_t source)
 {
 	ASSERT(source < EXTI_SOURCE_ID_NUM_IDS);
-	EXTI_source_configs[source].b_asserted = false;
+	EXTI_source_configs[source].state.b_asserted = false;
 }
 
 void EXTI_enable_isr(EXTI_source_id_t source)
 {
 	ASSERT(source < EXTI_SOURCE_ID_NUM_IDS);
-	EIC_REGS->EIC_INTENSET |= (1 << EXTI_source_configs[source].u8_extint);
+	EIC_REGS->EIC_INTENSET |= (1 << EXTI_source_configs[source].config.u8_extint);
 }
 
 void EXTI_disable_isr(EXTI_source_id_t source)
 {
 	ASSERT(source < EXTI_SOURCE_ID_NUM_IDS);
-	EIC_REGS->EIC_INTENCLR |= (1 << EXTI_source_configs[source].u8_extint);
+	EIC_REGS->EIC_INTENCLR |= (1 << EXTI_source_configs[source].config.u8_extint);
+}
+
+void EXTI_update(uint32_t u32_sources)
+{
+	EXTI_source_entry_t * p_entry;
+	IO_pin_id_t pin_id;
+
+	for (uint8_t u8_source = 0; u8_source < EXTI_SOURCE_ID_NUM_IDS; u8_source++)
+	{
+		p_entry = &EXTI_source_configs[u8_source];
+
+		if (u32_sources & (1 << u8_source))
+		{
+			pin_id = EXTI_get_pin_from_source(u8_source);
+			EXTI_LOG_DBG("Source %s on %s %s\n", 
+				p_entry->config.kpc_name, IO_get_pin_string(pin_id), IO_read_pin(pin_id) == IO_PIN_STATE_HIGH ? "asserted": "deasserted");
+			EXTI_enable_isr(u8_source);
+		}
+	}
 }
 
 void irqEIC(void)
 {
+	EXTI_source_entry_t * p_entry;
 	ARCADIA_msg_t msg =
 	{
-		.id 				= ARCADIA_MSG_ID_DRIVE_HANDLE_EXTI,
-		.b_sent_from_isr 	= true
+		.id 				= ARCADIA_MSG_ID_CHRONO_DEBOUNCE_EXTI,
+		.b_sent_from_isr 	= true,
 	};
 
-	for (uint8_t i = 0; i < EXTI_SOURCE_ID_NUM_IDS; i++)
+	for (uint8_t u8_source = 0; u8_source < EXTI_SOURCE_ID_NUM_IDS; u8_source++)
 	{
-		if (EIC_REGS->EIC_INTFLAG & (1 << EXTI_source_configs[i].u8_extint))
-		{
-			EXTI_source_configs[i].b_asserted = true;
-			EIC_REGS->EIC_INTFLAG |= (1 << EXTI_source_configs[i].u8_extint);
+		p_entry = &EXTI_source_configs[u8_source];
 
-			// Disable the interrupt, re-enable when handled
-			EXTI_disable_isr(i);
+		if (EIC_REGS->EIC_INTFLAG & (1 << p_entry->config.u8_extint))
+		{
+			// Disable the interrupt, re-enable when debounce timer expires
+			EXTI_disable_isr(u8_source);
+
+			// TODO: Right now we only handle detection on both edges
+			if (EXTI_EDGE_DETECTION_ID_BOTH == p_entry->config.edge_detection_id)
+			{
+				p_entry->state.b_asserted = !p_entry->state.b_asserted;
+			}
+
+			EIC_REGS->EIC_INTFLAG |= (1 << p_entry->config.u8_extint);
+
+			msg.payload.chrono_payload_debounce_exti.u32_sources |= (1 << u8_source);
+			p_entry->state.u32_last_event = CHRONO_get_ticks();
 		}
 	}
 
-	// Tell DRIVE to handle whatever EXTI state changes have taken place
-	// TODO: Why DRIVE? Why not tell the task associated with the EXTI channel?
-	ARCADIA_send_from_isr(ARCADIA_TASK_ID_DRIVE, &msg);
-
+	// Tell CHRONO to set a timer for exti source ISR re-enable
+	ARCADIA_send_from_isr(ARCADIA_TASK_ID_CHRONO, &msg);
+	
 	NVIC_ClearPendingIRQ(EIC_IRQn);
 }
