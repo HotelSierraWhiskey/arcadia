@@ -77,7 +77,9 @@ void DRIVE_init(void)
 	EXTI_init();
 
 	// Initialize SD card SPI channel
-	// SPI_init(SPI_CHANNEL_SD_CARD);
+#ifdef BUILD_HAS_FS
+	SPI_init(SPI_CHANNEL_SD_CARD);
+#endif // BUILD_HAS_FS
 }
 
 /****************************************************************************************************
@@ -89,11 +91,13 @@ void DRIVE_task(void * p_params)
 {
 	UNUSED(p_params);
 
-	// if (FSIF_fs_init())
-	// {
-	// 	DRIVE_LOG_DBG("File system mounted (%s, %s)\n",
-	// 		FSIF_get_volume_label(), FSIF_get_fat_subtype());
-	// }
+#ifdef BUILD_HAS_FS
+	if (FSIF_fs_init())
+	{
+		DRIVE_LOG_DBG("File system mounted (%s, %s)\n",
+			FSIF_get_volume_label(), FSIF_get_fat_subtype());
+	}
+#endif // BUILD_HAS_FS
 
 	while (1)
 	{

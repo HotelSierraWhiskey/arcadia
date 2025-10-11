@@ -3,6 +3,10 @@ PROJECT_ROOT = ../../..
 APP_BASENAME = app
 APP_BUILD_DIR = build
 
+# Application-specific flags
+APPSPEC_FLAGS = -DDEV_BOARD \
+				-DBUILD_HAS_FS
+
 # App compiler flags
 APP_CFLAGS = 	$(COMMON_FLAGS) \
 				-ffunction-sections \
@@ -13,7 +17,7 @@ APP_CFLAGS = 	$(COMMON_FLAGS) \
 				-Wno-switch \
 				-Wno-main \
 				-Wl,--print-memory-usage \
-				-DDEV_BOARD
+				$(APPSPEC_FLAGS)
 
 # App include paths
 APP_INC = 	-I../ \
