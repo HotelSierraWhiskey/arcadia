@@ -2,15 +2,16 @@
 #	Compiler settings and build tools
 # **************************************************************************** #
 
-CC = arm-none-eabi-gcc
-CCLD = arm-none-eabi-ld
-SIZE = arm-none-eabi-size
+ARM_GNU_TOOLCHAIN = /opt/arm_gnu_toolchain
+CC = $(ARM_GNU_TOOLCHAIN)/arm-none-eabi-gcc
+CCLD = $(ARM_GNU_TOOLCHAIN)/arm-none-eabi-ld
+SIZE = $(ARM_GNU_TOOLCHAIN)/arm-none-eabi-size
 JLINK = JLinkExe
 
 COMMON_FLAGS = \
 	-Wall \
 	-mcpu=cortex-m0plus \
-	-std=gnu17 \
+	-std=gnu23 \
 	-nostartfiles \
 	-Os \
 	-g \
@@ -234,14 +235,16 @@ upload_audio_switch:
 clean:
 	rm -rf $(APP_BUILD_DIR)
 
-.PHONY:
-size:
-	arm-none-eabi-nm --print-size --size-sort -t d $(APP_BUILD_DIR)/$(APP_BASENAME).elf && \
-	$(SIZE) $(APP_BUILD_DIR)/$(APP_BASENAME).elf
+# FIXME
 
-.PHONY:
-elf:
-	@arm-none-eabi-readelf -S $(APP_BUILD_DIR)/$(APP_BASENAME).elf
+# .PHONY:
+# size:
+# 	arm-none-eabi-nm --print-size --size-sort -t d $(APP_BUILD_DIR)/$(APP_BASENAME).elf && \
+# 	$(SIZE) $(APP_BUILD_DIR)/$(APP_BASENAME).elf
+
+# .PHONY:
+# elf:
+# 	@arm-none-eabi-readelf -S $(APP_BUILD_DIR)/$(APP_BASENAME).elf
 
 .PHONY:
 gdb_server:

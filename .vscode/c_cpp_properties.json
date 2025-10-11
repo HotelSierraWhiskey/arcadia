@@ -3,7 +3,7 @@
 		{
 			"name": "Dev Board",
 			"includePath": [
-				"/opt/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/arm-none-eabi/include/reent.h",
+				"/opt/arm-gnu-toolchain-14.3.rel1-x86_64-arm-none-eabi/arm-none-eabi/include/reent.h",
 				"${workspaceFolder}",
 				"${workspaceFolder}/lib/CMSIS_5",
 				"${workspaceFolder}/lib/CMSIS_5/CMSIS/Core/Include",
@@ -27,14 +27,14 @@
 			],
 			"defines": ["DEV_BOARD"],
 			"compilerPath": "/opt/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc",
-			"cStandard": "c17",
+			"cStandard": "gnu23",
 			"cppStandard": "c++17",
 			"intelliSenseMode": "gcc-arm"
 		},
 		{
 			"name": "Audio Switch",
 			"includePath": [
-				"/opt/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/arm-none-eabi/include/reent.h",
+				"/opt/arm-gnu-toolchain-14.3.rel1-x86_64-arm-none-eabi/arm-none-eabi/include/reent.h",
 				"${workspaceFolder}",
 				"${workspaceFolder}/lib/CMSIS_5",
 				"${workspaceFolder}/lib/CMSIS_5/CMSIS/Core/Include",
@@ -58,10 +58,10 @@
 			],
 			"defines": ["AUDIO_SWITCH"],
 			"compilerPath": "/opt/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc",
-			"cStandard": "c17",
+			"cStandard": "gnu23",
 			"cppStandard": "c++17",
 			"intelliSenseMode": "gcc-arm"
-		},		
+		}
 	],
 	"version": 4
 }
