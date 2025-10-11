@@ -506,7 +506,7 @@ uint8_t SYS_shell_info(uint8_t argc, char ** argv)
 		SHELL_printf("%-25s: %s\n", "Project", VERSION_PROJECT_NAME);
 		SHELL_printf("%-25s: %u.%u.%u\n", "Firmware Version", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
 		SHELL_printf("%-25s: %s\n", "FreeRTOS Version", VERSION_FREERTOS);
-		SHELL_printf("%-25s: %s %s\n", "Compilation Timestamp", __DATE__, __TIME__);
+		SHELL_printf("%-25s: GCC %u.%u.%u, %s %s\n", "Compilation", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__, __DATE__, __TIME__);
 		SHELL_printf("%-25s: %s\n", "Uptime", pc_time_buffer);
 		SHELL_printf("%-25s: %s (Cortex M0+)\n", "MCU Model Number", kpc_part_descriptors[SYS_info.k_part]);
 		SHELL_printf("%-25s: %s\n", "Clock Source Freq", SYS_info.osc48m_info.kpc_descriptor);

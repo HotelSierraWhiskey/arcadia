@@ -1,7 +1,7 @@
 Device ATSAMC21E18A
 SelectInterface SWD
 Speed 4000
-LoadFile src/build/app_audio_switch.elf
+LoadFile build/app_audio_switch.elf
 ResetX 10
 Go
 Exit
