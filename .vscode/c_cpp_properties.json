@@ -25,7 +25,7 @@
 				"${workspaceFolder}/src/json",
 				"${workspaceFolder}/src/json/jsmn"
 			],
-			"defines": ["DEV_BOARD"],
+			"defines": ["DEV_BOARD", "BUILD_HAS_FS"],
 			"compilerPath": "/opt/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc",
 			"cStandard": "gnu23",
 			"cppStandard": "c++17",
