@@ -26,6 +26,7 @@ typedef struct _DRIVE_file_slot
 	bool 				b_in_use;
 	DRIVE_file_handle_t file_handle;
 } DRIVE_file_slot_t;
+
 typedef struct _DRIVE_info
 {
 	DRIVE_file_slot_t file_pool[DRIVE_MAX_OPEN_FILES];

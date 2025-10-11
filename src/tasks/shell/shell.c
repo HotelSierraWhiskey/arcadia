@@ -687,6 +687,14 @@ static const SHELL_command_t kp_io_command_table[] =
 									"\tUsage: io map\n"
 								)
 	},
+	{
+		.kpc_name 			= "set",
+		.function 			= IO_shell_set,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tSets a pin high or low\n"
+								)
+	},
 	//////////
 	SHELL_COMMAND_TABLE_END
 };
