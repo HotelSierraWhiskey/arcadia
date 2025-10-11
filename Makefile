@@ -20,8 +20,9 @@ COMMON_FLAGS = \
 #	App paths, includes, C files, and objects
 # **************************************************************************** #
 
+SRC	= src
 APP_BASENAME = app
-APP_BUILD_DIR = build
+APP_BUILD_DIR = $(SRC)/build
 
 # App compiler flags
 APP_CFLAGS = 	$(COMMON_FLAGS) \
@@ -29,66 +30,67 @@ APP_CFLAGS = 	$(COMMON_FLAGS) \
 				-fdata-sections \
 				-nostartfiles \
 				--specs=nosys.specs \
-				-T ../toolchain/linkerscript.ld \
+				-T ./toolchain/linkerscript.ld \
 				-Wno-switch \
 				-Wno-main \
 				-Wl,--print-memory-usage \
 				-DAUDIO_SWITCH
 
 # App include paths
-APP_INC = 	-I./ \
-			-I../lib/CMSIS_5/CMSIS/Core/Include \
-			-I../lib/samc21/include \
+APP_INC = 	-I../ \
+			-I./$(SRC) \
+			-I./lib/CMSIS_5/CMSIS/Core/Include \
+			-I./lib/samc21/include \
 			-I/usr/local/arm-gnu-toolchain-13.2.Rel1-x86_64-arm-none-eabi/include \
-			-I./tasks/shell \
-			-I./tasks/drive \
-			-I./tasks/chrono \
-			-I./tasks/media \
-			-I./fsm \
-			-I./json \
-			-I./json/jsmn \
+			-I./$(SRC)/tasks/shell \
+			-I./$(SRC)/tasks/drive \
+			-I./$(SRC)/tasks/chrono \
+			-I./$(SRC)/tasks/media \
+			-I./$(SRC)/fsm \
+			-I./$(SRC)/json \
+			-I./$(SRC)/json/jsmn \
 			$(FREERTOS_INC) \
 			$(FATFS_INC)
 
-APP_TASKS = 	tasks/shell/shell.c \
-				tasks/drive/drive.c \
-				tasks/drive/drive_api.c \
-				tasks/chrono/chrono.c \
-				tasks/chrono/chrono_api.c \
-				tasks/media/media.c \
-				tasks/media/media_api.c \
+APP_TASKS = 	$(SRC)/tasks/shell/shell.c \
+				$(SRC)/tasks/drive/drive.c \
+				$(SRC)/tasks/drive/drive_api.c \
+				$(SRC)/tasks/chrono/chrono.c \
+				$(SRC)/tasks/chrono/chrono_api.c \
+				$(SRC)/tasks/media/media.c \
+				$(SRC)/tasks/media/media_api.c \
 
 # App C files
 APP_VPATH = 	$(APP_TASKS) \
-				main.c  \
-				nvic.c  \
-				sys.c  \
-				io.c \
-				sercom.c \
-				uart.c \
-				shell.c \
-				utils.c \
-				nvmctrl.c \
-				arcadia.c \
-				timer.c \
-				chrono.c \
-				chrono_api.c \
-				media.c \
-				media_api.c \
-				spi.c \
-				sd.c \
-				fsif.c \
-				mempool.c \
-				button.c \
-				ili9488.c \
-				dac.c \
-				exti.c \
-				dma.c \
-				json/json.c \
-				fsm/app_fsm.c \
-				fsm/menu_fsm.c \
-				fsm/story_fsm.c \
-				fsm/arcproject.c \
+				$(SRC)/main.c  \
+				$(SRC)/nvic.c  \
+				$(SRC)/sys.c  \
+				$(SRC)/io.c \
+				$(SRC)/sercom.c \
+				$(SRC)/uart.c \
+				$(SRC)/shell.c \
+				$(SRC)/utils.c \
+				$(SRC)/nvmctrl.c \
+				$(SRC)/arcadia.c \
+				$(SRC)/timer.c \
+				$(SRC)/chrono.c \
+				$(SRC)/chrono_api.c \
+				$(SRC)/media.c \
+				$(SRC)/media_api.c \
+				$(SRC)/spi.c \
+				$(SRC)/sd.c \
+				$(SRC)/fsif.c \
+				$(SRC)/mempool.c \
+				$(SRC)/button.c \
+				$(SRC)/ili9488.c \
+				$(SRC)/dac.c \
+				$(SRC)/exti.c \
+				$(SRC)/dma.c \
+				$(SRC)/json/json.c \
+				$(SRC)/fsm/app_fsm.c \
+				$(SRC)/fsm/menu_fsm.c \
+				$(SRC)/fsm/story_fsm.c \
+				$(SRC)/fsm/arcproject.c \
 
 # Matching .o files from APP_VPATH, and .o files from FreeRTOS and FatFs
 APP_OBJECTS = 	$(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(wildcard $(APP_VPATH)))) $(FREERTOS_OBJECTS) $(FATFS_OBJECTS)
@@ -98,33 +100,33 @@ APP_OBJECTS = 	$(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(wildcard $(APP_VPA
 # **************************************************************************** #
 
 # FreeRTOS Includes
-FREERTOS_INC = 	-I../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel \
-				-I../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/include \
-				-I../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0 \
+FREERTOS_INC = 	-I./lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel \
+				-I./lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/include \
+				-I./lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0 \
 
 # FreeRTOS C files
-FREERTOS_VPATH = 	../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/list.c \
-					../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/queue.c \
-					../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/tasks.c \
-					../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/port.c \
-					../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/portasm.c \
-					../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/mpu_wrappers_v2_asm.c \
+FREERTOS_VPATH = 	./lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/list.c \
+					./lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/queue.c \
+					./lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/tasks.c \
+					./lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/port.c \
+					./lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/portasm.c \
+					./lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/mpu_wrappers_v2_asm.c \
 
 # Matching .o files from FREERTOS_VPATH
 FREERTOS_OBJECTS = $(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(FREERTOS_VPATH)))
 
 # Build rule for FreeRTOS kernel files
-$(APP_BUILD_DIR)/%.o: ../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/%.c
+$(APP_BUILD_DIR)/%.o: ./lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/%.c
 	@echo $@
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
 # Build rule for FreeRTOS arch-specific files
-$(APP_BUILD_DIR)/%.o: ../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/%.c
+$(APP_BUILD_DIR)/%.o: ./lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/%.c
 	@echo $@
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
 # Build rule for FreeRTOS memory management files
-$(APP_BUILD_DIR)/%.o: ../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/MemMang/%.c
+$(APP_BUILD_DIR)/%.o: ./lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/MemMang/%.c
 	@echo $@
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
@@ -133,16 +135,16 @@ $(APP_BUILD_DIR)/%.o: ../lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/MemM
 # **************************************************************************** #
 
 # FatFs Includes
-FATFS_INC = 	-I../lib/ff15a/source
+FATFS_INC = 	-I./lib/ff15a/source
 # FatFs C files
-FATFS_VPATH = 	../lib/ff15a/source/ff.c \
-				../lib/ff15a/source/ffunicode.c \
+FATFS_VPATH = 	./lib/ff15a/source/ff.c \
+				./lib/ff15a/source/ffunicode.c \
 
 # Matching .o files from FATFS_VPATH
 FATFS_OBJECTS = $(patsubst %.c,$(APP_BUILD_DIR)/%.o,$(notdir $(FATFS_VPATH)))
 
 # Build rule for FatFs implementation files
-$(APP_BUILD_DIR)/%.o: ../lib/ff15a/source/%.c
+$(APP_BUILD_DIR)/%.o: ./lib/ff15a/source/%.c
 	@echo $@
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
@@ -155,22 +157,22 @@ $(APP_BUILD_DIR):
 	mkdir -p $(APP_BUILD_DIR)
 
 # .c files in app for app/build
-$(APP_BUILD_DIR)/%.o: %.c | $(APP_BUILD_DIR)
+$(APP_BUILD_DIR)/%.o: $(SRC)/%.c | $(APP_BUILD_DIR)
 	@echo $@
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
 # .c files in json for app/build
-$(APP_BUILD_DIR)/%.o: json/%.c | $(APP_BUILD_DIR)
+$(APP_BUILD_DIR)/%.o: $(SRC)/json/%.c | $(APP_BUILD_DIR)
 	@echo $@
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
 # fsm .c files in common for app/build
-$(APP_BUILD_DIR)/%.o: fsm/%.c | $(APP_BUILD_DIR)
+$(APP_BUILD_DIR)/%.o: $(SRC)/fsm/%.c | $(APP_BUILD_DIR)
 	@echo $@
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
 # task .c files in common for app/build
-$(APP_BUILD_DIR)/%.o: tasks/*/%.c | $(APP_BUILD_DIR)
+$(APP_BUILD_DIR)/%.o: $(SRC)/tasks/*/%.c | $(APP_BUILD_DIR)
 	@echo $@
 	@$(CC) $(APP_CFLAGS) $(APP_INC) -c $< -o $@
 
@@ -201,7 +203,7 @@ compile_dev_board: $(APP_BASENAME)_dev_board.elf
 # compile and upload
 .PHONY:
 upload_dev_board:
-	make compile_dev_board && $(JLINK) -CommanderScript ../toolchain/upload_dev_board.jlink
+	make compile_dev_board && $(JLINK) -CommanderScript ./toolchain/upload_dev_board.jlink
 
 # *************************
 #	Audio Switch Project (currently the only project enabled, -D logic needs to be fixed)
@@ -221,7 +223,7 @@ compile_audio_switch: $(APP_BASENAME)_audio_switch.elf
 # compile and upload
 .PHONY:
 upload_audio_switch:
-	make compile_audio_switch && $(JLINK) -CommanderScript ../toolchain/upload_audio_switch.jlink
+	make compile_audio_switch && $(JLINK) -CommanderScript ./toolchain/upload_audio_switch.jlink
 
 # **************************************************************************** #
 #	Top-level targets

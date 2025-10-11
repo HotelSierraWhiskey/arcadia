@@ -1,7 +1,7 @@
 Device ATSAMC21E18A
 SelectInterface SWD
 Speed 4000
-LoadFile build/app_dev_board.elf
+LoadFile src/build/app_dev_board.elf
 ResetX 10
 Go
 Exit
