@@ -37,6 +37,7 @@ typedef struct _IO_pin
 /**
  *	Main application pin map
  */
+#ifdef DEV_BOARD
 static IO_pin_t p_pin_map[IO_PIN_ID_NUM_PINS] =
 {
 	// Port A
@@ -357,6 +358,330 @@ static IO_pin_t p_pin_map[IO_PIN_ID_NUM_PINS] =
 		.u8_number 	= 31
 	}
 };
+#endif // DEV_BOARD
+
+#ifdef AUDIO_SWITCH
+static IO_pin_t p_pin_map[IO_PIN_ID_NUM_PINS] =
+{
+	// Port A
+
+	[IO_PIN_ID_PA00] =
+	{
+		.kpc_name 	= "EXTI_DBG",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 0
+	},
+	[IO_PIN_ID_PA01] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 1
+	},
+	[IO_PIN_ID_PA02] =
+	{
+		.kpc_name 	= "CHANNEL_SWITCH",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 2
+	},
+	[IO_PIN_ID_PA03] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 3
+	},
+	[IO_PIN_ID_PA04] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 4
+	},
+	[IO_PIN_ID_PA05] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 5
+	},
+	[IO_PIN_ID_PA06] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 6
+	},
+	[IO_PIN_ID_PA07] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 7
+	},
+	[IO_PIN_ID_PA08] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 8
+	},
+	[IO_PIN_ID_PA09] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 9
+	},
+	[IO_PIN_ID_PA10] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 10
+	},
+	[IO_PIN_ID_PA11] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 11
+	},
+	[IO_PIN_ID_PA12] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 12
+	},
+	[IO_PIN_ID_PA13] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 13
+	},
+	[IO_PIN_ID_PA14] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 14
+	},
+	[IO_PIN_ID_PA15] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 15
+	},
+	[IO_PIN_ID_PA16] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 16
+	},
+	[IO_PIN_ID_PA17] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 17
+	},
+	[IO_PIN_ID_PA18] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 18
+	},
+	[IO_PIN_ID_PA19] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 19
+	},
+	[IO_PIN_ID_PA20] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 20
+	},
+	[IO_PIN_ID_PA21] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 21
+	},
+	[IO_PIN_ID_PA22] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 22
+	},
+	[IO_PIN_ID_PA23] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 23
+	},
+	[IO_PIN_ID_PA24] =
+	{
+		.kpc_name 	= "UART_CHANNEL_SHELL_TX",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 24
+	},
+	[IO_PIN_ID_PA25] =
+	{
+		.kpc_name 	= "UART_CHANNEL_SHELL_RX",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 25
+	},
+	[IO_PIN_ID_PA27] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 27
+	},
+	[IO_PIN_ID_PA28] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 28
+	},
+	[IO_PIN_ID_PA30] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 30
+	},
+	[IO_PIN_ID_PA31] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 31
+	},
+
+	// Port B
+
+	[IO_PIN_ID_PB00] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 0
+	},
+	[IO_PIN_ID_PB01] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 1
+	},
+	[IO_PIN_ID_PB02] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 2
+	},
+	[IO_PIN_ID_PB03] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 3
+	},
+	[IO_PIN_ID_PB04] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 4
+	},
+	[IO_PIN_ID_PB05] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 5
+	},
+	[IO_PIN_ID_PB06] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 6
+	},
+	[IO_PIN_ID_PB07] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 7
+	},
+	[IO_PIN_ID_PB08] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 8
+	},
+	[IO_PIN_ID_PB09] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 9
+	},
+	[IO_PIN_ID_PB10] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 10
+	},
+	[IO_PIN_ID_PB11] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 11
+	},
+	[IO_PIN_ID_PB12] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 12
+	},
+	[IO_PIN_ID_PB13] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 13
+	},
+	[IO_PIN_ID_PB14] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 14
+	},
+	[IO_PIN_ID_PB15] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 15
+	},
+	[IO_PIN_ID_PB16] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 16
+	},
+	[IO_PIN_ID_PB17] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 17
+	},
+	[IO_PIN_ID_PB22] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 22
+	},
+	[IO_PIN_ID_PB23] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 23
+	},
+	[IO_PIN_ID_PB30] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 30
+	},
+	[IO_PIN_ID_PB31] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 31
+	}
+};
+#endif // AUDIO_SWITCH
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -633,5 +958,65 @@ uint8_t	IO_shell_map(uint8_t argc, char ** argv)
 	{
 		SHELL_printf("Usage: io map\n");
 	}
+	return SHELL_COMMAND_SUCCESS;
+}
+
+/****************************************************************************************************
+ *	Shell utility
+ *
+ * 	Sets a pin high or low
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
+uint8_t	IO_shell_set(uint8_t argc, char ** argv)
+{
+	uint32_t 		u32_high_or_low;
+	IO_pin_id_t 	pin_id;
+	char			pc_pin_name[IO_PIN_STRING_DESCRIPTOR_SIZE] = { 0 };
+	bool 			b_res = true;
+
+	if (argc == 2)
+	{
+		strncpy(pc_pin_name, argv[0], IO_PIN_STRING_DESCRIPTOR_SIZE);
+
+		SHELL_printf("%s\n", pc_pin_name);
+
+		if (b_res && UTILS_string_to_u32(argv[1], &u32_high_or_low))
+		{
+			if (u32_high_or_low == 0 || u32_high_or_low == 1)
+			{
+				b_res = true;
+			}
+		}
+	}
+
+	if (b_res)
+	{
+		b_res = false;
+
+		for (uint32_t i = 0; i < IO_PIN_ID_NUM_PINS; i++)
+		{
+			if (0 == strncmp(pc_pin_name, p_pin_map[i].pc_string, IO_PIN_STRING_DESCRIPTOR_SIZE))
+			{
+				pin_id = (IO_pin_id_t)i;
+				b_res = true;
+				break;
+			}
+		}
+	}
+
+	if (b_res)
+	{
+		IO_config_pin_direction(pin_id, IO_DIRECTION_OUTPUT);
+		IO_set_pin(pin_id, u32_high_or_low);
+	}
+	else
+	{
+		SHELL_printf("Usage: io set <pin number> <0|1>\n");
+	}
+
 	return SHELL_COMMAND_SUCCESS;
 }

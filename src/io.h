@@ -148,5 +148,6 @@ const char * 	IO_get_pin_string						(IO_pin_id_t pin_id);
  ****************************************************************************************************/
 
 uint8_t 		IO_shell_map							(uint8_t argc, char ** argv);
+uint8_t			IO_shell_set							(uint8_t argc, char ** argv);
 
 #endif // IO_H
