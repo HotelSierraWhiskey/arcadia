@@ -86,8 +86,8 @@ typedef struct _SD_csdv1 {
  */
 typedef struct _SD_csdv2 {
 	// byte 0
-	unsigned _reserved_1 				: 6;
-	unsigned csd_ver 					: 2;
+	unsigned _reserved_1 			: 6;
+	unsigned csd_ver 				: 2;
 	// byte 1
 	uint8_t taac;
 	// byte 2
@@ -224,6 +224,8 @@ static const char * const kpc_version_descriptors[SD_CSD_VERSION_NUM_VERSIONS] =
  *		ACMD41 	(SD_SEND_OP_COND)
  *		CMD58	(READ_OCR)
  *		CMD16	(SET_BLOCKLEN)
+ *
+ * 	@return `true` if the SD was initialized, else `false`
  ****************************************************************************************************/
 bool SD_card_init(void)
 {
