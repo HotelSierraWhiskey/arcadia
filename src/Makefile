@@ -10,7 +10,7 @@ JLINK = JLinkExe
 COMMON_FLAGS = \
 	-Wall \
 	-mcpu=cortex-m0plus \
-	-std=c17 \
+	-std=gnu17 \
 	-nostartfiles \
 	-Os \
 	-g \
@@ -32,7 +32,8 @@ APP_CFLAGS = 	$(COMMON_FLAGS) \
 				-T ../toolchain/linkerscript.ld \
 				-Wno-switch \
 				-Wno-main \
-				-Wl,--print-memory-usage
+				-Wl,--print-memory-usage \
+				-DAUDIO_SWITCH
 
 # App include paths
 APP_INC = 	-I./ \
@@ -178,25 +179,57 @@ $(APP_BASENAME).o: $(APP_OBJECTS)
 	@echo $@
 	@$(CC) $(APP_CFLAGS) -o $(APP_BUILD_DIR)/$(APP_BASENAME).o $(APP_OBJECTS)
 
-# app/build/app.elf
-$(APP_BUILD_DIR)/$(APP_BASENAME).elf: $(APP_OBJECTS)
+# **************************************************************************** #
+#	Projects
+# **************************************************************************** #
+
+# *************************
+#	Dev Board Project (Currently disabled, -D flag needs to be fixed)
+# *************************
+# app/build/app_dev_board.elf
+$(APP_BUILD_DIR)/$(APP_BASENAME)_dev_board.elf: $(APP_OBJECTS)
 	@echo $@
 	@$(CC) $(APP_CFLAGS) -o $@ $(APP_OBJECTS) -lm
 
 # alias for above
-$(APP_BASENAME).elf: $(APP_BUILD_DIR)/$(APP_BASENAME).elf
+$(APP_BASENAME)_dev_board.elf: $(APP_BUILD_DIR)/$(APP_BASENAME)_dev_board.elf
+
+# alias for app/build/app_dev_board.elf
+.PHONY:
+compile_dev_board: $(APP_BASENAME)_dev_board.elf
+
+# compile and upload
+.PHONY:
+upload_dev_board:
+	make compile_dev_board && $(JLINK) -CommanderScript ../toolchain/upload_dev_board.jlink
+
+# *************************
+#	Audio Switch Project (currently the only project enabled, -D logic needs to be fixed)
+# *************************
+# app/build/app_audio_switch.elf
+$(APP_BUILD_DIR)/$(APP_BASENAME)_audio_switch.elf: $(APP_OBJECTS)
+	@echo $@
+	@$(CC) $(APP_CFLAGS) -o $@ $(APP_OBJECTS) -lm
+
+# alias for above
+$(APP_BASENAME)_audio_switch.elf: $(APP_BUILD_DIR)/$(APP_BASENAME)_audio_switch.elf
+
+# alias for app/build/app_audio_switch.elf
+.PHONY:
+compile_audio_switch: $(APP_BASENAME)_audio_switch.elf
+
+# compile and upload
+.PHONY:
+upload_audio_switch:
+	make compile_audio_switch && $(JLINK) -CommanderScript ../toolchain/upload_audio_switch.jlink
 
 # **************************************************************************** #
 #	Top-level targets
 # **************************************************************************** #
 
-# alias for app/build/app.elf
-.PHONY:
-compile_app: $(APP_BASENAME).elf
-
 # cleans out app/build
 .PHONY:
-clean_app:
+clean:
 	rm -rf $(APP_BUILD_DIR)
 
 .PHONY:
@@ -207,11 +240,6 @@ size:
 .PHONY:
 elf:
 	@arm-none-eabi-readelf -S $(APP_BUILD_DIR)/$(APP_BASENAME).elf
-
-# compile and upload
-.PHONY:
-upload_app:
-	make compile_app && $(JLINK) -CommanderScript ../toolchain/upload.jlink
 
 .PHONY:
 gdb_server:

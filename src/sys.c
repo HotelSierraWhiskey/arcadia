@@ -503,6 +503,7 @@ uint8_t SYS_shell_info(uint8_t argc, char ** argv)
 			uid_buffer[3]);
 
 		SHELL_SEPARATOR();
+		SHELL_printf("%-25s: %s\n", "Project", VERSION_PROJECT_NAME);
 		SHELL_printf("%-25s: %u.%u.%u\n", "Firmware Version", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
 		SHELL_printf("%-25s: %s\n", "FreeRTOS Version", VERSION_FREERTOS);
 		SHELL_printf("%-25s: %s %s\n", "Compilation Timestamp", __DATE__, __TIME__);

@@ -26,6 +26,7 @@ typedef struct _UART_channel
 {
 	// Must be populated
 	const char *					kpc_name;
+	ARCADIA_task_id_t				owner;
 	IO_pin_id_t						rx_pin;
 	IO_pin_id_t						tx_pin;
 	uint32_t						u32_rx_pad;
@@ -61,9 +62,26 @@ static const uint32_t kpu8_baud_rates[UART_BAUD_RATE_ID_NUM_BAUD_RATES] =
  */
 static UART_channel_t p_uart_channels[UART_CHANNEL_NUM_CHANNELS] =
 {
+#ifdef AUDIO_SWITCH
 	[UART_CHANNEL_SHELL] =
 	{
 		.kpc_name				= "Debug Shell",
+		.owner					= ARCADIA_TASK_ID_SHELL,
+		.rx_pin 				= IO_PIN_ID_PA25,
+		.tx_pin 				= IO_PIN_ID_PA24,
+		.u32_rx_pad 			= SERCOM_USART_INT_CTRLA_RXPO_PAD3,
+		.u32_tx_pad 			= SERCOM_USART_INT_CTRLA_TXPO_PAD1,
+		.baud_rate_id			= UART_BAUD_RATE_ID_115200,
+		.sercom_channel_id 		= SERCOM_CHANNEL_ID_3,
+		.peripheral_function 	= IO_PERIPHERAL_FUNCTION_C
+	},
+#endif // AUDIO_SWITCH
+
+#ifdef DEV_BOARD
+	[UART_CHANNEL_SHELL] =
+	{
+		.kpc_name				= "Debug Shell",
+		.owner					= ARCADIA_TASK_ID_SHELL,
 		.rx_pin 				= IO_PIN_ID_PA07,
 		.tx_pin 				= IO_PIN_ID_PA06,
 		.u32_rx_pad 			= SERCOM_USART_INT_CTRLA_RXPO_PAD3,
@@ -71,7 +89,8 @@ static UART_channel_t p_uart_channels[UART_CHANNEL_NUM_CHANNELS] =
 		.baud_rate_id			= UART_BAUD_RATE_ID_115200,
 		.sercom_channel_id 		= SERCOM_CHANNEL_ID_0,
 		.peripheral_function 	= IO_PERIPHERAL_FUNCTION_D
-	}
+	},
+#endif // DEV_BOARD
 };
 
 /****************************************************************************************************
@@ -384,53 +403,99 @@ static bool UART_tx_buffer_is_full(UART_channel_id_t channel_id)
 }
 
 /****************************************************************************************************
- *	SERCOM0 Interrupt Service Routine (SHELL's UART ISR)
+ *	UART ISR handler utility
  *
- * 	@todo Document
+ * 	@param[in] channel_id The UART channel whose ISR fired
+ *
+ *	@note
+ *	Called in ISR context
+ *
  ****************************************************************************************************/
-void irqSERCOM0()
+static void UART_on_isr(UART_channel_id_t channel_id)
 {
-	volatile uint8_t 	u8_byte;
-	BaseType_t 			higher_priority_task_woken = pdFALSE;
-	
-	// This flag is cleared by reading the SERCOM_DATA register
-	if ((SERCOM0_REGS->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_RXC(1)) != 0)
-	{
-		u8_byte = SERCOM0_REGS->USART_INT.SERCOM_DATA;
-		UART_rx_buffer_push(UART_CHANNEL_SHELL, u8_byte);
+	UART_channel_t * 					p_channel = &p_uart_channels[channel_id];
+	sercom_usart_int_registers_t * 		p_regs = p_channel->_p_sercom_registers;
+	volatile uint8_t 					u8_byte;
+	BaseType_t 							higher_priority_task_woken = pdFALSE;
 
-		// We pushed a byte onto SHELL's buffer. Notify SHELL.
-		vTaskNotifyGiveFromISR(ARCADIA_handle_from_id(ARCADIA_TASK_ID_SHELL), &higher_priority_task_woken);
+	// This flag is cleared by reading the SERCOM_DATA register
+	if ((p_regs->SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_RXC(1)) != 0)
+	{
+		u8_byte = p_regs->SERCOM_DATA;
+		UART_rx_buffer_push(channel_id, u8_byte);
+
+		// We pushed a byte onto this uart's buffer. Notify its owner.
+		vTaskNotifyGiveFromISR(ARCADIA_handle_from_id(p_channel->owner), &higher_priority_task_woken);
 		portYIELD_FROM_ISR(higher_priority_task_woken);
 	}
 
-	if ((SERCOM0_REGS->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_DRE(1)) != 0)
+	if ((p_regs->SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_DRE(1)) != 0)
 	{
 		// No more data to send. Disable interrupts on DRE
-		if (UART_tx_buffer_is_empty(UART_CHANNEL_SHELL))
+		if (UART_tx_buffer_is_empty(channel_id))
 		{
 			// Don't OR this. INTENCLR is write only.
-			SERCOM0_REGS->USART_INT.SERCOM_INTENCLR = SERCOM_USART_INT_INTENCLR_DRE(1);
+			p_regs->SERCOM_INTENCLR = SERCOM_USART_INT_INTENCLR_DRE(1);
 		}
 		// Pop a byte off the TX buffer and send it
 		else
 		{
-			u8_byte = UART_tx_buffer_pop(UART_CHANNEL_SHELL);
+			u8_byte = UART_tx_buffer_pop(channel_id);
 
-			SERCOM0_REGS->USART_INT.SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_TXC(1);
+			p_regs->SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_TXC(1);
 
-			SERCOM0_REGS->USART_INT.SERCOM_DATA = u8_byte;
+			p_regs->SERCOM_DATA = u8_byte;
 
-			while ((SERCOM0_REGS->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INT_INTENSET_TXC(1)) == 0)
+			while ((p_regs->SERCOM_INTFLAG & SERCOM_USART_INT_INTENSET_TXC(1)) == 0)
 			{
 				continue;
 			}
 
-			SERCOM0_REGS->USART_INT.SERCOM_INTENCLR = SERCOM_USART_INT_INTENCLR_TXC(1);
+			p_regs->SERCOM_INTENCLR = SERCOM_USART_INT_INTENCLR_TXC(1);
 		}
 	}
 
-	NVIC_ClearPendingIRQ(SERCOM0_IRQn);
+	NVIC_ClearPendingIRQ(p_channel->_irq_index);
+}
+
+/****************************************************************************************************
+ *	SERCOM0 Interrupt Service Routine
+ *
+ ****************************************************************************************************/
+void irqSERCOM0(void)
+{
+#ifdef DEV_BOARD
+	UART_on_isr(UART_CHANNEL_SHELL);
+#endif // DEV_BOARD
+}
+
+/****************************************************************************************************
+ *	SERCOM1 Interrupt Service Routine
+ *
+ ****************************************************************************************************/
+void irqSERCOM1(void)
+{
+	// Unused
+}
+
+/****************************************************************************************************
+ *	SERCOM2 Interrupt Service Routine
+ *
+ ****************************************************************************************************/
+void irqSERCOM2(void)
+{
+	// Unused
+}
+
+/****************************************************************************************************
+ *	SERCOM3 Interrupt Service Routine
+ *
+ ****************************************************************************************************/
+void irqSERCOM3(void)
+{
+#ifdef AUDIO_SWITCH
+	UART_on_isr(UART_CHANNEL_SHELL);
+#endif // AUDIO_SWITCH
 }
 
 /****************************************************************************************************
