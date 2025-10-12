@@ -1,5 +1,5 @@
 # **************************************************************************** #
-#	Compiler settings and build tools
+#	Compiler Settings & Build Tools
 # **************************************************************************** #
 
 ARM_GNU_TOOLCHAIN = /opt/arm_gnu_toolchain
