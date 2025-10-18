@@ -65,16 +65,6 @@ typedef enum _SYS_reset_cause
 } SYS_reset_cause_t;
 
 /**
- *	Supported MCU enumerated type
- */
-typedef enum _SYS_part
-{
-	SYS_PART_ATSAMC21E18A,
-	//////////
-	SYS_PART_NUM_PARTS
-} SYS_part_t;
-
-/**
  *	OSC48M settings entry
  */
 typedef struct _SYS_osc48m_info
@@ -89,7 +79,6 @@ typedef struct _SYS_osc48m_info
  */
 typedef struct _SYS_info
 {
-	SYS_part_t			k_part;
 	SYS_osc48m_info_t	osc48m_info;
 } SYS_info_t;
 
@@ -214,14 +203,6 @@ static const char * const kpc_reset_descriptors[SYS_RESET_CAUSE_NUM_CAUSES] =
 };
 
 /**
- *	Table of MCU part descriptors
- */
-static const char * const kpc_part_descriptors[SYS_PART_NUM_PARTS] = 
-{
-	[SYS_PART_ATSAMC21E18A] = "ATSAMC21E18A"
-};
-
-/**
  *	The sys info struct 
  */
 static SYS_info_t SYS_info;
@@ -244,8 +225,6 @@ static void 	SYS_clock_init			(void);
  ****************************************************************************************************/
 void SYS_init(void)
 {
-	SYS_info.k_part = SYS_PART_ATSAMC21E18A;
-
 	SYS_osc48m_init(SYS_OSC48M_ID_FREQ_48_MHZ);
 
 	SYS_osc32k_init();
@@ -508,7 +487,7 @@ uint8_t SYS_shell_info(uint8_t argc, char ** argv)
 		SHELL_printf("%-25s: %s\n", "FreeRTOS Version", VERSION_FREERTOS);
 		SHELL_printf("%-25s: GCC %u.%u.%u, %s %s\n", "Compilation", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__, __DATE__, __TIME__);
 		SHELL_printf("%-25s: %s\n", "Uptime", pc_time_buffer);
-		SHELL_printf("%-25s: %s (Cortex M0+)\n", "MCU Model Number", kpc_part_descriptors[SYS_info.k_part]);
+		SHELL_printf("%-25s: %s (Cortex M0+)\n", "MCU Model Number", VERSION_PART);
 		SHELL_printf("%-25s: %s\n", "Clock Source Freq", SYS_info.osc48m_info.kpc_descriptor);
 		SHELL_printf("%-25s: %s\n", "Serial Number", pc_serial_number);
 		SHELL_SEPARATOR();

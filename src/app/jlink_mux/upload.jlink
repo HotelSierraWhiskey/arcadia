@@ -1,0 +1,7 @@
+Device ATSAMC21N18A
+SelectInterface SWD
+Speed 4000
+LoadFile build/app_jlink_mux.elf
+ResetX 10
+Go
+Exit

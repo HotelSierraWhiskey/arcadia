@@ -50,7 +50,7 @@ typedef struct _EXTI_source_entry
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
-// None
+static void		EIC_set_sense		(uint8_t u8_line, uint8_t u8_sense, bool u8_filten);
 
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
@@ -61,6 +61,7 @@ typedef struct _EXTI_source_entry
  */
 static EXTI_source_entry_t EXTI_source_configs[EXTI_SOURCE_ID_NUM_IDS] =
 {
+#ifdef DEV_BOARD
 	[EXTI_SOURCE_ID_DEBUG_BUTTON] =
 	{
 		.config =
@@ -71,11 +72,27 @@ static EXTI_source_entry_t EXTI_source_configs[EXTI_SOURCE_ID_NUM_IDS] =
 			.kpc_name			= "DEBUG_BUTTON"
 		}
 	}
+#endif // DEV_BOARD
 };
 
 /****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
+
+static inline void EIC_set_sense(uint8_t u8_line, uint8_t u8_sense, bool u8_filten)
+{
+	uint8_t 	u8_idx = (u8_line >> 3);			// 0: u8_lines 0..7, 1: u8_lines 8..15
+	uint8_t 	pos = (u8_line & 7U) * 4U;			// 0,4,8,...,28
+	uint32_t 	u32_config = EIC_REGS->EIC_CONFIG[u8_idx];
+
+	// clear the 4-bit slot
+	u32_config &= ~(0xFU << pos);
+
+	// u8_line is 3 bits; u8_filten is bit 3 of the slot
+	u32_config |= (((uint32_t)(u8_sense & 0x7U) | (u8_filten ? 0x8U : 0U)) << pos);
+
+	EIC_REGS->EIC_CONFIG[u8_idx] = u32_config;
+}
 
 void EXTI_init(void)
 {
@@ -96,26 +113,16 @@ void EXTI_init(void)
 		continue;
 	}
 
-	// Init all registered sources
 	for (uint8_t i = 0; i < EXTI_SOURCE_ID_NUM_IDS; i++)
 	{
 		p_source_config = &EXTI_source_configs[i].config;
 
-		// Configure edge detection. EIC has two configuration registers, each contains 8 source configs
-		if (p_source_config->u8_extint < (EXTI_MAX_SOURCES / 2))
-		{
-			EIC_REGS->EIC_CONFIG[0] |= p_source_config->edge_detection_id << p_source_config->u8_extint;
-		}
-		else
-		{
-			EIC_REGS->EIC_CONFIG[1] |= p_source_config->edge_detection_id << (p_source_config->u8_extint / 2);
-		}
-
-		// Enable interrupt for source
-		EIC_REGS->EIC_INTENSET |= (1 << p_source_config->u8_extint);
-
-		// Enable the peripheral function for the pin
+		EIC_set_sense(p_source_config->u8_extint, p_source_config->edge_detection_id, /*filten=*/false);
 		IO_enable_peripheral_function_for_pin(p_source_config->pin_id, IO_PERIPHERAL_FUNCTION_A);
+
+		// clear any stale flag, then enable interrupt
+		EIC_REGS->EIC_INTFLAG = (1U << p_source_config->u8_extint);
+		EIC_REGS->EIC_INTENSET = (1U << p_source_config->u8_extint);
 	}
 
 	// Enable EIC
@@ -195,13 +202,13 @@ void irqEIC(void)
 		if (EIC_REGS->EIC_INTFLAG & (1 << p_entry->config.u8_extint))
 		{
 			// Disable the interrupt, re-enable when debounce timer expires
-			EXTI_disable_isr(u8_source);
+			// EXTI_disable_isr(u8_source);
 
 			// TODO: Right now we only handle detection on both edges
-			if (EXTI_EDGE_DETECTION_ID_BOTH == p_entry->config.edge_detection_id)
-			{
+			// if (EXTI_EDGE_DETECTION_ID_BOTH == p_entry->config.edge_detection_id)
+			// {
 				p_entry->state.b_asserted = !p_entry->state.b_asserted;
-			}
+			// }
 
 			EIC_REGS->EIC_INTFLAG |= (1 << p_entry->config.u8_extint);
 

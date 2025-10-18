@@ -62,7 +62,7 @@ static const uint32_t kpu8_baud_rates[UART_BAUD_RATE_ID_NUM_BAUD_RATES] =
  */
 static UART_channel_t p_uart_channels[UART_CHANNEL_NUM_CHANNELS] =
 {
-#ifdef AUDIO_SWITCH
+#if defined(AUDIO_SWITCH) || defined(JLINK_MUX)
 	[UART_CHANNEL_SHELL] =
 	{
 		.kpc_name				= "Debug Shell",
@@ -75,7 +75,7 @@ static UART_channel_t p_uart_channels[UART_CHANNEL_NUM_CHANNELS] =
 		.sercom_channel_id 		= SERCOM_CHANNEL_ID_3,
 		.peripheral_function 	= IO_PERIPHERAL_FUNCTION_C
 	},
-#endif // AUDIO_SWITCH
+#endif // AUDIO_SWITCH || JLINK_MUX
 
 #ifdef DEV_BOARD
 	[UART_CHANNEL_SHELL] =
@@ -493,9 +493,9 @@ void irqSERCOM2(void)
  ****************************************************************************************************/
 void irqSERCOM3(void)
 {
-#ifdef AUDIO_SWITCH
+#if defined(AUDIO_SWITCH) || defined(JLINK_MUX)
 	UART_on_isr(UART_CHANNEL_SHELL);
-#endif // AUDIO_SWITCH
+#endif // AUDIO_SWITCH || JLINK_MUX
 }
 
 /****************************************************************************************************

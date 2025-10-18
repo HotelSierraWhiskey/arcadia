@@ -52,6 +52,22 @@ clean_audio_switch:
 	$(MAKE) -C src/app/audio_switch clean_audio_switch
 
 # **************************************************************************** #
+#	JLink Mux
+# **************************************************************************** #
+
+.PHONY: compile_jlink_mux
+compile_jlink_mux:
+	$(MAKE) -C src/app/jlink_mux compile_jlink_mux
+
+.PHONY: compile_jlink_mux
+upload_jlink_mux:
+	$(MAKE) -C src/app/jlink_mux upload_jlink_mux
+
+.PHONY: clean_jlink_mux
+clean_jlink_mux:
+	$(MAKE) -C src/app/jlink_mux clean_jlink_mux
+
+# **************************************************************************** #
 #	Utils
 # **************************************************************************** #
 
@@ -61,4 +77,4 @@ gdb_server:
 
 .PHONY:
 clean:
-	$(MAKE) clean_audio_switch clean_dev_board
+	$(MAKE) clean_audio_switch clean_dev_board clean_jlink_mux

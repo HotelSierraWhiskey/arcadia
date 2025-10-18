@@ -12,7 +12,9 @@
 
 typedef enum _EXTI_source_id
 {
+#ifdef DEV_BOARD
 	EXTI_SOURCE_ID_DEBUG_BUTTON = 0,
+#endif // DEV_BOARD
 	//////////
 	EXTI_SOURCE_ID_NUM_IDS
 } EXTI_source_id_t;

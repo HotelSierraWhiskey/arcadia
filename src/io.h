@@ -41,7 +41,9 @@ typedef enum _IO_pin_id
 	IO_PIN_ID_PA23,
 	IO_PIN_ID_PA24,
 	IO_PIN_ID_PA25,
+
 	// no PA26
+
 	IO_PIN_ID_PA27,
 	IO_PIN_ID_PA28,
 	IO_PIN_ID_PA30,
@@ -66,18 +68,65 @@ typedef enum _IO_pin_id
 	IO_PIN_ID_PB15,
 	IO_PIN_ID_PB16,
 	IO_PIN_ID_PB17,
-	// no PB18
-	// no PB19
-	// no PB20
-	// no PB21
+
+#ifdef MCU_SAMC21N18A
+	IO_PIN_ID_PB18,
+	IO_PIN_ID_PB19,
+	IO_PIN_ID_PB20,
+	IO_PIN_ID_PB21,
+#endif // MCU_SAMC21E18A
+
 	IO_PIN_ID_PB22,
 	IO_PIN_ID_PB23,
-	// no PB24,
-	// no PB25,
-	// no PB27,
-	// no PB28,
+
+#ifdef MCU_SAMC21N18A
+	IO_PIN_ID_PB24,
+	IO_PIN_ID_PB25,
+#endif // MCU_SAMC21E18A
+
+	// no PB26
+	// no PB27
+	// no PB28
+
 	IO_PIN_ID_PB30,
 	IO_PIN_ID_PB31,
+
+#ifdef MCU_SAMC21N18A
+	// Port C
+	IO_PIN_ID_PC00,
+	IO_PIN_ID_PC01,
+	IO_PIN_ID_PC02,
+	IO_PIN_ID_PC03,
+
+	// no PC04,
+
+	IO_PIN_ID_PC05,
+	IO_PIN_ID_PC06,
+	IO_PIN_ID_PC07,
+	IO_PIN_ID_PC08,
+	IO_PIN_ID_PC09,
+	IO_PIN_ID_PC10,
+	IO_PIN_ID_PC11,
+	IO_PIN_ID_PC12,
+	IO_PIN_ID_PC13,
+	IO_PIN_ID_PC14,
+	IO_PIN_ID_PC15,
+	IO_PIN_ID_PC16,
+	IO_PIN_ID_PC17,
+	IO_PIN_ID_PC18,
+	IO_PIN_ID_PC19,
+	IO_PIN_ID_PC20,
+	IO_PIN_ID_PC21,
+
+	// no PC22,
+	// no PC23,
+
+	IO_PIN_ID_PC24,
+	IO_PIN_ID_PC25,
+	IO_PIN_ID_PC27,
+	IO_PIN_ID_PC28,
+#endif // MCU_SAMC21N18A
+
 	//////////
 	IO_PIN_ID_NUM_PINS
 } IO_pin_id_t;
@@ -125,6 +174,19 @@ typedef enum _IO_pin_state
 	//////////
 	IO_PIN_STATE_NUM_STATES
 } IO_pin_state_t;
+
+/**
+ *	Pin types
+ */
+typedef enum _IO_pin_type
+{
+	IO_PIN_TYPE_UNUSED = 0,
+	IO_PIN_TYPE_INPUT,
+	IO_PIN_TYPE_OUTPUT,
+	IO_PIN_TYPE_PERIPHERAL,
+	//////////
+	IO_PIN_TYPE_NUM_TYPES
+} IO_pin_type_t;
 
 /****************************************************************************************************
  *	F U N C T I O N S

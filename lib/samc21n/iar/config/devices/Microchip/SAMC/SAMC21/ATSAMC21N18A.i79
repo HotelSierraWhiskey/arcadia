@@ -1,0 +1,32 @@
+[FILEFORMAT]
+rev=1.6
+
+[CHIP]
+name=ATSAMC21N18A
+endiansupport=le
+thumbsupport=true
+armsupport=false
+fpu=None
+SIMD=false
+JTAG=false
+RTCK=false
+CTJAG=false
+SWD=true
+SWO_TraceD0=false
+MtbRegBase=0x41008000
+MtbMinRamAddr=0x20000000
+MtbMaxRamAddr=0x20007fff
+//DeviceMacros=$TOOLKIT_DIR$/config/debugger/Microchip/Trace_SAMC21.dmac
+
+
+[CORE]
+name=Cortex-M0+
+
+[DDF FILE]
+name=$TOOLKIT_DIR$/config/debugger/Microchip/ATSAMC21N18A.ddf
+
+[LINKER FILE]
+name=$TOOLKIT_DIR$/config/linker/Microchip/atsamc21n18a/flash.icf
+
+[FLASH LOADER]
+little=$TOOLKIT_DIR$/config/flashloader/Microchip/atsamc21n18a/atsamc21n18a-flash.board

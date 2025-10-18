@@ -61,7 +61,7 @@ static MEDIA_info_t MEDIA_info;
 void MEDIA_init(void)
 {
 	// Initialize DAC driver
-	DAC_init();
+	// DAC_init(); // temporary
 
 	// Initialize DMA channels
 	DMA_init();

@@ -74,7 +74,10 @@ void DRIVE_init(void)
 
 	// Initialize EIC driver here,
 	// since external interrupts are all handled in DRIVE context
+	// todo: move to SYS
+#ifdef DEV_BOARD
 	EXTI_init();
+#endif // DEV_BOARD
 
 	// Initialize SD card SPI channel
 #ifdef BUILD_HAS_FS

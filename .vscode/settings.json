@@ -74,6 +74,7 @@
 		"inttypes.h": "c",
 		"dac.h": "c",
 		"newlib-freertos.h": "c",
-		"task.h": "c"
+		"task.h": "c",
+		"samc21n18a.h": "c"
 	}
 }

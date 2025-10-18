@@ -28,6 +28,7 @@ typedef struct _IO_pin
 	char			pc_string[IO_PIN_STRING_DESCRIPTOR_SIZE];
 	IO_group_t		group;
 	uint8_t			u8_number;
+	IO_pin_type_t	type;
 } IO_pin_t;
 
 /****************************************************************************************************
@@ -46,181 +47,211 @@ static IO_pin_t p_pin_map[IO_PIN_ID_NUM_PINS] =
 	{
 		.kpc_name 	= "EXTI_DBG",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 0
+		.u8_number 	= 0,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA01] =
 	{
 		.kpc_name 	= "LCD_DB7",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 1
+		.u8_number 	= 1,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA02] =
 	{
 		.kpc_name 	= "DAC_VOUT",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 2
+		.u8_number 	= 2,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA03] =
 	{
 		.kpc_name 	= "LCD_DB9",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 3
+		.u8_number 	= 3,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA04] =
 	{
 		.kpc_name 	= "LCD_DB16",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 4
+		.u8_number 	= 4,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA05] =
 	{
 		.kpc_name 	= "LCD_RESET",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 5
+		.u8_number 	= 5,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA06] =
 	{
 		.kpc_name 	= "UART_CHANNEL_SHELL_TX",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 6
+		.u8_number 	= 6,
+		.type		= IO_PIN_TYPE_PERIPHERAL
 	},
 	[IO_PIN_ID_PA07] =
 	{
 		.kpc_name 	= "UART_CHANNEL_SHELL_RX",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 7
+		.u8_number 	= 7,
+		.type		= IO_PIN_TYPE_PERIPHERAL
 	},
 	[IO_PIN_ID_PA08] =
 	{
 		.kpc_name 	= "BUTTON_A",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 8
+		.u8_number 	= 8,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA09] =
 	{
 		.kpc_name 	= "BUTTON_B",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 9
+		.u8_number 	= 9,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA10] =
 	{
 		.kpc_name 	= "BUTTON_DPAD_UP",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 10
+		.u8_number 	= 10,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA11] =
 	{
 		.kpc_name 	= "BUTTON_DPAD_DOWN",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 11
+		.u8_number 	= 11,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA12] =
 	{
 		.kpc_name 	= "BUTTON_DPAD_LEFT",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 12
+		.u8_number 	= 12,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA13] =
 	{
 		.kpc_name 	= "BUTTON_DPAD_RIGHT",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 13
+		.u8_number 	= 13,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA14] =
 	{
 		.kpc_name 	= "GCLK_IO_0",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 14
+		.u8_number 	= 14,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA15] =
 	{
 		.kpc_name 	= "SD_DETECT",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 15
+		.u8_number 	= 15,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA16] =
 	{
 		.kpc_name 	= "SPI_CHANNEL_SD_CARD_DATA_IN",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 16
+		.u8_number 	= 16,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA17] =
 	{
 		.kpc_name 	= "SPI_CHANNEL_SD_CARD_SS",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 17
+		.u8_number 	= 17,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA18] =
 	{
 		.kpc_name 	= "SPI_CHANNEL_SD_CARD_DATA_OUT",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 18
+		.u8_number 	= 18,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA19] =
 	{
 		.kpc_name 	= "SPI_CHANNEL_SD_CARD_CLOCK",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 19
+		.u8_number 	= 19,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA20] =
 	{
 		.kpc_name 	= "LCD_CS",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 20
+		.u8_number 	= 20,
+		.type		= IO_PIN_TYPE_OUTPUT
 	},
 	[IO_PIN_ID_PA21] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 21
+		.u8_number 	= 21,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA22] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 22
+		.u8_number 	= 22,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA23] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 23
+		.u8_number 	= 23,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA24] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 24
+		.u8_number 	= 24,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA25] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 25
+		.u8_number 	= 25,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA27] =
 	{
 		.kpc_name 	= "LCD_WR",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 27
+		.u8_number 	= 27,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA28] =
 	{
 		.kpc_name 	= "LCD_RD",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 28
+		.u8_number 	= 28,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA30] =
 	{
 		.kpc_name 	= "SWCLK",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 30
+		.u8_number 	= 30,
+		.type		= IO_PIN_TYPE_PERIPHERAL
 	},
 	[IO_PIN_ID_PA31] =
 	{
 		.kpc_name 	= "SWDIO",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 31
+		.u8_number 	= 31,
+		.type		= IO_PIN_TYPE_PERIPHERAL
 	},
 
 	// Port B
@@ -229,133 +260,155 @@ static IO_pin_t p_pin_map[IO_PIN_ID_NUM_PINS] =
 	{
 		.kpc_name 	= "LCD_DB2",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 0
+		.u8_number 	= 0,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB01] =
 	{
 		.kpc_name 	= "LCD_DB3",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 1
+		.u8_number 	= 1,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB02] =
 	{
 		.kpc_name 	= "LCD_DB4",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 2
+		.u8_number 	= 2,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB03] =
 	{
 		.kpc_name 	= "LCD_DB5",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 3
+		.u8_number 	= 3,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB04] =
 	{
 		.kpc_name 	= "LCD_DB10",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 4
+		.u8_number 	= 4,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB05] =
 	{
 		.kpc_name 	= "LCD_DB11",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 5
+		.u8_number 	= 5,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB06] =
 	{
 		.kpc_name 	= "LCD_DB12",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 6
+		.u8_number 	= 6,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB07] =
 	{
 		.kpc_name 	= "LCD_DB13",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 7
+		.u8_number 	= 7,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB08] =
 	{
 		.kpc_name 	= "LCD_DB14",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 8
+		.u8_number 	= 8,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB09] =
 	{
 		.kpc_name 	= "LCD_DB15",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 9
+		.u8_number 	= 9,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB10] =
 	{
 		.kpc_name 	= "LCD_IM2",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 10
+		.u8_number 	= 10,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB11] =
 	{
 		.kpc_name 	= "LCD_IM1",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 11
+		.u8_number 	= 11,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB12] =
 	{
 		.kpc_name 	= "LCD_IM0",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 12
+		.u8_number 	= 12,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB13] =
 	{
 		.kpc_name 	= "LCD_HSYNC",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 13
+		.u8_number 	= 13,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB14] =
 	{
 		.kpc_name 	= "LCD_VSYNC",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 14
+		.u8_number 	= 14,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB15] =
 	{
 		.kpc_name 	= "LCD_PCLK",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 15
+		.u8_number 	= 15,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB16] =
 	{
 		.kpc_name 	= "LCD_DE",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 16
+		.u8_number 	= 16,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB17] =
 	{
 		.kpc_name 	= "LCD_RESET",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 17
+		.u8_number 	= 17,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB22] =
 	{
 		.kpc_name 	= "USB_5V",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 22
+		.u8_number 	= 22,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB23] =
 	{
 		.kpc_name 	= "LCD_RS",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 23
+		.u8_number 	= 23,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB30] =
 	{
 		.kpc_name 	= "LCD_DB0",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 30
+		.u8_number 	= 30,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB31] =
 	{
 		.kpc_name 	= "LCD_DB1",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 31
+		.u8_number 	= 31,
+		.type		= IO_PIN_TYPE_UNUSED
 	}
 };
 #endif // DEV_BOARD
@@ -369,181 +422,211 @@ static IO_pin_t p_pin_map[IO_PIN_ID_NUM_PINS] =
 	{
 		.kpc_name 	= "EXTI_DBG",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 0
+		.u8_number 	= 0,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA01] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 1
+		.u8_number 	= 1,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA02] =
 	{
 		.kpc_name 	= "CHANNEL_SWITCH",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 2
+		.u8_number 	= 2,
+		.type		= IO_PIN_TYPE_INPUT
 	},
 	[IO_PIN_ID_PA03] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 3
+		.u8_number 	= 3,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA04] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 4
+		.u8_number 	= 4,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA05] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 5
+		.u8_number 	= 5,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA06] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 6
+		.u8_number 	= 6,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA07] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 7
+		.u8_number 	= 7,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA08] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 8
+		.u8_number 	= 8,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA09] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 9
+		.u8_number 	= 9,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA10] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 10
+		.u8_number 	= 10,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA11] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 11
+		.u8_number 	= 11,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA12] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 12
+		.u8_number 	= 12,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA13] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 13
+		.u8_number 	= 13,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA14] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 14
+		.u8_number 	= 14,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA15] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 15
+		.u8_number 	= 15,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA16] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 16
+		.u8_number 	= 16,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA17] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 17
+		.u8_number 	= 17,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA18] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 18
+		.u8_number 	= 18,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA19] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 19
+		.u8_number 	= 19,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA20] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 20
+		.u8_number 	= 20,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA21] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 21
+		.u8_number 	= 21,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA22] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 22
+		.u8_number 	= 22,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA23] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 23
+		.u8_number 	= 23,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA24] =
 	{
 		.kpc_name 	= "UART_CHANNEL_SHELL_TX",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 24
+		.u8_number 	= 24,
+		.type		= IO_PIN_TYPE_PERIPHERAL
 	},
 	[IO_PIN_ID_PA25] =
 	{
 		.kpc_name 	= "UART_CHANNEL_SHELL_RX",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 25
+		.u8_number 	= 25,
+		.type		= IO_PIN_TYPE_PERIPHERAL
 	},
 	[IO_PIN_ID_PA27] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 27
+		.u8_number 	= 27,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA28] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 28
+		.u8_number 	= 28,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA30] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 30
+		.u8_number 	= 30,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PA31] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_A,
-		.u8_number 	= 31
+		.u8_number 	= 31,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 
 	// Port B
@@ -552,136 +635,711 @@ static IO_pin_t p_pin_map[IO_PIN_ID_NUM_PINS] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 0
+		.u8_number 	= 0,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB01] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 1
+		.u8_number 	= 1,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB02] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 2
+		.u8_number 	= 2,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB03] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 3
+		.u8_number 	= 3,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB04] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 4
+		.u8_number 	= 4,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB05] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 5
+		.u8_number 	= 5,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB06] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 6
+		.u8_number 	= 6,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB07] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 7
+		.u8_number 	= 7,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB08] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 8
+		.u8_number 	= 8,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB09] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 9
+		.u8_number 	= 9,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB10] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 10
+		.u8_number 	= 10,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB11] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 11
+		.u8_number 	= 11,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB12] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 12
+		.u8_number 	= 12,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB13] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 13
+		.u8_number 	= 13,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB14] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 14
+		.u8_number 	= 14,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB15] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 15
+		.u8_number 	= 15,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB16] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 16
+		.u8_number 	= 16,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB17] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 17
+		.u8_number 	= 17,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB22] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 22
+		.u8_number 	= 22,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB23] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 23
+		.u8_number 	= 23,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB30] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 30
+		.u8_number 	= 30,
+		.type		= IO_PIN_TYPE_UNUSED
 	},
 	[IO_PIN_ID_PB31] =
 	{
 		.kpc_name 	= "UNUSED",
 		.group 		= IO_GROUP_B,
-		.u8_number 	= 31
+		.u8_number 	= 31,
+		.type		= IO_PIN_TYPE_UNUSED
 	}
 };
 #endif // AUDIO_SWITCH
+
+#ifdef JLINK_MUX
+static IO_pin_t p_pin_map[IO_PIN_ID_NUM_PINS] =
+{
+	// Port A
+
+	[IO_PIN_ID_PA00] =
+	{
+		.kpc_name 	= "PORT_7_LED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 0,
+		.type		= IO_PIN_TYPE_OUTPUT
+	},
+	[IO_PIN_ID_PA01] =
+	{
+		.kpc_name 	= "PORT_6_LED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 1,
+		.type		= IO_PIN_TYPE_OUTPUT
+	},
+	[IO_PIN_ID_PA02] =
+	{
+		.kpc_name 	= "PORT_1_LED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 2,
+		.type		= IO_PIN_TYPE_OUTPUT
+	},
+	[IO_PIN_ID_PA03] =
+	{
+		.kpc_name 	= "PORT_0_LED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 3,
+		.type		= IO_PIN_TYPE_OUTPUT
+	},
+	[IO_PIN_ID_PA04] =
+	{
+		.kpc_name 	= "nPORT_3_SELECT",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 4,
+		.type		= IO_PIN_TYPE_OUTPUT
+	},
+	[IO_PIN_ID_PA05] =
+	{
+		.kpc_name 	= "nPORT_2_SELECT",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 5,
+		.type		= IO_PIN_TYPE_OUTPUT
+	},
+	[IO_PIN_ID_PA06] =
+	{
+		.kpc_name 	= "nPORT_1_SELECT",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 6,
+		.type		= IO_PIN_TYPE_OUTPUT
+	},
+	[IO_PIN_ID_PA07] =
+	{
+		.kpc_name 	= "nPORT_0_SELECT",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 7,
+		.type		= IO_PIN_TYPE_OUTPUT
+	},
+	[IO_PIN_ID_PA08] =
+	{
+		.kpc_name 	= "PORT_0_BUTTON",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 8,
+		.type		= IO_PIN_TYPE_PERIPHERAL
+	},
+	[IO_PIN_ID_PA09] =
+	{
+		.kpc_name 	= "PORT_1_BUTTON",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 9,
+		.type		= IO_PIN_TYPE_PERIPHERAL
+	},
+	[IO_PIN_ID_PA10] =
+	{
+		.kpc_name 	= "PORT_2_BUTTON",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 10,
+		.type		= IO_PIN_TYPE_PERIPHERAL
+	},
+	[IO_PIN_ID_PA11] =
+	{
+		.kpc_name 	= "PORT_3_BUTTON",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 11,
+		.type		= IO_PIN_TYPE_PERIPHERAL
+	},
+	[IO_PIN_ID_PA12] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 12,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PA13] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 13,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PA14] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 14,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PA15] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 15,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PA16] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 16,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PA17] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 17,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PA18] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 18,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PA19] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 19,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PA20] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 20,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PA21] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 21,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PA22] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 22,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PA23] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 23,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PA24] =
+	{
+		.kpc_name 	= "UART_CHANNEL_SHELL_TX",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 24,
+		.type		= IO_PIN_TYPE_PERIPHERAL
+	},
+	[IO_PIN_ID_PA25] =
+	{
+		.kpc_name 	= "UART_CHANNEL_SHELL_RX",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 25,
+		.type		= IO_PIN_TYPE_PERIPHERAL
+	},
+	[IO_PIN_ID_PA27] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 27,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PA28] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 28,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PA30] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 30,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PA31] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_A,
+		.u8_number 	= 31,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+
+	// Port B
+
+	[IO_PIN_ID_PB00] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 0,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PB01] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 1,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PB02] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 2,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PB03] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 3,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PB04] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 4,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PB05] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 5,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PB06] =
+	{
+		.kpc_name 	= "nPORT_7_SELECT",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 6,
+		.type		= IO_PIN_TYPE_OUTPUT
+	},
+	[IO_PIN_ID_PB07] =
+	{
+		.kpc_name 	= "nPORT_6_SELECT",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 7,
+		.type		= IO_PIN_TYPE_OUTPUT
+	},
+	[IO_PIN_ID_PB08] =
+	{
+		.kpc_name 	= "nPORT_5_SELECT",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 8,
+		.type		= IO_PIN_TYPE_OUTPUT
+	},
+	[IO_PIN_ID_PB09] =
+	{
+		.kpc_name 	= "nPORT_4_SELECT",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 9,
+		.type		= IO_PIN_TYPE_OUTPUT
+	},
+	[IO_PIN_ID_PB10] =
+	{
+		.kpc_name 	= "PORT_4_BUTTON",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 10,
+		.type		= IO_PIN_TYPE_PERIPHERAL
+	},
+	[IO_PIN_ID_PB11] =
+	{
+		.kpc_name 	= "PORT_5_BUTTON",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 11,
+		.type		= IO_PIN_TYPE_PERIPHERAL
+	},
+	[IO_PIN_ID_PB12] =
+	{
+		.kpc_name 	= "PORT_6_BUTTON",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 12,
+		.type		= IO_PIN_TYPE_PERIPHERAL
+	},
+	[IO_PIN_ID_PB13] =
+	{
+		.kpc_name 	= "PORT_7_BUTTON",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 13,
+		.type		= IO_PIN_TYPE_PERIPHERAL
+	},
+	[IO_PIN_ID_PB14] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 14,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PB15] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 15,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PB16] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 16,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PB17] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 17,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PB22] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 22,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PB23] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 23,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PB30] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 30,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PB31] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_B,
+		.u8_number 	= 31,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+
+	// Port C
+
+	[IO_PIN_ID_PC00] =
+	{
+		.kpc_name 	= "PORT_5_LED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 0,
+		.type		= IO_PIN_TYPE_OUTPUT
+	},
+	[IO_PIN_ID_PC01] =
+	{
+		.kpc_name 	= "PORT_4_LED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 1,
+		.type		= IO_PIN_TYPE_OUTPUT
+	},
+	[IO_PIN_ID_PC02] =
+	{
+		.kpc_name 	= "PORT_3_LED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 2,
+		.type		= IO_PIN_TYPE_OUTPUT
+	},
+	[IO_PIN_ID_PC03] =
+	{
+		.kpc_name 	= "PORT_2_LED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 3,
+		.type		= IO_PIN_TYPE_OUTPUT
+	},
+	[IO_PIN_ID_PC05] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 5,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PC06] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 6,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PC07] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 7,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PC08] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 8,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PC09] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 9,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PC10] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 10,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PC11] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 11,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PC12] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 12,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PC13] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 13,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PC14] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 14,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PC15] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 15,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PC16] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 16,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PC17] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 17,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PC18] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 18,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PC19] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 19,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PC20] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 20,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PC21] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 21,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PC24] =
+	{
+		.kpc_name 	= "UART_CHANNEL_SHELL_TX",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 24,
+		.type		= IO_PIN_TYPE_PERIPHERAL
+	},
+	[IO_PIN_ID_PC25] =
+	{
+		.kpc_name 	= "UART_CHANNEL_SHELL_RX",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 25,
+		.type		= IO_PIN_TYPE_PERIPHERAL
+	},
+	[IO_PIN_ID_PC27] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 27,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+	[IO_PIN_ID_PC28] =
+	{
+		.kpc_name 	= "UNUSED",
+		.group 		= IO_GROUP_C,
+		.u8_number 	= 28,
+		.type		= IO_PIN_TYPE_UNUSED
+	},
+};
+#endif // JLINK_MUX
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -726,6 +1384,16 @@ void IO_init(void)
 
 		memset(pc_string, 0, IO_PIN_STRING_DESCRIPTOR_SIZE);
 		sprintf(pc_string, "P%c%02u", c_port, p_pin_map[i].u8_number);
+
+		// If the pin is an input or output, configure it here
+		if (IO_PIN_TYPE_INPUT == p_pin_map[i].type)
+		{
+			IO_config_pin_direction(i, IO_DIRECTION_INPUT);
+		}
+		else if (IO_PIN_TYPE_OUTPUT == p_pin_map[i].type)
+		{
+			IO_config_pin_direction(i, IO_DIRECTION_OUTPUT);
+		}
 	}
 }
 
@@ -818,14 +1486,16 @@ void IO_config_pin_direction(IO_pin_id_t pin_id, IO_pin_direction_t direction)
 void IO_set_pin(IO_pin_id_t pin_id, IO_pin_state_t state)
 {
 	IO_pin_t pin = p_pin_map[pin_id];
+	const uint32_t ku32_mask = 1U << pin.u8_number;
+	port_group_registers_t * p_group = &PORT_REGS->GROUP[pin.group];
 
 	if (state == IO_PIN_STATE_HIGH)
 	{
-		PORT_REGS->GROUP[pin.group].PORT_OUTSET |= state << pin.u8_number;
+		p_group->PORT_OUTSET = ku32_mask;
 	}
 	else
 	{
-		PORT_REGS->GROUP[pin.group].PORT_OUTCLR |= state << pin.u8_number;
+		p_group->PORT_OUTCLR = ku32_mask;
 	}
 }
 

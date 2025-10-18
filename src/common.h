@@ -20,8 +20,15 @@
 #include <queue.h>
 #include <timers.h>
 #include <semphr.h>
-#include "samc21e18a.h"
+
+#ifdef MCU_SAMC21N18A
+	#include "samc21n18a.h"
+#else
+	#include "samc21e18a.h"
+#endif // MCU_SAMC21N18A
+
 #include "core_cm0plus.h"
+
 #endif // UNIT_TEST
 
 #endif // COMMON_H
