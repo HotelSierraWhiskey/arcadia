@@ -73,7 +73,7 @@ clean_jlink_mux:
 
 .PHONY:
 gdb_server:
-	JLinkGDBServer -device ATSAMC21E18 -if SWD -speed 4000
+	JLinkGDBServer -device ATSAMC21N18 -if SWD -speed 4000
 
 .PHONY:
 clean:

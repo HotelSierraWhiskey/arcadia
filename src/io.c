@@ -854,28 +854,28 @@ static IO_pin_t p_pin_map[IO_PIN_ID_NUM_PINS] =
 		.kpc_name 	= "PORT_0_BUTTON",
 		.group 		= IO_GROUP_A,
 		.u8_number 	= 8,
-		.type		= IO_PIN_TYPE_PERIPHERAL
+		.type		= IO_PIN_TYPE_INPUT
 	},
 	[IO_PIN_ID_PA09] =
 	{
 		.kpc_name 	= "PORT_1_BUTTON",
 		.group 		= IO_GROUP_A,
 		.u8_number 	= 9,
-		.type		= IO_PIN_TYPE_PERIPHERAL
+		.type		= IO_PIN_TYPE_INPUT
 	},
 	[IO_PIN_ID_PA10] =
 	{
 		.kpc_name 	= "PORT_2_BUTTON",
 		.group 		= IO_GROUP_A,
 		.u8_number 	= 10,
-		.type		= IO_PIN_TYPE_PERIPHERAL
+		.type		= IO_PIN_TYPE_INPUT
 	},
 	[IO_PIN_ID_PA11] =
 	{
 		.kpc_name 	= "PORT_3_BUTTON",
 		.group 		= IO_GROUP_A,
 		.u8_number 	= 11,
-		.type		= IO_PIN_TYPE_PERIPHERAL
+		.type		= IO_PIN_TYPE_INPUT
 	},
 	[IO_PIN_ID_PA12] =
 	{
@@ -1081,28 +1081,28 @@ static IO_pin_t p_pin_map[IO_PIN_ID_NUM_PINS] =
 		.kpc_name 	= "PORT_4_BUTTON",
 		.group 		= IO_GROUP_B,
 		.u8_number 	= 10,
-		.type		= IO_PIN_TYPE_PERIPHERAL
+		.type		= IO_PIN_TYPE_INPUT
 	},
 	[IO_PIN_ID_PB11] =
 	{
 		.kpc_name 	= "PORT_5_BUTTON",
 		.group 		= IO_GROUP_B,
 		.u8_number 	= 11,
-		.type		= IO_PIN_TYPE_PERIPHERAL
+		.type		= IO_PIN_TYPE_INPUT
 	},
 	[IO_PIN_ID_PB12] =
 	{
 		.kpc_name 	= "PORT_6_BUTTON",
 		.group 		= IO_GROUP_B,
 		.u8_number 	= 12,
-		.type		= IO_PIN_TYPE_PERIPHERAL
+		.type		= IO_PIN_TYPE_INPUT
 	},
 	[IO_PIN_ID_PB13] =
 	{
 		.kpc_name 	= "PORT_7_BUTTON",
 		.group 		= IO_GROUP_B,
 		.u8_number 	= 13,
-		.type		= IO_PIN_TYPE_PERIPHERAL
+		.type		= IO_PIN_TYPE_INPUT
 	},
 	[IO_PIN_ID_PB14] =
 	{
@@ -1359,6 +1359,11 @@ void IO_init(void)
 
 	for (uint8_t i = 0; i < IO_PIN_ID_NUM_PINS; i++)
 	{
+		if (!p_pin_map[i].kpc_name)
+		{
+			continue;
+		}
+		
 		switch (p_pin_map[i].group)
 		{
 			case IO_GROUP_A:
@@ -1466,13 +1471,33 @@ void IO_disable_peripheral_function_for_pin(IO_pin_id_t pin_id, IO_peripheral_fu
  ****************************************************************************************************/
 void IO_config_pin_direction(IO_pin_id_t pin_id, IO_pin_direction_t direction)
 {
-	ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
-	ASSERT(direction < IO_DIRECTION_NUM_DIRECTIONS);
+    ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
+    ASSERT(direction < IO_DIRECTION_NUM_DIRECTIONS);
 
-	IO_pin_t pin = p_pin_map[pin_id];
+    IO_pin_t pin = p_pin_map[pin_id];
+    port_group_registers_t * group = &PORT_REGS->GROUP[pin.group];
 
-	PORT_REGS->GROUP[pin.group].PORT_DIR |= direction << pin.u8_number;
+    if (direction == IO_DIRECTION_OUTPUT)
+    {
+        group->PORT_DIRSET = (1u << pin.u8_number);
+        group->PORT_PINCFG[pin.u8_number] = PORT_PINCFG_INEN(0);
+    }
+    else
+    {
+        group->PORT_DIRCLR = (1u << pin.u8_number);
+        group->PORT_PINCFG[pin.u8_number] = PORT_PINCFG_INEN(1);
+    }
 }
+
+// void IO_config_pin_direction(IO_pin_id_t pin_id, IO_pin_direction_t direction)
+// {
+// 	ASSERT(pin_id < IO_PIN_ID_NUM_PINS);
+// 	ASSERT(direction < IO_DIRECTION_NUM_DIRECTIONS);
+
+// 	IO_pin_t pin = p_pin_map[pin_id];
+
+// 	PORT_REGS->GROUP[pin.group].PORT_DIR |= direction << pin.u8_number;
+// }
 
 /****************************************************************************************************
  *	Set an IO pin high or low
@@ -1621,13 +1646,17 @@ uint8_t	IO_shell_map(uint8_t argc, char ** argv)
 	{
 		for (uint32_t i = 0; i < IO_PIN_ID_NUM_PINS; i++)
 		{
-			SHELL_printf("%u\t%s\t%s\n", i + 1, p_pin_map[i].pc_string, p_pin_map[i].kpc_name);
+			if (p_pin_map[i].kpc_name)
+			{
+				SHELL_printf("%u\t%s\t%s\n", i + 1, p_pin_map[i].pc_string, p_pin_map[i].kpc_name);
+			}
 		}
 	}
 	else
 	{
 		SHELL_printf("Usage: io map\n");
 	}
+
 	return SHELL_COMMAND_SUCCESS;
 }
 
@@ -1651,8 +1680,6 @@ uint8_t	IO_shell_set(uint8_t argc, char ** argv)
 	if (argc == 2)
 	{
 		strncpy(pc_pin_name, argv[0], IO_PIN_STRING_DESCRIPTOR_SIZE);
-
-		SHELL_printf("%s\n", pc_pin_name);
 
 		if (b_res && UTILS_string_to_u32(argv[1], &u32_high_or_low))
 		{
@@ -1682,6 +1709,7 @@ uint8_t	IO_shell_set(uint8_t argc, char ** argv)
 	{
 		IO_config_pin_direction(pin_id, IO_DIRECTION_OUTPUT);
 		IO_set_pin(pin_id, u32_high_or_low);
+		SHELL_printf("Set pin %s %s\n", pc_pin_name, u32_high_or_low == 1 ? "high": "low");
 	}
 	else
 	{

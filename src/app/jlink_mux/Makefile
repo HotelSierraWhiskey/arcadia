@@ -70,6 +70,7 @@ APP_VPATH = 	$(APP_TASKS) \
 				$(SRC)/dac.c \
 				$(SRC)/exti.c \
 				$(SRC)/dma.c \
+				$(SRC)/target_port.c \
 				$(SRC)/json/json.c \
 				$(SRC)/fsm/app_fsm.c \
 				$(SRC)/fsm/menu_fsm.c \

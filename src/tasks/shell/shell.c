@@ -14,6 +14,10 @@
 #include "dac.h"
 #include "dma.h"
 
+#ifdef JLINK_MUX
+#include "target_port.h"
+#endif // JLINK_MUX
+
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
@@ -120,6 +124,11 @@ static const SHELL_command_t kp_io_command_table[];
 // DAC command tables
 static const SHELL_command_t kp_dac_command_table[];
 
+#ifdef JLINK_MUX
+// Target Port command tables
+static const SHELL_command_t kp_target_port_command_table[];
+#endif // JLINK_MUX
+
 /**
  *	Top level commands
  */
@@ -186,6 +195,14 @@ static const SHELL_command_t kp_command_table[] =
 									"\tUsage: ls\n"
 								)
 	},
+#ifdef JLINK_MUX
+	{
+		.kpc_name 			= "port",
+		.function 			= NULL,
+		.kp_command_table 	= kp_target_port_command_table,
+		.kpc_docstring		= NULL
+	},
+#endif // JLINK_MUX
 	{
 		.kpc_name 			= "pwd",
 		.function 			= DRIVE_API_shell_pwd,
@@ -734,6 +751,32 @@ static const SHELL_command_t kp_dac_command_table[] =
 	//////////
 	SHELL_COMMAND_TABLE_END
 };
+
+#ifdef JLINK_MUX
+static const SHELL_command_t kp_target_port_command_table[] =
+{
+	{
+		.kpc_name 			= "info",
+		.function 			= TARGET_PORT_info,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tDisplays target port selections\n"
+									"\tUsage: port info\n"
+								)
+	},
+	{
+		.kpc_name 			= "select",
+		.function 			= TARGET_PORT_select,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tSelects a target port\n"
+									"\tUsage: port select <port number>\n"
+								)
+	},
+	//////////
+	SHELL_COMMAND_TABLE_END
+};
+#endif // JLINK_MUX
 
 static char printf_buffer[SHELL_COMMAND_BUFFER_SIZE];
 
