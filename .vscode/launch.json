@@ -1,25 +1,21 @@
 {
-  "configurations": [
-	{
-		"cwd": "${workspaceFolder}",
-		"executable": "${workspaceFolder}/src/build/app.elf",
-		"name": "Attach Arcadia Debug",
-		"request": "attach",
-		"type": "cortex-debug",
-		"servertype": "jlink",
-		"serverpath": "/usr/bin/JLinkGDBServer",            
-		"armToolchainPath": "/opt/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/bin",  
-		"jlinkscript": "${workspaceFolder}/toochain/debug.jlink",
-		"device": "ATSAMC21E18",
-		"interface": "swd",
-		"serialNumber": "", 
-		"rtos": "FreeRTOS",
-		"showDevDebugOutput": "raw",
-		"postAttachCommands": [
-			"load",
-			"monitor reset",
-			"continue"
-	  ]
-	}
-  ]
+	"configurations": [
+		{
+			"cwd": "${workspaceFolder}",
+			"executable": "${workspaceFolder}/src/app/jlink_mux/build/app_jlink_mux.elf",
+			"name": "Attach Jlink Mux",
+			"request": "attach",
+			"type": "cortex-debug",
+			"servertype": "jlink",
+			"serverpath": "/usr/bin/JLinkGDBServerCLExe",
+			"armToolchainPath": "/opt/arm-gnu-toolchain-14.3.rel1-x86_64-arm-none-eabi/bin",  
+			"jlinkscript": "${workspaceFolder}/debug.jlink",
+			"device": "ATSAMC21N18",
+			"interface": "swd",
+			"serialNumber": "", //If you have more than one J-Link probe, add the serial number here.
+			"svdFile": "${workspaceFolder}/lib/samc21n/svd/ATSAMC21N18A.svd",
+			"rtos": "FreeRTOS",
+			"showDevDebugOutput": "raw",		
+		}
+	]
 }
