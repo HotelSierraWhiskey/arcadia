@@ -194,12 +194,12 @@ static const SYS_osc48m_info_t kp_osc48m_settings[SYS_OSC48M_ID_FREQ_NUM_FREQ] =
  */
 static const char * const kpc_reset_descriptors[SYS_RESET_CAUSE_NUM_CAUSES] =
 {
-	[SYS_RESET_CAUSE_POR] = 		"Power On Reset",
-	[SYS_RESET_CAUSE_BODCORE] = 	"Brown Out Core Detector Reset",
-	[SYS_RESET_CAUSE_BODVDD] = 		"Brown Out VDD Detector Reset",
-	[SYS_RESET_CAUSE_EXT] = 		"External Reset",
-	[SYS_RESET_CAUSE_WDT] = 		"Watchdog Reset",
-	[SYS_RESET_CAUSE_SYST] = 		"System Reset Request"
+	[SYS_RESET_CAUSE_POR] 		= "Power On Reset",
+	[SYS_RESET_CAUSE_BODCORE] 	= "Brown Out Core Detector Reset",
+	[SYS_RESET_CAUSE_BODVDD] 	= "Brown Out VDD Detector Reset",
+	[SYS_RESET_CAUSE_EXT] 		= "External Reset",
+	[SYS_RESET_CAUSE_WDT] 		= "Watchdog Reset",
+	[SYS_RESET_CAUSE_SYST] 		= "System Reset Request"
 };
 
 /**
