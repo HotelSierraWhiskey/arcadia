@@ -339,7 +339,7 @@ int32_t DRIVE_API_read(file_handle_t file_handle, char * pc_data, uint32_t u32_b
 
 	ARCADIA_semaphore_free(msg.semaphore);
 
-	return status;
+	return i32_bytes_read;
 }
 
 ARCADIA_status_t DRIVE_API_seek(file_handle_t file_handle, uint32_t u32_offset)
