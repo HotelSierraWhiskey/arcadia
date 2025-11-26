@@ -114,7 +114,7 @@ void STORY_FSM_load_arcproject(const char * kpc_arcproject)
 	if (FSIF_INVALID_FILE == fh)
 	{
 		// Read the bookmark into a JSON buffer
-		status = DRIVE_API_read(fh, buffer, 0, MEMPOOL_BUFFER_SIZE_256);
+		status = DRIVE_API_read(fh, buffer, MEMPOOL_BUFFER_SIZE_256, 0);
 
 		if (status != ARCADIA_STATUS_OK)
 		{

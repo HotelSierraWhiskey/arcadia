@@ -307,9 +307,10 @@ ARCADIA_status_t DRIVE_API_write(file_handle_t file_handle, const char * kpc_dat
 	return status;
 }
 
-ARCADIA_status_t DRIVE_API_read(file_handle_t file_handle, char * pc_data, uint32_t u32_offset, uint32_t u32_bytes_to_read)
+int32_t DRIVE_API_read(file_handle_t file_handle, char * pc_data, uint32_t u32_bytes_to_read, uint32_t u32_offset)
 {
 	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
+	int32_t i32_bytes_read;
 
 	DRIVE_PAYLOAD_read_t payload =
 	{
@@ -317,7 +318,7 @@ ARCADIA_status_t DRIVE_API_read(file_handle_t file_handle, char * pc_data, uint3
 		.pc_data = pc_data,
 		.u32_bytes_to_read = u32_bytes_to_read,
 		.u32_offset = u32_offset,
-		.p_result_status = &status
+		.pi32_bytes_read = &i32_bytes_read
 	};
 
 	ARCADIA_msg_t msg =
@@ -372,6 +373,39 @@ ARCADIA_status_t DRIVE_API_seek(file_handle_t file_handle, uint32_t u32_offset)
 
 	return status;
 }
+
+int32_t DRIVE_API_get_size(file_handle_t file_handle)
+{
+	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
+	int32_t i32_size;
+
+	DRIVE_PAYLOAD_get_size_t payload =
+	{
+		.file_handle = file_handle,
+		.pi32_size = &i32_size
+	};
+
+	ARCADIA_msg_t msg =
+	{
+		.id = ARCADIA_MSG_ID_DRIVE_GET_SIZE,
+		.from = ARCADIA_get_current_task_id(),
+		.payload.drive_payload_get_size = payload
+	};
+
+	msg.semaphore = ARCADIA_semaphore_alloc(&msg.semaphore_buffer);
+
+	ARCADIA_send(ARCADIA_TASK_ID_DRIVE, &msg);
+
+	if (!ARCADIA_semaphore_take(msg.semaphore))
+	{
+		status = ARCADIA_STATUS_API_TIMEOUT;
+	}
+
+	ARCADIA_semaphore_free(msg.semaphore);
+
+	return status;
+}
+
 
 /****************************************************************************************************
  *	S H E L L   F U N C T I O N S
@@ -865,7 +899,7 @@ uint8_t DRIVE_API_shell_read(uint8_t argc, char ** argv)
 				{
 					if (u32_bytes_to_read < MEMPOOL_BUFFER_SIZE_512)
 					{
-						if (ARCADIA_STATUS_OK == DRIVE_API_read(file_handle, file_buffer, u32_offset, u32_bytes_to_read))
+						if (DRIVE_API_read(file_handle, file_buffer, u32_bytes_to_read, u32_offset) > 0)
 						{
 							((char *)(file_buffer))[MEMPOOL_BUFFER_SIZE_512 - 1] = '\0';
 							b_res = true;

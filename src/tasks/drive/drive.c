@@ -48,6 +48,7 @@ static void			DRIVE_handle_msg_fetch_fnames			(ARCADIA_msg_t * p_msg);
 static void			DRIVE_handle_msg_write					(ARCADIA_msg_t * p_msg);
 static void			DRIVE_handle_msg_read					(ARCADIA_msg_t * p_msg);
 static void			DRIVE_handle_msg_seek					(ARCADIA_msg_t * p_msg);
+static void			DRIVE_handle_msg_get_size				(ARCADIA_msg_t * p_msg);
 
 static file_t * 	DRIVE_allocate_file						(file_handle_t * p_file_handle);
 static void 		DRIVE_free_file							(file_t * p_file);
@@ -165,6 +166,10 @@ static void DRIVE_handle_message(void)
 
 			case ARCADIA_MSG_ID_DRIVE_SEEK:
 				DRIVE_handle_msg_seek(&msg);
+				break;
+
+			case ARCADIA_MSG_ID_DRIVE_GET_SIZE:
+				DRIVE_handle_msg_get_size(&msg);
 				break;
 
 			default:
@@ -388,16 +393,14 @@ static void	DRIVE_handle_msg_read(ARCADIA_msg_t * p_msg)
 	uint32_t			u32_offset = p_msg->payload.drive_payload_read.u32_offset;
 	FRESULT f_result =  f_lseek(p_file, u32_offset);
 
-	*p_msg->payload.drive_payload_read.p_result_status = ARCADIA_STATUS_FAILED;
-
 	if (FR_OK == f_result)
 	{
-		f_result = f_read(p_file, kpc_data, u32_bytes_to_read, (UINT *)&u32_bytes_read);
+		f_result = f_read(p_file, kpc_data, u32_bytes_to_read, (UINT *)&p_msg->payload.drive_payload_read.pi32_bytes_read);
 
 		if (FR_OK == f_result)
 		{
 			DRIVE_LOG_DBG("Read %u bytes from file\n", u32_bytes_read);
-			*p_msg->payload.drive_payload_read.p_result_status = ARCADIA_STATUS_OK;			
+			*p_msg->payload.drive_payload_read.pi32_bytes_read = -1;			
 		}
 		else
 		{
@@ -411,8 +414,7 @@ static void	DRIVE_handle_msg_read(ARCADIA_msg_t * p_msg)
 
 	ARCADIA_semaphore_give(p_msg->semaphore);
 
-	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
-			ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_read.p_result_status);
+	DRIVE_LOG_DBG("Handled msg %s\n", ARCADIA_get_msg_type(p_msg->id));
 }
 
 /****************************************************************************************************
@@ -455,6 +457,18 @@ static void	DRIVE_handle_msg_seek(ARCADIA_msg_t * p_msg)
 
 	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
 			ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_seek.p_result_status);
+}
+
+static void	DRIVE_handle_msg_get_size(ARCADIA_msg_t * p_msg)
+{
+	file_handle_t 		file_handle = p_msg->payload.drive_payload_close_file.file_handle;
+	file_t * 			p_file = DRIVE_file_handle_to_file_pointer(file_handle);
+	
+	p_msg->payload.drive_payload_get_size.pi32_size = (int32_t *)f_size(p_file);
+
+	ARCADIA_semaphore_give(p_msg->semaphore);
+
+	DRIVE_LOG_DBG("Handled msg %s\n", ARCADIA_get_msg_type(p_msg->id));
 }
 
 /****************************************************************************************************
