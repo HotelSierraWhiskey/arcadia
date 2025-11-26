@@ -389,7 +389,6 @@ static void	DRIVE_handle_msg_read(ARCADIA_msg_t * p_msg)
 	file_t * 			p_file = DRIVE_file_handle_to_file_pointer(file_handle);
 	char *		 		kpc_data = p_msg->payload.drive_payload_read.pc_data;
 	uint32_t			u32_bytes_to_read = p_msg->payload.drive_payload_read.u32_bytes_to_read;
-	uint32_t			u32_bytes_read = 0;
 	uint32_t			u32_offset = p_msg->payload.drive_payload_read.u32_offset;
 	FRESULT f_result =  f_lseek(p_file, u32_offset);
 
@@ -399,12 +398,12 @@ static void	DRIVE_handle_msg_read(ARCADIA_msg_t * p_msg)
 
 		if (FR_OK == f_result)
 		{
-			DRIVE_LOG_DBG("Read %u bytes from file\n", u32_bytes_read);
-			*p_msg->payload.drive_payload_read.pi32_bytes_read = -1;			
+			DRIVE_LOG_DBG("Read %u bytes from file\n", *p_msg->payload.drive_payload_read.pi32_bytes_read);
 		}
 		else
 		{
 			DRIVE_LOG_WARN("Failed to read (status: %u)\n", f_result);
+			*p_msg->payload.drive_payload_read.pi32_bytes_read = -1;			
 		}
 	}
 	else
