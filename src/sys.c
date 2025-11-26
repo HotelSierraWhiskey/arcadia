@@ -214,6 +214,7 @@ static SYS_info_t SYS_info;
 static void 	SYS_osc48m_init			(SYS_osc48m_freq_id_t osc48m_freq);
 static void		SYS_osc32k_init			(void);
 static void 	SYS_clock_init			(void);
+static void 	SYS_display_watermarks	(void);
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -381,6 +382,31 @@ void SYS_boot_report(void)
 	}
 }
 
+static void SYS_display_watermarks(void)
+{
+	TaskHandle_t 	handle;
+	uint16_t 		u16_used_stack_space;
+	uint32_t		u32_total_stack_size;
+
+	SHELL_SEPARATOR();
+	for (uint8_t i = 0; i < ARCADIA_TASK_ID_NUM_IDS; i++)
+	{
+		handle = ARCADIA_handle_from_id(i);
+
+		ASSERT(handle);
+
+		u32_total_stack_size = ARCADIA_get_task_stack_size_words(i) * 4;
+		u16_used_stack_space = u32_total_stack_size - (uxTaskGetStackHighWaterMark(handle) * 4);
+
+		SHELL_printf("%-10s %u bytes of %u available (%.2f%%)\n",
+			ARCADIA_get_task_name(i),
+			u16_used_stack_space,
+			u32_total_stack_size,
+			((float)u16_used_stack_space / (float)(u32_total_stack_size)) * 100.0F);
+	}
+	SHELL_SEPARATOR();
+}
+
 /****************************************************************************************************
  *	S H E L L   F U N C T I O N S
  ****************************************************************************************************/
@@ -536,34 +562,12 @@ uint8_t	SYS_shell_reset(uint8_t argc, char ** argv)
  ****************************************************************************************************/
 uint8_t	SYS_shell_wm(uint8_t argc, char ** argv)
 {
-	TaskHandle_t 	handle;
-	uint16_t 		u16_used_stack_space;
-	uint32_t		u32_total_stack_size;
+	UNUSED(argc);
+	UNUSED(argv);
 
 	if (argc == 0)
 	{
-		SHELL_SEPARATOR();
-
-		SHELL_printf("Stack High Watermarks\n");
-
-		SHELL_SEPARATOR();
-		for (uint8_t i = 0; i < ARCADIA_TASK_ID_NUM_IDS; i++)
-		{
-			handle = ARCADIA_handle_from_id(i);
-
-			ASSERT(handle);
-
-			u32_total_stack_size = ARCADIA_get_task_stack_size_words(i) * 4;
-			u16_used_stack_space = u32_total_stack_size - (uxTaskGetStackHighWaterMark(handle) * 4);
-
-			SHELL_printf("%-10s %u bytes of %u available (%.2f%%)\n",
-				ARCADIA_get_task_name(i),
-				u16_used_stack_space,
-				u32_total_stack_size,
-				((float)u16_used_stack_space / (float)(u32_total_stack_size)) * 100.0F);
-		}
-		SHELL_SEPARATOR();
-
+		SYS_display_watermarks();
 	}
 	else
 	{
@@ -587,3 +591,9 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char * pcTaskName )
 	( void ) pcTaskName;
 }
 #endif
+
+void irqHARD_FAULT(void)
+{
+	// todo: dump stacks and watermarks (probably on reset, unless we want to do direct UART stuff here)
+	SYS_reset();
+}

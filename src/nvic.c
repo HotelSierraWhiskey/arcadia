@@ -213,32 +213,32 @@ void irqRESET()
  *	Get the process stack pointer or the main stack pointer, whichever's in use.
  *	Save the stack, trigger a breakpoint, spin in a deadloop.
  ****************************************************************************************************/
-void irqHARD_FAULT(void)
-{
-    __asm__(
-        "movs    r0, #4            \n\t"
-        "movs    r1, lr            \n\t"
-        "tst     r0, r1            \n\t"
-        "beq     _MSP              \n\t"
-        "mrs     r0, psp           \n\t"
-        "b       _HALT             \n\t"
-        "_MSP:                     \n\t"
-        "mrs     r0, msp           \n\t"
-        "_HALT:                    \n\t"
-        "ldr     r1, [r0, #0x00]   \n\t" /* r0 */
-        "ldr     r2, [r0, #0x04]   \n\t" /* r1 */
-        "ldr     r3, [r0, #0x08]   \n\t" /* r2 */
-        "ldr     r4, [r0, #0x0C]   \n\t" /* r3 */
-        "ldr     r5, [r0, #0x10]   \n\t" /* r12 */
-        "ldr     r6, [r0, #0x14]   \n\t" /* lr */
-        "ldr     r7, [r0, #0x1C]   \n\t" /* xpsr */
-        "mov     r8, r7            \n\t"
-        "ldr     r7, [r0, #0x18]   \n\t" /* pc */
-        "bkpt    #0                \n"
-        "_DEADLOOP:                \n\t"
-        "b       _DEADLOOP         "
-    );
-}
+void irqHARD_FAULT(void);
+// {
+// __asm__(
+// 	"movs    r0, #4            \n\t"
+// 	"movs    r1, lr            \n\t"
+// 	"tst     r0, r1            \n\t"
+// 	"beq     _MSP              \n\t"
+// 	"mrs     r0, psp           \n\t"
+// 	"b       _HALT             \n\t"
+// 	"_MSP:                     \n\t"
+// 	"mrs     r0, msp           \n\t"
+// 	"_HALT:                    \n\t"
+// 	"ldr     r1, [r0, #0x00]   \n\t" /* r0 */
+// 	"ldr     r2, [r0, #0x04]   \n\t" /* r1 */
+// 	"ldr     r3, [r0, #0x08]   \n\t" /* r2 */
+// 	"ldr     r4, [r0, #0x0C]   \n\t" /* r3 */
+// 	"ldr     r5, [r0, #0x10]   \n\t" /* r12 */
+// 	"ldr     r6, [r0, #0x14]   \n\t" /* lr */
+// 	"ldr     r7, [r0, #0x1C]   \n\t" /* xpsr */
+// 	"mov     r8, r7            \n\t"
+// 	"ldr     r7, [r0, #0x18]   \n\t" /* pc */
+// 	"bkpt    #0                \n"
+// 	"_DEADLOOP:                \n\t"
+// 	"b       _DEADLOOP         "
+// );
+// }
 
 /****************************************************************************************************
  *	Newlib syscall stubs to make the compiler happy
