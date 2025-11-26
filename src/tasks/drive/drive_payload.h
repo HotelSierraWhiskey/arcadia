@@ -72,7 +72,7 @@ typedef struct _DRIVE_PAYLOAD_read
 	char *					pc_data;
 	uint32_t				u32_bytes_to_read;
 	uint32_t				u32_offset;
-	ARCADIA_status_t *		p_result_status;
+	int32_t *				pi32_bytes_read;
 } DRIVE_PAYLOAD_read_t;
 
 typedef struct _DRIVE_PAYLOAD_seek
@@ -81,5 +81,11 @@ typedef struct _DRIVE_PAYLOAD_seek
 	uint32_t				u32_offset;
 	ARCADIA_status_t *		p_result_status;
 } DRIVE_PAYLOAD_seek_t;
+
+typedef struct _DRIVE_PAYLOAD_get_size
+{
+	file_handle_t 			file_handle;
+	int32_t *				pi32_size;
+} DRIVE_PAYLOAD_get_size_t;
 
 #endif // DRIVE_PAYLOAD_H
