@@ -309,7 +309,6 @@ ARCADIA_status_t DRIVE_API_write(file_handle_t file_handle, const char * kpc_dat
 
 int32_t DRIVE_API_read(file_handle_t file_handle, char * pc_data, uint32_t u32_bytes_to_read, uint32_t u32_offset)
 {
-	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
 	int32_t i32_bytes_read;
 
 	DRIVE_PAYLOAD_read_t payload =
@@ -334,7 +333,7 @@ int32_t DRIVE_API_read(file_handle_t file_handle, char * pc_data, uint32_t u32_b
 
 	if (!ARCADIA_semaphore_take(msg.semaphore))
 	{
-		status = ARCADIA_STATUS_API_TIMEOUT;
+		i32_bytes_read = -1;
 	}
 
 	ARCADIA_semaphore_free(msg.semaphore);
@@ -376,7 +375,6 @@ ARCADIA_status_t DRIVE_API_seek(file_handle_t file_handle, uint32_t u32_offset)
 
 int32_t DRIVE_API_get_size(file_handle_t file_handle)
 {
-	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
 	int32_t i32_size;
 
 	DRIVE_PAYLOAD_get_size_t payload =
@@ -398,12 +396,12 @@ int32_t DRIVE_API_get_size(file_handle_t file_handle)
 
 	if (!ARCADIA_semaphore_take(msg.semaphore))
 	{
-		status = ARCADIA_STATUS_API_TIMEOUT;
+		i32_size = -1;
 	}
 
 	ARCADIA_semaphore_free(msg.semaphore);
 
-	return status;
+	return i32_size;
 }
 
 
