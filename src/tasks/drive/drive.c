@@ -385,7 +385,7 @@ static void	DRIVE_handle_msg_write(ARCADIA_msg_t * p_msg)
  ****************************************************************************************************/
 static void	DRIVE_handle_msg_read(ARCADIA_msg_t * p_msg)
 {
-	file_handle_t 		file_handle = p_msg->payload.drive_payload_close_file.file_handle;
+	file_handle_t 		file_handle = p_msg->payload.drive_payload_read.file_handle;
 	file_t * 			p_file = DRIVE_file_handle_to_file_pointer(file_handle);
 	char *		 		kpc_data = p_msg->payload.drive_payload_read.pc_data;
 	uint32_t			u32_bytes_to_read = p_msg->payload.drive_payload_read.u32_bytes_to_read;
@@ -394,7 +394,7 @@ static void	DRIVE_handle_msg_read(ARCADIA_msg_t * p_msg)
 
 	if (FR_OK == f_result)
 	{
-		f_result = f_read(p_file, kpc_data, u32_bytes_to_read, (UINT *)&p_msg->payload.drive_payload_read.pi32_bytes_read);
+		f_result = f_read(p_file, kpc_data, u32_bytes_to_read, (UINT *)p_msg->payload.drive_payload_read.pi32_bytes_read);
 
 		if (FR_OK == f_result)
 		{
