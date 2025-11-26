@@ -307,7 +307,7 @@ ARCADIA_status_t DRIVE_API_write(file_handle_t file_handle, const char * kpc_dat
 	return status;
 }
 
-ARCADIA_status_t DRIVE_API_read(file_handle_t file_handle, char * pc_data, uint32_t u32_bytes_to_read)
+ARCADIA_status_t DRIVE_API_read(file_handle_t file_handle, char * pc_data, uint32_t u32_offset, uint32_t u32_bytes_to_read)
 {
 	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
 
@@ -316,6 +316,7 @@ ARCADIA_status_t DRIVE_API_read(file_handle_t file_handle, char * pc_data, uint3
 		.file_handle = file_handle,
 		.pc_data = pc_data,
 		.u32_bytes_to_read = u32_bytes_to_read,
+		.u32_offset = u32_offset,
 		.p_result_status = &status
 	};
 
@@ -851,25 +852,29 @@ uint8_t DRIVE_API_shell_read(uint8_t argc, char ** argv)
 	MEMPOOL_buffer_t 	file_buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_512);
 	uint32_t			u32_file_size;
 	uint32_t			u32_bytes_to_read;
+	uint32_t			u32_offset;
 	bool				b_res = false;
 
-	if (argc == 2)
+	if (argc == 3)
 	{
 		if (UTILS_string_to_u32(argv[0], &file_handle))
 		{
 			if (UTILS_string_to_u32(argv[1], &u32_bytes_to_read))
 			{
-				if (u32_bytes_to_read < MEMPOOL_BUFFER_SIZE_512)
+				if (UTILS_string_to_u32(argv[2], &u32_offset))
 				{
-					if (ARCADIA_STATUS_OK == DRIVE_API_read(file_handle, file_buffer, u32_bytes_to_read))
+					if (u32_bytes_to_read < MEMPOOL_BUFFER_SIZE_512)
 					{
-						((char *)(file_buffer))[MEMPOOL_BUFFER_SIZE_512 - 1] = '\0';
-						b_res = true;
+						if (ARCADIA_STATUS_OK == DRIVE_API_read(file_handle, file_buffer, u32_offset, u32_bytes_to_read))
+						{
+							((char *)(file_buffer))[MEMPOOL_BUFFER_SIZE_512 - 1] = '\0';
+							b_res = true;
+						}
 					}
-				}
-				else
-				{
-					SHELL_printf("Bytes to read must be smaller than %u\n", MEMPOOL_BUFFER_SIZE_512);
+					else
+					{
+						SHELL_printf("Bytes to read must be smaller than %u\n", MEMPOOL_BUFFER_SIZE_512);
+					}
 				}
 			}
 		}
@@ -881,7 +886,7 @@ uint8_t DRIVE_API_shell_read(uint8_t argc, char ** argv)
 	}
 	else
 	{
-		SHELL_printf("Usage: drive fs read <file_handle> <bytes to read>\n");
+		SHELL_printf("Usage: drive fs read <file_handle> <bytes to read> <offset>\n");
 	}
 
 	return SHELL_COMMAND_SUCCESS;

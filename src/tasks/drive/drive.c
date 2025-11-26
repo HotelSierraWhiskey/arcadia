@@ -385,18 +385,28 @@ static void	DRIVE_handle_msg_read(ARCADIA_msg_t * p_msg)
 	char *		 		kpc_data = p_msg->payload.drive_payload_read.pc_data;
 	uint32_t			u32_bytes_to_read = p_msg->payload.drive_payload_read.u32_bytes_to_read;
 	uint32_t			u32_bytes_read = 0;
+	uint32_t			u32_offset = p_msg->payload.drive_payload_read.u32_offset;
+	FRESULT f_result =  f_lseek(p_file, u32_offset);
 
-	FRESULT f_result = f_read(p_file, kpc_data, u32_bytes_to_read, (UINT *)&u32_bytes_read);
+	*p_msg->payload.drive_payload_read.p_result_status = ARCADIA_STATUS_FAILED;
 
 	if (FR_OK == f_result)
 	{
-		DRIVE_LOG_DBG("Read %u bytes from file\n", u32_bytes_read);
-		*p_msg->payload.drive_payload_read.p_result_status = ARCADIA_STATUS_OK;
+		f_result = f_read(p_file, kpc_data, u32_bytes_to_read, (UINT *)&u32_bytes_read);
+
+		if (FR_OK == f_result)
+		{
+			DRIVE_LOG_DBG("Read %u bytes from file\n", u32_bytes_read);
+			*p_msg->payload.drive_payload_read.p_result_status = ARCADIA_STATUS_OK;			
+		}
+		else
+		{
+			DRIVE_LOG_WARN("Failed to read (status: %u)\n", f_result);
+		}
 	}
 	else
 	{
 		DRIVE_LOG_WARN("Failed to seek (status: %u)\n", f_result);
-		*p_msg->payload.drive_payload_read.p_result_status = ARCADIA_STATUS_FAILED;
 	}
 
 	ARCADIA_semaphore_give(p_msg->semaphore);

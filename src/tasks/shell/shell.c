@@ -389,7 +389,7 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 		.kp_command_table 	= NULL,
 		.kpc_docstring		= 	(
 									"\tBlock read from an open file (512 bytes max per read)\n"
-									"\tUsage: drive fs read <file_handle> <bytes to read>\n"
+									"\tUsage: drive fs read <file_handle> <bytes to read> <offset>\n"
 								)
 	},
 	{

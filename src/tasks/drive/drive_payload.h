@@ -71,6 +71,7 @@ typedef struct _DRIVE_PAYLOAD_read
 	file_handle_t 			file_handle;
 	char *					pc_data;
 	uint32_t				u32_bytes_to_read;
+	uint32_t				u32_offset;
 	ARCADIA_status_t *		p_result_status;
 } DRIVE_PAYLOAD_read_t;
 
