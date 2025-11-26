@@ -1,0 +1,3 @@
+[submodule "TethysRT"]
+	path = TethysRT
+	url = https://github.com/HotelSierraWhiskey/TethysRT
