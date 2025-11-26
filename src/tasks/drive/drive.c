@@ -463,7 +463,7 @@ static void	DRIVE_handle_msg_get_size(ARCADIA_msg_t * p_msg)
 	file_handle_t 		file_handle = p_msg->payload.drive_payload_get_size.file_handle;
 	file_t * 			p_file = DRIVE_file_handle_to_file_pointer(file_handle);
 	
-	p_msg->payload.drive_payload_get_size.pi32_size = (int32_t *)f_size(p_file);
+	*p_msg->payload.drive_payload_get_size.pi32_size = (int32_t)f_size(p_file);
 
 	ARCADIA_semaphore_give(p_msg->semaphore);
 
