@@ -5,7 +5,7 @@
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-void MEDIA_init(void);
-void MEDIA_task(void * p_params);
+void LOAD_init(void);
+void LOAD_task(void * p_params);
 
 #endif // MEDIA_H

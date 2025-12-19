@@ -5,7 +5,7 @@
 #include "shell.h"
 #include "drive.h"
 #include "chrono.h"
-#include "media.h"
+#include "load.h"
 #include "button.h"
 
 #ifdef JLINK_MUX
@@ -21,8 +21,8 @@
 
 #define ARCADIA_SHELL_STACK_SIZE		BYTES_TO_WORDS(1536U)
 #define ARCADIA_DRIVE_STACK_SIZE		BYTES_TO_WORDS(1536U)
-#define ARCADIA_CHRONO_STACK_SIZE		BYTES_TO_WORDS(1024U)
-#define ARCADIA_MEDIA_STACK_SIZE		BYTES_TO_WORDS(1536U)
+#define ARCADIA_CHRONO_STACK_SIZE		BYTES_TO_WORDS(512U) 	// was 1k
+#define ARCADIA_LOAD_STACK_SIZE			BYTES_TO_WORDS(512U)
 
 /**
  *	Main task loop function pointer prototype
@@ -87,7 +87,7 @@ StackType_t chrono_stack[ARCADIA_CHRONO_STACK_SIZE];
 /**
  *	MEDIA stack
  */
-StackType_t media_stack[ARCADIA_MEDIA_STACK_SIZE];
+StackType_t load_stack[ARCADIA_LOAD_STACK_SIZE];
 
 /**
  *	Main RTOS task table
@@ -128,15 +128,15 @@ static ARCADIA_rtos_task_t rtos_tasks[ARCADIA_TASK_ID_NUM_IDS] =
 		.init		= CHRONO_init
 	},
 		{
-		.task_id 	= ARCADIA_TASK_ID_MEDIA,
-		.kpc_name 	= "MEDIA",
+		.task_id 	= ARCADIA_TASK_ID_LOAD,
+		.kpc_name 	= "LOAD",
 		.stack 		= 
 		{
-			.p_stack 	= media_stack,
-			.u32_words 	= ARCADIA_MEDIA_STACK_SIZE
+			.p_stack 	= load_stack,
+			.u32_words 	= ARCADIA_LOAD_STACK_SIZE
 		},
-		.task 		= MEDIA_task,
-		.init		= MEDIA_init
+		.task 		= LOAD_task,
+		.init		= LOAD_init
 	},
 };
 
@@ -166,9 +166,9 @@ static const char * const kpc_msg_descriptors[ARCADIA_MSG_ID_NUM_IDS] =
 	[ARCADIA_MSG_ID_CHRONO_CANCEL_SCHEDULED_MSG]	= "CHRONO_CANCEL_SCHEDULED_MSG",
 	[ARCADIA_MSG_ID_CHRONO_DEBOUNCE_EXTI]			= "CHRONO_DEBOUNCE_EXTI",
 
-	// MEDIA msg descriptors
-	[ARCADIA_MSG_ID_MEDIA_PLAY_AUDIO]				= "MEDIA_PLAY_AUDIO",
-	[ARCADIA_MSG_ID_MEDIA_STOP_AUDIO]				= "MEDIA_STOP_AUDIO",
+	// LOAD msg descriptors
+	// [ARCADIA_MSG_ID_MEDIA_PLAY_AUDIO]				= "MEDIA_PLAY_AUDIO",
+	// [ARCADIA_MSG_ID_MEDIA_STOP_AUDIO]				= "MEDIA_STOP_AUDIO",
 };
 
 /****************************************************************************************************
@@ -222,7 +222,7 @@ void NORETURN ARCADIA_start(void)
 	ARCADIA_create_task(ARCADIA_TASK_ID_SHELL);
 	ARCADIA_create_task(ARCADIA_TASK_ID_DRIVE);
 	ARCADIA_create_task(ARCADIA_TASK_ID_CHRONO);
-	ARCADIA_create_task(ARCADIA_TASK_ID_MEDIA);
+	ARCADIA_create_task(ARCADIA_TASK_ID_LOAD);
 
 	vTaskStartScheduler();
 

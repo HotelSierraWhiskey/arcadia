@@ -15,7 +15,11 @@ COMMON_FLAGS = \
 	-nostartfiles \
 	-Os \
 	-g \
-	-fstack-usage
+	-ffunction-sections \
+	-fdata-sections \
+	-fstack-usage \
+	--specs=nano.specs
+	
 
 export CC CCLD SIZE JLINK COMMON_FLAGS
 

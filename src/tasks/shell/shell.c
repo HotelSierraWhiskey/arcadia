@@ -799,8 +799,6 @@ void SHELL_init(void)
 
 	SHELL_display_banner();
 
-	APP_FSM_init();
-
 	// Shell is first to initialize. May as well do a system boot report here.
 	SYS_boot_report();
 }
@@ -848,22 +846,6 @@ void SHELL_task(void * p_params)
 			else if (c == '\033')
 			{
 				SHELL_handle_esc_sequence();
-				continue;
-			}
-
-			else if (c == '[')
-			{
-				APP_FSM_handle_event(FSM_EVENT_BUTTON_A_PRESSED);
-				continue;
-			}
-			else if (c == ']')
-			{
-				APP_FSM_handle_event(FSM_EVENT_BUTTON_B_PRESSED);
-				continue;
-			}
-			else if (c == '\\')
-			{
-				APP_FSM_handle_event(FSM_EVENT_BUTTON_MENU_PRESSED);
 				continue;
 			}
 
@@ -959,27 +941,6 @@ static void SHELL_handle_esc_sequence(void)
 	esc_seq[0] = UART_rx_char(UART_CHANNEL_SHELL);
 	esc_seq[1] = UART_rx_char(UART_CHANNEL_SHELL);
 	esc_seq[2] = '\0';
-
-	if (esc_seq[0] == '[')
-	{
-		switch (esc_seq[1])
-		{
-			case 'A':
-				APP_FSM_handle_event(FSM_EVENT_BUTTON_UP_PRESSED);
-				break;
-			case 'B':
-				APP_FSM_handle_event(FSM_EVENT_BUTTON_DOWN_PRESSED);
-				break;
-			case 'C':
-				APP_FSM_handle_event(FSM_EVENT_BUTTON_RIGHT_PRESSED);
-				break;
-			case 'D':
-				APP_FSM_handle_event(FSM_EVENT_BUTTON_LEFT_PRESSED);
-				break;
-			default:
-				break;
-		}
-	}
 }
 
 /****************************************************************************************************

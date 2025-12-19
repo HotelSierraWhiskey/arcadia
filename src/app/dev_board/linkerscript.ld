@@ -66,14 +66,14 @@ SECTIONS
 		PROVIDE(u32_end_data = .);
 	} >RAM AT >FLASH :data
 
-	.bss :
+	.bss (NOLOAD):
 	{
 		PROVIDE(u32_begin_bss = .);
 		*(.bss.* .bss)
 		*(COMMON)
 		PROVIDE(u32_end_bss = .);
         PROVIDE(end = .);
-	} >RAM :data
+	} >RAM
 
 	.note.gnu.build-id :
 	{

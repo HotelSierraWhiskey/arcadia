@@ -18,12 +18,13 @@
 				"${workspaceFolder}/src",
 				"${workspaceFolder}/src/tasks/chrono",
 				"${workspaceFolder}/src/tasks/drive",
-				"${workspaceFolder}/src/tasks/media",
+				"${workspaceFolder}/src/tasks/load",
 				"${workspaceFolder}/src/tasks/shell",
 				"${workspaceFolder}/src/tasks",
 				"${workspaceFolder}/src/fsm",
 				"${workspaceFolder}/src/json",
-				"${workspaceFolder}/src/json/jsmn"
+				"${workspaceFolder}/src/json/jsmn",
+				"${workspaceFolder}/src/TethysRT"
 			],
 			"defines": ["DEV_BOARD", "BUILD_HAS_FS"],
 			"compilerPath": "/opt/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc",

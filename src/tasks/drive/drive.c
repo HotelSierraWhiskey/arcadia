@@ -120,8 +120,8 @@ static void DRIVE_handle_message(void)
 
 	if (ARCADIA_receive(&msg))
 	{
-		DRIVE_LOG_DBG("Received msg %s from %s\n", 
-			ARCADIA_get_msg_type(msg.id), msg.b_sent_from_isr ? "ISR" : ARCADIA_get_task_name(msg.from));
+		// DRIVE_LOG_DBG("Received msg %s from %s\n", 
+		// 	ARCADIA_get_msg_type(msg.id), msg.b_sent_from_isr ? "ISR" : ARCADIA_get_task_name(msg.from));
 
 		switch (msg.id)
 		{
@@ -398,7 +398,7 @@ static void	DRIVE_handle_msg_read(ARCADIA_msg_t * p_msg)
 
 		if (FR_OK == f_result)
 		{
-			DRIVE_LOG_DBG("Read %u bytes from file\n", *p_msg->payload.drive_payload_read.pi32_bytes_read);
+			// DRIVE_LOG_DBG("Read %u bytes from file\n", *p_msg->payload.drive_payload_read.pi32_bytes_read);
 		}
 		else
 		{
@@ -413,7 +413,7 @@ static void	DRIVE_handle_msg_read(ARCADIA_msg_t * p_msg)
 
 	ARCADIA_semaphore_give(p_msg->semaphore);
 
-	DRIVE_LOG_DBG("Handled msg %s\n", ARCADIA_get_msg_type(p_msg->id));
+	// DRIVE_LOG_DBG("Handled msg %s\n", ARCADIA_get_msg_type(p_msg->id));
 }
 
 /****************************************************************************************************
@@ -467,7 +467,7 @@ static void	DRIVE_handle_msg_get_size(ARCADIA_msg_t * p_msg)
 
 	ARCADIA_semaphore_give(p_msg->semaphore);
 
-	DRIVE_LOG_DBG("Handled msg %s\n", ARCADIA_get_msg_type(p_msg->id));
+	// DRIVE_LOG_DBG("Handled msg %s\n", ARCADIA_get_msg_type(p_msg->id));
 }
 
 /****************************************************************************************************
