@@ -152,6 +152,7 @@ void MEMPOOL_free(MEMPOOL_buffer_t buffer)
 		MEMPOOL_free_block(i);
 	}
 
+	buffer = NULL;
 	MEMPOOL_info.pu32_allocation_registry[u8_block_index] = 0;
 
 	MEMPOOL_semaphore_give();

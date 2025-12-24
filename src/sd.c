@@ -277,7 +277,7 @@ bool SD_card_init(void)
 
 		SD_info.b_initialized = true;
 
-		SD_LOG_DBG("Initialized %s card\n", kpc_version_descriptors[SD_info.csd_info.csdv1.csd_ver]);
+		// SD_LOG_DBG("Initialized %s card\n", kpc_version_descriptors[SD_info.csd_info.csdv1.csd_ver]);
 	}
 
 	return SD_info.b_initialized;

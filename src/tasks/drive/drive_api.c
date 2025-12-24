@@ -693,6 +693,8 @@ uint8_t DRIVE_API_shell_pwd(uint8_t argc, char ** argv)
 		SHELL_printf("Usage: pwd\n");
 	}
 
+	MEMPOOL_free(buffer);
+
 	return SHELL_COMMAND_SUCCESS;
 }
 
@@ -920,6 +922,8 @@ uint8_t DRIVE_API_shell_read(uint8_t argc, char ** argv)
 	{
 		SHELL_printf("Usage: drive fs read <file_handle> <bytes to read> <offset>\n");
 	}
+
+	MEMPOOL_free(file_buffer);
 
 	return SHELL_COMMAND_SUCCESS;
 }

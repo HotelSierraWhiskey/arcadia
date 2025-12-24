@@ -9,15 +9,11 @@
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
-// typedef struct _MEDIA_PAYLOAD_play_audio
-// {
-// 	const char *			kpc_fname;
-// 	ARCADIA_status_t *		p_result_status;
-// } MEDIA_PAYLOAD_play_audio_t;
-
-// typedef struct _MEDIA_PAYLOAD_stop_audio
-// {
-// 	ARCADIA_status_t *		p_result_status;
-// } MEDIA_PAYLOAD_stop_audio_t;
+typedef struct _LOAD_PAYLOAD_load_module
+{
+	file_handle_t			fh;
+	char *					pc_name;
+	ARCADIA_status_t *		p_result_status;
+} LOAD_PAYLOAD_load_module_t;
 
 #endif // LOAD_PAYLOAD_H

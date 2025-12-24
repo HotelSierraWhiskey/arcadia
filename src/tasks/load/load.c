@@ -14,43 +14,50 @@
 #define LOAD_LOG_DBG(fmt, ...)   		SHELL_printf("\r%-12s" fmt, "[LOAD]", ##__VA_ARGS__)
 #define LOAD_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-12s" fmt, "[LOAD]", ##__VA_ARGS__)
 
-// typedef enum _MEDIA_audio_state
-// {
-// 	MEDIA_AUDIO_STATE_STOPPED = 0,
-// 	MEDIA_AUDIO_STATE_PLAYING,
-// 	//////////
-// 	MEDIA_AUDIO_STATE_NUM_STATES
-// } MEDIA_audio_state_t;
+typedef enum _LOAD_symbol_id_t
+{
+	LOAD_SYMBOL_ID_SHELL_PRINTF = 0,
+	//////////
+	LOAD_SYMBOL_ID_NUM_IDS
+} LOAD_symbol_id;
 
-// typedef struct _MEDIA_audio_info
-// {
-// 	file_handle_t		file;
-// 	MEDIA_audio_state_t state;
-// 	MEMPOOL_buffer_t	buffer_1;
-// 	MEMPOOL_buffer_t	buffer_2;
-// } MEDIA_audio_info_t;
+typedef struct _LOAD_module_slot
+{
+	MEMPOOL_buffer_t	ram;
+	tethys_module_t		module;
+} LOAD_module_slot_t;
 
-// typedef struct _MEDIA_info_t
-// {
-// 	MEDIA_audio_info_t audio;
-// } MEDIA_info_t;
+typedef struct _LOAD_info
+{
+	tethys_symbol_t		p_symbols[LOAD_SYMBOL_ID_NUM_IDS];
+	tethys_io_t			io;
+
+} LOAD_info_t;
 
 /****************************************************************************************************
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
 
 static void 	LOAD_handle_message					(void);
-// static void 	MEDIA_handle_message_play_audio		(ARCADIA_msg_t * p_msg);
-// static void 	MEDIA_handle_message_stop_audio		(ARCADIA_msg_t * p_msg);
+static void 	LOAD_handle_message_load_module		(ARCADIA_msg_t * p_msg);
 
-// static void 	MEDIA_init_audio_buffers			(void);
-// static void 	MEDIA_deinit_audio_buffers			(void);
+int32_t			LOAD_read							(void * pv_ctx, void * pv_buf, uint32_t u32_bytes_to_read, uint32_t u32_offset);
+int32_t			LOAD_get_size						(void * pv_ctx);
 
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
 
-// static MEDIA_info_t MEDIA_info;
+static tethys_symbol_t symbols[] =
+{
+	TETHYS_SYMBOL(SHELL_printf)
+};
+
+static tethys_io_t io =
+{
+	.read 		= LOAD_read,
+	.get_size 	= LOAD_get_size
+};
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -62,13 +69,7 @@ static void 	LOAD_handle_message					(void);
  ****************************************************************************************************/
 void LOAD_init(void)
 {
-	// Initialize DAC driver
-	// DAC_init(); // temporary
 
-	// Initialize DMA channels
-	// DMA_init();
-
-	// MEDIA_info.audio.state = MEDIA_AUDIO_STATE_STOPPED;
 }
 
 /****************************************************************************************************
@@ -76,71 +77,46 @@ void LOAD_init(void)
  *
  * 	@param[in] p_params Unused
  ****************************************************************************************************/
-
-int32_t read (void * pv_ctx, void * pv_buf, uint32_t u32_bytes_to_read, uint32_t u32_offset)
-{
-	int32_t i32_res = DRIVE_API_read(*((file_handle_t *)pv_ctx), (char *)pv_buf, u32_bytes_to_read, u32_offset);
-
-	return i32_res;
-}
-
-int32_t get_size (void * pv_ctx)
-{
-	return DRIVE_API_get_size(*((file_handle_t *)pv_ctx));
-}
-
-
 void LOAD_task(void * p_params)
 {
 	UNUSED(p_params);
 
-	// MEMPOOL_buffer_t module_ram;
-	// tethys_symbol_t symbols[] =
-	// {
-	// 	TETHYS_SYMBOL(SHELL_printf)
-	// };
+	MEMPOOL_buffer_t module_ram;
 
-	// module_ram = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_1K);
+	module_ram = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_1K);
 
-	// file_handle_t fh = DRIVE_API_open_file(&fh, "test_1.elf", "r");
+	file_handle_t fh = DRIVE_API_open_file(&fh, "test_1.elf", "r");
 
-	// tethys_io_t io =
-	// {
-	// 	.pv_ctx = &fh,
-	// 	.read = read,
-	// 	.get_size = get_size
-	// };
+	tethys_module_t module =
+	{
+		.kpc_name = "test_1.elf",
+		.pv_base = module_ram,
+		.u32_size = MEMPOOL_BUFFER_SIZE_1024,
+	};
 
-	// tethys_module_t module =
-	// {
-	// 	.kpc_name = "test_1.elf",
-	// 	.pv_base = module_ram,
-	// 	.u32_size = MEMPOOL_BUFFER_SIZE_1024,
-	// };
+	tethys_status_t tstat = tethys_init(symbols, 1);
 
-	// tethys_status_t tstat = tethys_init(symbols, 1);
+	if (tstat == TETHYS_STATUS_OK)
+	{
+		tstat = tethys_load_module(&io, &module);
 
-	// if (tstat == TETHYS_STATUS_OK)
-	// {
-	// 	tstat = tethys_load_module(&io, &module);
+		if (tstat == TETHYS_STATUS_OK)
+		{
+			LOAD_LOG_DBG("load ok\n");
+		}
+		else
+		{
+			LOAD_LOG_DBG("bad load: %u\n", tstat);
+		}
+	}
+	else
+	{
+		LOAD_LOG_DBG("bad init: %u\n", tstat);
+	}
 
-	// 	if (tstat == TETHYS_STATUS_OK)
-	// 	{
-	// 		MEDIA_LOG_DBG("load ok\n");
-	// 	}
-	// 	else
-	// 	{
-	// 		MEDIA_LOG_DBG("bad load: %u\n", tstat);
-	// 	}
-	// }
-	// else
-	// {
-	// 	MEDIA_LOG_DBG("bad init: %u\n", tstat);
-	// }
+	module.entry(NULL);
 
-	// module.entry(NULL);
-
-	// MEMPOOL_free(module_ram);
+	MEMPOOL_free(module_ram);
 
 	while (1)
 	{
@@ -167,13 +143,9 @@ static void LOAD_handle_message(void)
 			case ARCADIA_MSG_ID_NOOP:
 				break;
 
-			// case ARCADIA_MSG_ID_MEDIA_PLAY_AUDIO:
-			// 	MEDIA_handle_message_play_audio(&msg);
-			// 	break;
-
-			// case ARCADIA_MSG_ID_MEDIA_STOP_AUDIO:
-			// 	MEDIA_handle_message_stop_audio(&msg);
-			// 	break;
+			case ARCADIA_MSG_ID_LOAD_LOAD_MODULE:
+				LOAD_handle_message_load_module(&msg);
+				break;
 
 			default:
 				LOAD_LOG_DBG("Unexpected message: %u\n", msg.id);
@@ -181,60 +153,45 @@ static void LOAD_handle_message(void)
 	}
 }
 
-// static void MEDIA_handle_message_play_audio(ARCADIA_msg_t * p_msg)
-// {
-// 	if (MEDIA_AUDIO_STATE_PLAYING != MEDIA_info.audio.state)
-// 	{
-// 		MEDIA_info.audio.state = MEDIA_AUDIO_STATE_PLAYING;
-// 		*p_msg->payload.media_payload_play_audio.p_result_status = ARCADIA_STATUS_OK;
-// 	}
-// 	else
-// 	{
-// 		*p_msg->payload.media_payload_play_audio.p_result_status = ARCADIA_STATUS_MEDIA_AUDIO_BUSY;
-// 	}
+int32_t LOAD_read (void * pv_ctx, void * pv_buf, uint32_t u32_bytes_to_read, uint32_t u32_offset)
+{
+	int32_t i32_res = DRIVE_API_read(*((file_handle_t *)pv_ctx), (char *)pv_buf, u32_bytes_to_read, u32_offset);
 
-// 	MEDIA_init_audio_buffers();
-// 	TIMER_start_dma_timer();
+	return i32_res;
+}
 
-// 	ARCADIA_semaphore_give(p_msg->semaphore);
+int32_t LOAD_get_size (void * pv_ctx)
+{
+	return DRIVE_API_get_size(*((file_handle_t *)pv_ctx));
+}
 
-// 	MEDIA_LOG_DBG("Handled msg %s with status %u\n",
-// 		ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.media_payload_play_audio.p_result_status);
-// }
+static void LOAD_handle_message_load_module(ARCADIA_msg_t * p_msg)
+{
+	tethys_module_t		module;
+	MEMPOOL_buffer_t	module_ram = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_1K);
+	tethys_status_t		tstat;
 
-// static void MEDIA_handle_message_stop_audio(ARCADIA_msg_t * p_msg)
-// {
-// 	*p_msg->payload.media_payload_play_audio.p_result_status = ARCADIA_STATUS_OK;
+	*p_msg->payload.load_payload_load_module.p_result_status = ARCADIA_STATUS_OK;
 
-// 	if (MEDIA_AUDIO_STATE_PLAYING == MEDIA_info.audio.state)
-// 	{
-// 		TIMER_stop_dma_timer();
-// 		DAC_write(0);
-// 		MEDIA_deinit_audio_buffers();
-// 		MEDIA_info.audio.state = MEDIA_AUDIO_STATE_STOPPED;
-// 	}
+	io.pv_ctx = &p_msg->payload.load_payload_load_module.fh;
 
-// 	ARCADIA_semaphore_give(p_msg->semaphore);
+	module.kpc_name = p_msg->payload.load_payload_load_module.pc_name,
+	module.pv_base = module_ram,
+	module.u32_size = MEMPOOL_BUFFER_SIZE_1024,
 
-// 	MEDIA_LOG_DBG("Handled msg %s with status %u\n",
-// 		ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.media_payload_stop_audio.p_result_status);
-// }
+	tstat = tethys_load_module(&io, &module);
 
-// void MEDIA_update_audio_buffers(void)
-// {
+	if (tstat == TETHYS_STATUS_OK)
+	{
+		LOAD_LOG_DBG("load ok\n");
+	}
+	else
+	{
+		LOAD_LOG_DBG("bad load: %u\n", tstat);
+	}
 
-// }
+	ARCADIA_semaphore_give(p_msg->semaphore);
 
-// static void MEDIA_init_audio_buffers(void)
-// {
-// 	MEDIA_info.audio.buffer_1 = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_512);
-// 	MEDIA_info.audio.buffer_2 = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_512);
-// 	memset(MEDIA_info.audio.buffer_1, 0, MEMPOOL_BUFFER_SIZE_256);
-// 	memset(MEDIA_info.audio.buffer_2, 0, MEMPOOL_BUFFER_SIZE_256);
-// }
-
-// static void MEDIA_deinit_audio_buffers(void)
-// {
-// 	MEMPOOL_free(MEDIA_info.audio.buffer_1);
-// 	MEMPOOL_free(MEDIA_info.audio.buffer_2);
-// }
+	LOAD_LOG_DBG("Handled msg %s with status %u\n",
+		ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.load_payload_load_module.p_result_status);
+}

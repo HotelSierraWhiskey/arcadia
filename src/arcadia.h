@@ -43,7 +43,7 @@ typedef enum _ARCADIA_msg_id
 	ARCADIA_MSG_ID_CHRONO_DEBOUNCE_EXTI,
 
 	// LOAD task messages
-
+	ARCADIA_MSG_ID_LOAD_LOAD_MODULE,
 	//////////
 	ARCADIA_MSG_ID_NUM_IDS
 } ARCADIA_msg_id_t;
@@ -70,6 +70,7 @@ typedef union _ARCADIA_payload
 	CHRONO_PAYLOAD_debounce_exti_t			chrono_payload_debounce_exti;
 
 	// LOAD task payloads
+	LOAD_PAYLOAD_load_module_t				load_payload_load_module;
 } ARCADIA_payload_t;
 
 typedef struct _ARCADIA_msg
