@@ -74,7 +74,7 @@ typedef enum _IO_pin_id
 	IO_PIN_ID_PB19,
 	IO_PIN_ID_PB20,
 	IO_PIN_ID_PB21,
-#endif // MCU_SAMC21E18A
+#endif // MCU_SAMC21N18A
 
 	IO_PIN_ID_PB22,
 	IO_PIN_ID_PB23,
@@ -82,7 +82,7 @@ typedef enum _IO_pin_id
 #ifdef MCU_SAMC21N18A
 	IO_PIN_ID_PB24,
 	IO_PIN_ID_PB25,
-#endif // MCU_SAMC21E18A
+#endif // MCU_SAMC21N18A
 
 	// no PB26
 	// no PB27

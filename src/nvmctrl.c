@@ -30,7 +30,7 @@ static void 	NVMCTRL_exec	(uint8_t command);
  *	and used as a base address for the app_nvm rows.
  *	It shouldn't be used directly.
  */
-extern const uint32_t app_nvm_base SECTION_APP_NVM;
+extern const uint32_t app_nvm_base;
 
 /**
  *	Dedicated app_nvm rows, used to store application data
@@ -51,7 +51,8 @@ static volatile uint8_t * pu8_app_nvm_rows[NVMCTRL_APP_NVM_ROW_NUM_ROWS];
 void NVMCTRL_init(void)
 {
 	// The location of NVM rows
-	uint32_t app_nvm_rows_start = (uint32_t)&app_nvm_base;
+	// FIXME
+	uint32_t app_nvm_rows_start = 0;
 
 	// Initialize app_nvm section row pointers
 	pu8_app_nvm_rows[NVMCTRL_APP_NVM_ROW_ID_0] = (volatile uint8_t *)app_nvm_rows_start + (0 * NVMCTRL_NVM_ROW_SIZE);

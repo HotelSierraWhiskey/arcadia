@@ -2,6 +2,7 @@
 #define SHELL_H
 
 #include "common.h"
+#include "shell_printf.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -63,7 +64,6 @@
 
 void	SHELL_init				(void);
 void 	SHELL_task				(void * p_params);
-void 	SHELL_printf			(const char *format, ...);
 void 	SHELL_display_banner	(void);
 
 #endif // SHELL_H

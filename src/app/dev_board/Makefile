@@ -38,6 +38,7 @@ APP_INC = 	-I../ \
 			$(TETHYS_INC)
 
 APP_TASKS = 	$(SRC)/tasks/shell/shell.c \
+				$(SRC)/tasks/shell/shell_printf.c \
 				$(SRC)/tasks/drive/drive.c \
 				$(SRC)/tasks/drive/drive_api.c \
 				$(SRC)/tasks/chrono/chrono.c \

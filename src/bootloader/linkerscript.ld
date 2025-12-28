@@ -1,8 +1,14 @@
 MEMORY
 {
-	FLASH	(rx):	ORIGIN = 0x00004000, LENGTH = 0x0003C000 /* 255K of flash */
+	FLASH 	(rx): ORIGIN = 0x00000000, LENGTH = 0x00004000 
 	RAM		(rwx):	ORIGIN = 0x20000000, LENGTH = 0x00008000 /* 32K total RAM */ 
 }
+
+PROVIDE(_bootrom_start = ORIGIN(FLASH));
+PROVIDE(_bootrom_size  = LENGTH(FLASH));
+
+PROVIDE(_approm_start  = ORIGIN(FLASH) + LENGTH(FLASH));  /* 0x00004000 */
+PROVIDE(_approm_size   = 0x00040000 - LENGTH(FLASH));     /* total flash (256K) minus boot */
 
 PHDRS
 {
@@ -15,7 +21,6 @@ PHDRS
  * Section definitions:
  *
  * .text 		- machine instructions.
- * .appnvm		- application specific flash
  * .data 		- initialized data defined in the program.
  * .bss 		- un-initialized global and static variables (to be initialized to 0 before starting main).
  * .stack		- just contains the pointer to the stack end at the right place.

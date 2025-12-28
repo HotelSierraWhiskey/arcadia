@@ -1,4 +1,5 @@
 #include "shell.h"
+#include "shell_types.h"
 #include "utils.h"
 #include "uart.h"
 #include "sys.h"
@@ -25,7 +26,6 @@
 #define SHELL_LOG_DBG(fmt, ...)   					SHELL_printf("\r%-12s" fmt, "[SHELL]", ##__VA_ARGS__)
 #define SHELL_LOG_WARN(fmt, ...)   					SHELL_PRINT_WARNING("\r%-12s" fmt, "[SHELL]", ##__VA_ARGS__)
 
-#define SHELL_COMMAND_BUFFER_SIZE	(512)
 #define SHELL_CRLF					"\r\n"
 #define SHELL_MAX_TOKENS			(16)
 #define SHELL_MAX_ARGS				(8)
@@ -52,17 +52,6 @@ typedef struct _SHELL_command
 	const char *					kpc_docstring;
 } SHELL_command_t;
 
-/**
- *	Module info struct
- */
-typedef struct _SHELL_info
-{
-	char				pc_buffer[SHELL_COMMAND_BUFFER_SIZE];
-	uint16_t			u16_index;
-	SemaphoreHandle_t 	printf_mutex;
-	StaticSemaphore_t 	printf_mutex_buffer;
-} SHELL_info_t;
-
 /****************************************************************************************************
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
  ****************************************************************************************************/
@@ -79,6 +68,8 @@ uint8_t			SHELL_shell_clear			(uint8_t argc, char ** argv);
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
+
+extern SHELL_info_t SHELL_info;
 
 // Arcadia ASCII art banner
 const char * kp_arcadia_banner = 
@@ -778,10 +769,6 @@ static const SHELL_command_t kp_target_port_command_table[] =
 };
 #endif // JLINK_MUX
 
-static char printf_buffer[SHELL_COMMAND_BUFFER_SIZE];
-
-static SHELL_info_t SHELL_info;
-
 /****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
@@ -873,34 +860,6 @@ void SHELL_task(void * p_params)
 }
 
 /****************************************************************************************************
- *	Shell's `printf` implementation, used system-wide
- *
- ****************************************************************************************************/
-void SHELL_printf(const char *format, ...)
-{
-    va_list args;
-
-    va_start(args, format);
-
-    xSemaphoreTake(SHELL_info.printf_mutex, portMAX_DELAY);
-
-    (void)vsnprintf(printf_buffer, sizeof(printf_buffer), format, args);
-
-    va_end(args);
-
-    for (char *p = printf_buffer; *p != '\0'; ++p)
-    {
-        if (*p == '\n')  // Check for newline
-        {
-            UART_tx_char(UART_CHANNEL_SHELL, '\r');
-        }
-        UART_tx_char(UART_CHANNEL_SHELL, *p);
-    }
-
-    xSemaphoreGive(SHELL_info.printf_mutex);
-}
-
-/****************************************************************************************************
  *	Flushes the shell command buffer
  *
  ****************************************************************************************************/
@@ -930,17 +889,18 @@ static void SHELL_handle_msg(void)
 	}
 }
 
+// implement me
 static void SHELL_handle_esc_sequence(void)
 {
-	char esc_seq[3];
+	// char esc_seq[3];
 
-	// UART_rx_char is non blocking and will immediately return the current character in its buffer.
-	// We could be reading the buffer before the character arrives, which is bad. So, add a slight delay here.
-	CHRONO_delay_ms(2);
+	// // UART_rx_char is non blocking and will immediately return the current character in its buffer.
+	// // We could be reading the buffer before the character arrives, which is bad. So, add a slight delay here.
+	// CHRONO_delay_ms(2);
 
-	esc_seq[0] = UART_rx_char(UART_CHANNEL_SHELL);
-	esc_seq[1] = UART_rx_char(UART_CHANNEL_SHELL);
-	esc_seq[2] = '\0';
+	// esc_seq[0] = UART_rx_char(UART_CHANNEL_SHELL);
+	// esc_seq[1] = UART_rx_char(UART_CHANNEL_SHELL);
+	// esc_seq[2] = '\0';
 }
 
 /****************************************************************************************************

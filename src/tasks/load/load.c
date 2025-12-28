@@ -167,31 +167,31 @@ int32_t LOAD_get_size (void * pv_ctx)
 
 static void LOAD_handle_message_load_module(ARCADIA_msg_t * p_msg)
 {
-	tethys_module_t		module;
-	MEMPOOL_buffer_t	module_ram = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_1K);
-	tethys_status_t		tstat;
+	// tethys_module_t		module;
+	// MEMPOOL_buffer_t	module_ram = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_1K);
+	// tethys_status_t		tstat;
 
-	*p_msg->payload.load_payload_load_module.p_result_status = ARCADIA_STATUS_OK;
+	// *p_msg->payload.load_payload_load_module.p_result_status = ARCADIA_STATUS_OK;
 
-	io.pv_ctx = &p_msg->payload.load_payload_load_module.fh;
+	// io.pv_ctx = &p_msg->payload.load_payload_load_module.fh;
 
-	module.kpc_name = p_msg->payload.load_payload_load_module.pc_name,
-	module.pv_base = module_ram,
-	module.u32_size = MEMPOOL_BUFFER_SIZE_1024,
+	// module.kpc_name = p_msg->payload.load_payload_load_module.pc_name,
+	// module.pv_base = module_ram,
+	// module.u32_size = MEMPOOL_BUFFER_SIZE_1024,
 
-	tstat = tethys_load_module(&io, &module);
+	// tstat = tethys_load_module(&io, &module);
 
-	if (tstat == TETHYS_STATUS_OK)
-	{
-		LOAD_LOG_DBG("load ok\n");
-	}
-	else
-	{
-		LOAD_LOG_DBG("bad load: %u\n", tstat);
-	}
+	// if (tstat == TETHYS_STATUS_OK)
+	// {
+	// 	LOAD_LOG_DBG("load ok\n");
+	// }
+	// else
+	// {
+	// 	LOAD_LOG_DBG("bad load: %u\n", tstat);
+	// }
 
-	ARCADIA_semaphore_give(p_msg->semaphore);
+	// ARCADIA_semaphore_give(p_msg->semaphore);
 
-	LOAD_LOG_DBG("Handled msg %s with status %u\n",
-		ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.load_payload_load_module.p_result_status);
+	// LOAD_LOG_DBG("Handled msg %s with status %u\n",
+	// 	ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.load_payload_load_module.p_result_status);
 }

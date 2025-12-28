@@ -1,10 +1,13 @@
 #include "sys.h"
 #include "io.h"
-#include "shell.h"
-#include "chrono.h"
 #include "version.h"
-#include "arcadia.h"
+
+#ifndef BOOTLOADER
 #include "utils.h"
+#include "chrono.h"
+#include "shell.h"
+#include "arcadia.h"
+#endif // !BOOTLOADER
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -360,6 +363,7 @@ uint32_t SYS_get_source_clock_freq(void)
  *	Displays a low level system report 
  *
  ****************************************************************************************************/
+#ifndef BOOTLOADER
 void SYS_boot_report(void)
 {
 	uint8_t pu8_causes[SYS_RESET_CAUSE_NUM_CAUSES] =
@@ -406,11 +410,13 @@ static void SYS_display_watermarks(void)
 	}
 	SHELL_SEPARATOR();
 }
+#endif // !BOOTLOADER
 
 /****************************************************************************************************
  *	S H E L L   F U N C T I O N S
  ****************************************************************************************************/
 
+#ifndef BOOTLOADER
 /****************************************************************************************************
  *	Shell utility
  *
@@ -597,3 +603,4 @@ void irqHARD_FAULT(void)
 	// todo: dump stacks and watermarks (probably on reset, unless we want to do direct UART stuff here)
 	SYS_reset();
 }
+#endif // !BOOTLOADER

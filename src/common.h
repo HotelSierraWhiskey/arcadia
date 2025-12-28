@@ -14,12 +14,14 @@
 #include <math.h>
 
 #ifndef UNIT_TEST
+#ifndef BOOTLOADER
 // Do not reorder. FreeRTOS must be included before task.h
 #include <FreeRTOS.h>
 #include <task.h>
 #include <queue.h>
 #include <timers.h>
 #include <semphr.h>
+#endif // BOOTLOADER
 
 #ifdef MCU_SAMC21N18A
 	#include "samc21n18a.h"
@@ -29,6 +31,6 @@
 
 #include "core_cm0plus.h"
 
-#endif // UNIT_TEST
+#endif // !UNIT_TEST
 
 #endif // COMMON_H

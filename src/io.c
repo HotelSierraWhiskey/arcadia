@@ -1,5 +1,13 @@
 #include "io.h"
+
+#ifndef BOOTLOADER
 #include "utils.h"
+#endif // !BOOTLOADER
+
+#ifdef BOOTLOADER
+// FIXME
+#define ASSERT(x)
+#endif // BOOTLOADER
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -1630,6 +1638,7 @@ const char * IO_get_pin_string(IO_pin_id_t pin_id)
 	return p_pin_map[pin_id].pc_string;
 }
 
+#ifndef BOOTLOADER
 /****************************************************************************************************
  *	Shell utility
  *
@@ -1718,3 +1727,4 @@ uint8_t	IO_shell_set(uint8_t argc, char ** argv)
 
 	return SHELL_COMMAND_SUCCESS;
 }
+#endif // !BOOTLOADER

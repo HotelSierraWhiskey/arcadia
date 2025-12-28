@@ -2,9 +2,13 @@
 #include "sercom.h"
 #include "io.h"
 #include "sys.h"
-#include "shell.h"
 #include "common.h"
+#include "arcadia_task.h"
+
+#ifndef BOOTLOADER
 #include "arcadia.h"
+#include "shell.h"
+#endif // !BOOTLOADER
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -70,7 +74,7 @@ static UART_channel_t p_uart_channels[UART_CHANNEL_NUM_CHANNELS] =
 		.rx_pin 				= IO_PIN_ID_PA25,
 		.tx_pin 				= IO_PIN_ID_PA24,
 		.u32_rx_pad 			= SERCOM_USART_INT_CTRLA_RXPO_PAD3,
-		.u32_tx_pad 			= SERCOM_USART_INT_CTRLA_TXPO_PAD1,
+		.u32_tx_pad 			= SERARCADIA_task_id_tCOM_USART_INT_CTRLA_TXPO_PAD1,
 		.baud_rate_id			= UART_BAUD_RATE_ID_115200,
 		.sercom_channel_id 		= SERCOM_CHANNEL_ID_3,
 		.peripheral_function 	= IO_PERIPHERAL_FUNCTION_C
@@ -416,17 +420,20 @@ static void UART_on_isr(UART_channel_id_t channel_id)
 	UART_channel_t * 					p_channel = &p_uart_channels[channel_id];
 	sercom_usart_int_registers_t * 		p_regs = p_channel->_p_sercom_registers;
 	volatile uint8_t 					u8_byte;
+#ifndef BOOTLOADER
 	BaseType_t 							higher_priority_task_woken = pdFALSE;
+#endif // !BOOTLOADER
 
 	// This flag is cleared by reading the SERCOM_DATA register
 	if ((p_regs->SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_RXC(1)) != 0)
 	{
 		u8_byte = p_regs->SERCOM_DATA;
 		UART_rx_buffer_push(channel_id, u8_byte);
-
+#ifndef BOOTLOADER
 		// We pushed a byte onto this uart's buffer. Notify its owner.
 		vTaskNotifyGiveFromISR(ARCADIA_handle_from_id(p_channel->owner), &higher_priority_task_woken);
 		portYIELD_FROM_ISR(higher_priority_task_woken);
+#endif // !BOOTLOADER
 	}
 
 	if ((p_regs->SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_DRE(1)) != 0)
@@ -511,7 +518,11 @@ void irqSERCOM3(void)
  ****************************************************************************************************/
 static uint32_t UART_calculate_baud_value(UART_baud_rate_id_t baud_id)
 {
+#ifdef BOOTLOADER
+	uint32_t u32_sys_clock_freq = 8000000U;
+#else
 	uint32_t u32_sys_clock_freq = SYS_get_source_clock_freq();
+#endif // BOOTLOADER
 	uint64_t u64_numerator = (uint64_t)65536 * 16 * kpu8_baud_rates[baud_id];
 	uint32_t u32_baud_value = 65536 - (uint32_t)((u64_numerator + (u32_sys_clock_freq / 2)) / u32_sys_clock_freq);
 	return u32_baud_value;
@@ -521,6 +532,7 @@ static uint32_t UART_calculate_baud_value(UART_baud_rate_id_t baud_id)
  *	S H E L L   F U N C T I O N S
  ****************************************************************************************************/
 
+#ifndef BOOTLOADER
 /****************************************************************************************************
  *	Shell utility
  *
@@ -563,3 +575,4 @@ uint8_t UART_shell_info(uint8_t argc, char ** argv)
 
 	return SHELL_COMMAND_SUCCESS;
 }
+#endif // BOOTLOADER
