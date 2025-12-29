@@ -128,14 +128,11 @@ static uint32_t		UART_calculate_baud_value	(UART_baud_rate_id_t baud_id);
  *
  ****************************************************************************************************/
 void UART_init(UART_channel_id_t channel_id)
-{
+{	
 	UART_channel_t 	* 	p_channel = &p_uart_channels[channel_id];
 	uint8_t 			u8_PCHCTRL_register_index = SERCOM_get_PCHCTRL_register_index(p_channel->sercom_channel_id);
 
 	UART_buffers_init(channel_id);
-
-	GCLK_REGS->GCLK_PCHCTRL[u8_PCHCTRL_register_index] = 	GCLK_PCHCTRL_CHEN(1) | 
-															GCLK_PCHCTRL_GEN_GCLK0;
 
 	switch (p_channel->sercom_channel_id)
 	{
@@ -166,11 +163,19 @@ void UART_init(UART_channel_id_t channel_id)
 		continue;
 	}
 
+	GCLK_REGS->GCLK_PCHCTRL[u8_PCHCTRL_register_index] = 	GCLK_PCHCTRL_CHEN(1) | 
+															GCLK_PCHCTRL_GEN_GCLK0;
+
+	while ((GCLK_REGS->GCLK_PCHCTRL[u8_PCHCTRL_register_index] & GCLK_PCHCTRL_CHEN(1)) == 0)
+	{
+		continue;
+	}
+
 	IO_enable_peripheral_function_for_pin(p_channel->rx_pin, p_channel->peripheral_function);
 	IO_enable_peripheral_function_for_pin(p_channel->tx_pin, p_channel->peripheral_function);
 
 	p_channel->_p_sercom_registers->SERCOM_CTRLA = 	p_channel->u32_rx_pad | 
-																p_channel->u32_tx_pad;
+													p_channel->u32_tx_pad;
 
 	p_channel->_p_sercom_registers->SERCOM_BAUD = UART_calculate_baud_value(p_channel->baud_rate_id);
 
@@ -178,11 +183,19 @@ void UART_init(UART_channel_id_t channel_id)
 													SERCOM_USART_INT_CTRLA_FORM_USART_FRAME_NO_PARITY |
 													SERCOM_USART_INT_CTRLA_CMODE_ASYNC |
 													SERCOM_USART_INT_CTRLA_DORD_LSB;
-
-	p_channel->_p_sercom_registers->SERCOM_CTRLB =	SERCOM_USART_INT_CTRLB_TXEN(1) |
+	p_channel->_p_sercom_registers->SERCOM_CTRLB =	
+													SERCOM_USART_INT_CTRLB_TXEN(1) |
+#ifndef BOOTLOADER
 												 	SERCOM_USART_INT_CTRLB_RXEN(1) |
+#endif // BOOTLOADER
 												 	SERCOM_USART_INT_CTRLB_CHSIZE_8_BIT |
 												 	SERCOM_USART_INT_CTRLB_SBMODE_1_BIT;
+
+	// Wait to syncronize after enabling
+	while (p_channel->_p_sercom_registers->SERCOM_SYNCBUSY & SERCOM_USART_INT_SYNCBUSY_CTRLB(1))
+	{
+		continue;
+	}													
 
 	p_channel->_p_sercom_registers->SERCOM_CTRLA |= SERCOM_USART_INT_CTRLA_ENABLE(1);
 
@@ -192,9 +205,42 @@ void UART_init(UART_channel_id_t channel_id)
 		continue;
 	}
 
+#ifndef BOOTLOADER
 	p_channel->_p_sercom_registers->SERCOM_INTENSET = SERCOM_USART_INT_INTENSET_RXC(1);
 	
 	NVIC_EnableIRQ(p_channel->_irq_index);
+#endif // !BOOTLOADER
+}
+
+void UART_tx_char_raw(UART_channel_id_t channel_id, char c)
+{
+    UART_channel_t *p = &p_uart_channels[channel_id];
+    sercom_usart_int_registers_t *r = p->_p_sercom_registers;
+
+    // while ((r->SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_DRE(1)) == 0) { }
+    r->SERCOM_DATA = (uint8_t)c;
+
+	while ((r->SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_TXC(1)) == 0)
+	{
+		continue;
+	}
+
+	r->SERCOM_INTENCLR = SERCOM_USART_INT_INTENCLR_TXC(1);
+}
+
+void UART_tx_string_raw(UART_channel_id_t channel_id, const char * kpc_string)
+{
+	if (kpc_string == NULL) {
+		return;
+	}
+
+	for (const char *p = kpc_string; *p != '\0'; ++p)
+	{
+		if (*p == '\n') {
+			UART_tx_char_raw(channel_id, '\r');
+		}
+		UART_tx_char_raw(channel_id, *p);
+	}
 }
 
 /****************************************************************************************************
@@ -453,7 +499,7 @@ static void UART_on_isr(UART_channel_id_t channel_id)
 
 			p_regs->SERCOM_DATA = u8_byte;
 
-			while ((p_regs->SERCOM_INTFLAG & SERCOM_USART_INT_INTENSET_TXC(1)) == 0)
+			while ((p_regs->SERCOM_INTFLAG & SERCOM_USART_INT_INTFLAG_TXC(1)) == 0)
 			{
 				continue;
 			}
@@ -519,7 +565,7 @@ void irqSERCOM3(void)
 static uint32_t UART_calculate_baud_value(UART_baud_rate_id_t baud_id)
 {
 #ifdef BOOTLOADER
-	uint32_t u32_sys_clock_freq = 8000000U;
+	uint32_t u32_sys_clock_freq = 48000000;
 #else
 	uint32_t u32_sys_clock_freq = SYS_get_source_clock_freq();
 #endif // BOOTLOADER
