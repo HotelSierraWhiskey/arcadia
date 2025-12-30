@@ -81,42 +81,42 @@ void LOAD_task(void * p_params)
 {
 	UNUSED(p_params);
 
-	MEMPOOL_buffer_t module_ram;
+	// MEMPOOL_buffer_t module_ram;
 
-	module_ram = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_1K);
+	// module_ram = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_1K);
 
-	file_handle_t fh = DRIVE_API_open_file(&fh, "test_1.elf", "r");
+	// file_handle_t fh = DRIVE_API_open_file(&fh, "test_1.elf", "r");
 
-	tethys_module_t module =
-	{
-		.kpc_name = "test_1.elf",
-		.pv_base = module_ram,
-		.u32_size = MEMPOOL_BUFFER_SIZE_1024,
-	};
+	// tethys_module_t module =
+	// {
+	// 	.kpc_name = "test_1.elf",
+	// 	.pv_base = module_ram,
+	// 	.u32_size = MEMPOOL_BUFFER_SIZE_1024,
+	// };
 
-	tethys_status_t tstat = tethys_init(symbols, 1);
+	// tethys_status_t tstat = tethys_init(symbols, 1);
 
-	if (tstat == TETHYS_STATUS_OK)
-	{
-		tstat = tethys_load_module(&io, &module);
+	// if (tstat == TETHYS_STATUS_OK)
+	// {
+	// 	tstat = tethys_load_module(&io, &module);
 
-		if (tstat == TETHYS_STATUS_OK)
-		{
-			LOAD_LOG_DBG("load ok\n");
-		}
-		else
-		{
-			LOAD_LOG_DBG("bad load: %u\n", tstat);
-		}
-	}
-	else
-	{
-		LOAD_LOG_DBG("bad init: %u\n", tstat);
-	}
+	// 	if (tstat == TETHYS_STATUS_OK)
+	// 	{
+	// 		LOAD_LOG_DBG("load ok\n");
+	// 	}
+	// 	else
+	// 	{
+	// 		LOAD_LOG_DBG("bad load: %u\n", tstat);
+	// 	}
+	// }
+	// else
+	// {
+	// 	LOAD_LOG_DBG("bad init: %u\n", tstat);
+	// }
 
-	module.entry(NULL);
+	// module.entry(NULL);
 
-	MEMPOOL_free(module_ram);
+	// MEMPOOL_free(module_ram);
 
 	while (1)
 	{
