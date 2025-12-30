@@ -203,10 +203,16 @@ void irqRESET()
 /****************************************************************************************************
  *	Something has gone badly wrong.
  *
+ *	TODO:
+ *	Stub for bootloader. Let the application code define this properaly upon relocation
+ * 
  *	Get the process stack pointer or the main stack pointer, whichever's in use.
  *	Save the stack, trigger a breakpoint, spin in a deadloop.
  ****************************************************************************************************/
-void irqHARD_FAULT(void);
+void __attribute__((weak)) irqHARD_FAULT(void)
+{
+	while(1);
+}
 // {
 // __asm__(
 // 	"movs    r0, #4            \n\t"
