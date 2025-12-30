@@ -3,7 +3,7 @@
 #include "sys.h"
 #include "io.h"
 #include "uart.h"
-#include "bootloader_init.h"
+#include "bootloader.h"
 #include "printf.h"
 
 /****************************************************************************************************
@@ -27,16 +27,16 @@ int main(void)
 
 	#pragma GCC diagnostic pop
 
+	// global IRQ disable
 	__disable_irq();
 
-	BOOTLOADER_INIT_sys_clock_init();
-
-	PRINTF_init();
+	// osc, system clocks, uart, etc.
+	BOOTLOADER_init();
 	
 	BOOT_LOG_DBG("System init\n");
 
 	// jump to app
-	BOOTLOADER_INIT_start_app(u32_app_reset_handler, u32_app_stack_pointer, (uint32_t)pu8_interrupt_table);
+	BOOTLOADER_start_app(u32_app_reset_handler, u32_app_stack_pointer, (uint32_t)pu8_interrupt_table);
 
 	// not reached
 	while(1)

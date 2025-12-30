@@ -66,7 +66,7 @@ SRCS := main.c \
 		../../sercom.c \
 		../../uart.c \
 		tinyprintf/tinyprintf.c \
-		bootloader_init.c \
+		bootloader.c \
 		printf.c
 
 

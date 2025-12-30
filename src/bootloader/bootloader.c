@@ -1,11 +1,11 @@
-#include "bootloader_init.h"
-#include "common.h"
+#include "bootloader.h"
+#include "printf.h"
 
 /****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-void BOOTLOADER_INIT_sys_clock_init(void)
+void BOOTLOADER_init(void)
 {
 	// This is the equivalent of SYS_osc48m_init()
 	/* **************************************************** */
@@ -67,9 +67,12 @@ void BOOTLOADER_INIT_sys_clock_init(void)
 									 
 	// Set the APB for the PORT peripheral
 	MCLK_REGS->MCLK_APBBMASK |= MCLK_APBBMASK_PORT(1);
+
+	// Enable printing
+	PRINTF_init();
 }
 
-void BOOTLOADER_INIT_NAKED BOOTLOADER_INIT_start_app(uint32_t u32_pc, uint32_t u32_sp, uint32_t u32_vtor)
+void BOOTLOADER_NAKED BOOTLOADER_start_app(uint32_t u32_pc, uint32_t u32_sp, uint32_t u32_vtor)
 {
 	(void)u32_pc;
 	(void)u32_sp;
