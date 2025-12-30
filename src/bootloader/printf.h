@@ -1,12 +1,12 @@
-#pragma once
+#ifndef PRINTF_H
+#define PRINTF_H
 
-#include <stdint.h>
+#include "tinyprintf.h"
 
 /****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-extern uint32_t _bootrom_start;
-extern uint32_t _bootrom_size;
-extern uint32_t _approm_start;
-extern uint32_t _approm_size;
+void	PRINTF_init		(void);
+
+#endif // PRINTF_H

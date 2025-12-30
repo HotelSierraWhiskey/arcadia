@@ -29,8 +29,8 @@ INC :=	-I. \
 		-I../ \
 		-I../../lib/CMSIS_5/CMSIS/Core/Include \
 		-I../../lib/samc21/include \
-		-I/usr/local/arm-gnu-toolchain-14.3.Rel1-x86_64-arm-none-eabi/include
-
+		-I/usr/local/arm-gnu-toolchain-14.3.Rel1-x86_64-arm-none-eabi/include \
+		-I./tinyprintf
 
 # **************************************************************************** #
 #	Compiler Flags
@@ -64,7 +64,12 @@ SRCS := main.c \
 		../../sys.c \
 		../../io.c \
 		../../sercom.c \
-		../../uart.c
+		../../uart.c \
+		tinyprintf/tinyprintf.c \
+		bootloader_init.c \
+		printf.c
+
+
 OBJS := $(addprefix $(BUILD)/, $(SRCS:.c=.o))
 
 # **************************************************************************** #
@@ -72,8 +77,9 @@ OBJS := $(addprefix $(BUILD)/, $(SRCS:.c=.o))
 # **************************************************************************** #
 all: $(BUILD)/$(TARGET).elf $(BUILD)/$(TARGET).hex $(BUILD)/$(TARGET).bin
 
-$(BUILD):
-	mkdir -p $(BUILD)
+$(BUILD)/%.o: %.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD)/%.o: %.c | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
