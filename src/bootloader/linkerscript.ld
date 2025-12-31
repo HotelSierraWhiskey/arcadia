@@ -1,6 +1,6 @@
 MEMORY
 {
-	FLASH 	(rx): ORIGIN = 0x00000000, LENGTH = 0x00004000	/* 16K flash for bootloader */
+	FLASH 	(rx): 	ORIGIN = 0x00000000, LENGTH = 0x00004000 /* 16K flash for bootloader */
 	APPNVM 	(rx) : 	ORIGIN = 0x0003FC00, LENGTH = 0x00000400 /* 1K named flash */
 	RAM		(rwx):	ORIGIN = 0x20000000, LENGTH = 0x00008000 /* 32K total RAM */ 
 }
@@ -49,7 +49,7 @@ SECTIONS
 
     PROVIDE(u32_end_text = .);
 
-	.appnvm :
+	.appnvm (NOLOAD) :
 	{
 		PROVIDE(app_nvm_base = .);
 		KEEP(*(.app_nvm*))

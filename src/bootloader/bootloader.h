@@ -19,6 +19,6 @@
 
 void						BOOTLOADER_init					(void);
 void BOOTLOADER_NAKED		BOOTLOADER_start_app			(uint32_t u32_pc, uint32_t u32_sp, uint32_t u32_vtor);
-bool 						BOOTLOADER_found_app_images		(void);
+bool 						BOOTLOADER_update_flag_set		(void);
 
 #endif // BOOTLOADER_H

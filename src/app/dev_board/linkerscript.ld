@@ -44,7 +44,7 @@ SECTIONS
 
     PROVIDE(u32_end_text = .);
 
-	.appnvm :
+	.appnvm (NOLOAD) :
 	{
 		PROVIDE(app_nvm_base = .);
 		KEEP(*(.app_nvm*))

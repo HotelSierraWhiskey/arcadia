@@ -2,6 +2,21 @@
 #include "printf.h"
 #include "nvmctrl.h"
 
+#define BOOTLOADER_IMAGE_NAME_MAX	(128U)
+
+typedef union _BOOTLOADER_boot_row
+{
+	struct
+	{
+		char	pc_image_name[BOOTLOADER_IMAGE_NAME_MAX];
+		struct
+		{
+			unsigned	update : 1;
+		} flags;
+	} data;
+	uint8_t pu8_raw[NVMCTRL_ROW_SIZE];
+} BOOTLOADER_boot_row_t;
+
 /****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
@@ -40,11 +55,11 @@ void BOOTLOADER_init(void)
 
 	// Configure GCLK0 with OSC48M as a clock source
 	GCLK_REGS->GCLK_GENCTRL[0] = GCLK_GENCTRL_SRC(GCLK_GENCTRL_SRC_OSC48M) | 
-                                 GCLK_GENCTRL_GENEN(1) |
+								 GCLK_GENCTRL_GENEN(1) |
 								 GCLK_GENCTRL_DIVSEL(0) |
 								 GCLK_GENCTRL_DIV(0) |
 								 GCLK_GENCTRL_IDC(1) |
-                                 GCLK_GENCTRL_OE(1);
+								 GCLK_GENCTRL_OE(1);
 
 	while (GCLK_REGS->GCLK_SYNCBUSY & GCLK_SYNCBUSY_GENCTRL0(1))
 	{
@@ -91,25 +106,39 @@ void BOOTLOADER_NAKED BOOTLOADER_start_app(uint32_t u32_pc, uint32_t u32_sp, uin
 	);
 }
 
-bool BOOTLOADER_found_app_images(void)
+bool BOOTLOADER_update_flag_set(void)
 {
-	uint8_t ** ppu8_rows = NVMCTRL_get_rows();
+	uint8_t **					ppu8_rows = NVMCTRL_get_rows();
+	volatile uint8_t *			pu8_row_flash = ppu8_rows[NVMCTRL_APP_NVM_ROW_ID_0];
+	const uint32_t				ku32_row_addr = (uint32_t)(uintptr_t)pu8_row_flash;
+	BOOTLOADER_boot_row_t *		p_boot_row;
+	uint8_t						pu8_buf[NVMCTRL_ROW_SIZE];
 
-	for (uint8_t u8_row = 0; u8_row < NVMCTRL_APP_NVM_ROW_NUM_ROWS; u8_row++)
+	// Save the boot row data to RAM
+	memcpy(pu8_buf, (const void *)pu8_row_flash, sizeof(pu8_buf));
+
+	// Nuke the boot row no matter what
+	NVMCTRL_erase_row(ku32_row_addr);
+
+	if (pu8_buf[0] == 0xFF)
 	{
-		// tfp_printf("ppu8_rows[%u] = %p", u8_row, ppu8_rows[u8_row]);
+		return false;
+	}
 
-		// for (uint16_t i = 0; i < NVMCTRL_PAGE_SIZE; i++)
-		// {
-		// 	tfp_printf("%02X ", ppu8_rows[u8_row][i]);
+	p_boot_row = (BOOTLOADER_boot_row_t *)pu8_buf;
 
-		// 	if ((i % 0x20) == 0x20 - 1)
-		// 	{
-		// 		tfp_printf("\n");
-		// 	}
-		// }
+	p_boot_row->data.pc_image_name[BOOTLOADER_IMAGE_NAME_MAX - 1] = '\0';
 
-		// tfp_printf("\n");
+	BOOT_LOG_DBG("Found image name in boot row: %s\n", p_boot_row->data.pc_image_name);
+
+	for (uint16_t i = 0; i < sizeof(pu8_buf); i++)
+	{
+		tfp_printf("%02X ", pu8_buf[i]);
+
+		if ((i % 0x20) == 0x1F)
+		{
+			tfp_printf("\n");
+		}
 	}
 
 	return false;

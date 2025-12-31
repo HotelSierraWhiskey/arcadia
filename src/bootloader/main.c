@@ -31,7 +31,7 @@ int main(void)
 	BOOT_CLEAR_TERMINAL();
 	BOOT_LOG_DBG("System init\n");
 
-	BOOTLOADER_found_app_images();
+	BOOTLOADER_update_flag_set();
 
 	// jump to app
 	BOOTLOADER_start_app(u32_app_reset_handler, u32_app_stack_pointer, (uint32_t)pu8_interrupt_table);

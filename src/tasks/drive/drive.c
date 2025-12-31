@@ -71,7 +71,8 @@ static DRIVE_info_t DRIVE_info;
 void DRIVE_init(void)
 {
 	// Initialize NVMCTRL module
-	// NVMCTRL_init();
+	// FIXME this is also called in the bootloader but the rows need to be reinitialized
+	NVMCTRL_init();
 
 	// Initialize EIC driver here,
 	// since external interrupts are all handled in DRIVE context
@@ -220,8 +221,6 @@ static void DRIVE_handle_msg_write_nvm(ARCADIA_msg_t * p_msg)
 	uint8_t * 	pc_buffer = (uint8_t *)p_msg->payload.drive_payload_write_nvm.kpc_buffer;
 
 	DRIVE_LOG_DBG("Writing to row (0x%08X - 0x%08X)\n", u32_row_addr, u32_row_addr + NVMCTRL_ROW_SIZE - 1);
-
-	NVMCTRL_erase_row(u32_row_addr);
 
 	for (uint8_t i = 0; i < (NVMCTRL_ROW_SIZE / NVMCTRL_PAGE_SIZE); i++)
 	{
