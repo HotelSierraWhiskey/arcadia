@@ -6,6 +6,8 @@ ARM_GNU_TOOLCHAIN = /opt/arm_gnu_toolchain
 CC = $(ARM_GNU_TOOLCHAIN)/arm-none-eabi-gcc
 CCLD = $(ARM_GNU_TOOLCHAIN)/arm-none-eabi-ld
 SIZE = $(ARM_GNU_TOOLCHAIN)/arm-none-eabi-size
+OBJCOPY := $(ARM_GNU_TOOLCHAIN)/arm-none-eabi-objcopy
+SREC_CAT := srec_cat
 JLINK = JLinkExe
 
 COMMON_FLAGS = \
@@ -19,9 +21,30 @@ COMMON_FLAGS = \
 	-fdata-sections \
 	-fstack-usage \
 	--specs=nano.specs
-	
 
 export CC CCLD SIZE JLINK COMMON_FLAGS
+
+# **************************************************************************** #
+#	Paths
+# **************************************************************************** #
+
+SRC				:= src
+BOOTLOADER_DIR	:= $(SRC)/bootloader
+APP_DIR			:= $(SRC)/app/dev_board
+
+BOOTLOADER_HEX	:= $(BOOTLOADER_DIR)/build/bootloader.hex
+APP_ELF			:= $(APP_DIR)/build/app_dev_board.elf
+APP_HEX			:= $(APP_DIR)/build/app_dev_board.hex
+COMBINED_HEX	:= $(APP_DIR)/build/combined.hex
+
+# **************************************************************************** #
+#	Bootloader
+# **************************************************************************** #
+
+.PHONY: compile_bootloader
+compile_bootloader:
+	$(MAKE) -C $(BOOTLOADER_DIR) clean
+	$(MAKE) -C $(BOOTLOADER_DIR)
 
 # **************************************************************************** #
 #	Dev Board
@@ -31,45 +54,37 @@ export CC CCLD SIZE JLINK COMMON_FLAGS
 compile_dev_board:
 	$(MAKE) -C src/app/dev_board compile_dev_board
 
-.PHONY: compile_dev_board
-upload_dev_board:
-	$(MAKE) -C src/app/dev_board upload_dev_board
-
 .PHONY: clean_dev_board
 clean_dev_board:
 	$(MAKE) -C src/app/dev_board clean_dev_board
 
-# **************************************************************************** #
-#	Audio Switch
-# **************************************************************************** #
+.PHONY: compile_dev_board
+upload_dev_board:
+	$(MAKE) -C src/app/dev_board upload_dev_board
 
-.PHONY: compile_audio_switch
-compile_audio_switch:
-	$(MAKE) -C src/app/audio_switch compile_audio_switch
+.PHONY: app_hex
+app_hex: $(APP_HEX)
 
-.PHONY: compile_audio_switch
-upload_audio_switch:
-	$(MAKE) -C src/app/audio_switch upload_audio_switch
-
-.PHONY: clean_audio_switch
-clean_audio_switch:
-	$(MAKE) -C src/app/audio_switch clean_audio_switch
+$(APP_HEX): $(APP_ELF)
+	$(OBJCOPY) -O ihex $< $@
 
 # **************************************************************************** #
-#	JLink Mux
+#	Combine hex
 # **************************************************************************** #
 
-.PHONY: compile_jlink_mux
-compile_jlink_mux:
-	$(MAKE) -C src/app/jlink_mux compile_jlink_mux
+.PHONY: combine_hex
+combine_hex: $(COMBINED_HEX)
 
-.PHONY: compile_jlink_mux
-upload_jlink_mux:
-	$(MAKE) -C src/app/jlink_mux upload_jlink_mux
+$(COMBINED_HEX): $(BOOTLOADER_HEX) $(APP_HEX)
+	$(SREC_CAT) $(BOOTLOADER_HEX) -Intel $(APP_HEX) -Intel -o $@ -Intel
 
-.PHONY: clean_jlink_mux
-clean_jlink_mux:
-	$(MAKE) -C src/app/jlink_mux clean_jlink_mux
+# **************************************************************************** #
+#	Unified
+# **************************************************************************** #
+
+.PHONY: upload_unified
+upload_unified: compile_bootloader clean_dev_board compile_dev_board app_hex combine_hex
+	$(MAKE) -C $(APP_DIR) upload_dev_board
 
 # **************************************************************************** #
 #	Utils
@@ -79,6 +94,12 @@ clean_jlink_mux:
 gdb_server:
 	JLinkGDBServer -device ATSAMC21N18 -if SWD -speed 4000
 
+
+# FIXME:
+# some bootloader deps are being built in the source tree
+# they should be built in src/bootloader/build
 .PHONY:
 clean:
-	$(MAKE) clean_audio_switch clean_dev_board clean_jlink_mux
+	rm -f $(SRC)/*.o
+	$(MAKE) -C $(BOOTLOADER_DIR) clean
+	$(MAKE) clean_dev_board
