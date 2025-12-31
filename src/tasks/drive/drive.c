@@ -71,7 +71,7 @@ static DRIVE_info_t DRIVE_info;
 void DRIVE_init(void)
 {
 	// Initialize NVMCTRL module
-	NVMCTRL_init();
+	// NVMCTRL_init();
 
 	// Initialize EIC driver here,
 	// since external interrupts are all handled in DRIVE context
@@ -216,15 +216,17 @@ static void	DRIVE_handle_msg_read_nvm(ARCADIA_msg_t * p_msg)
  ****************************************************************************************************/
 static void DRIVE_handle_msg_write_nvm(ARCADIA_msg_t * p_msg)
 {
-	uint32_t 	u32_addr = p_msg->payload.drive_payload_write_nvm.u32_addr;
+	uint32_t 	u32_row_addr = p_msg->payload.drive_payload_write_nvm.u32_addr;
 	uint8_t * 	pc_buffer = (uint8_t *)p_msg->payload.drive_payload_write_nvm.kpc_buffer;
 
-	DRIVE_LOG_DBG("Writing to row (0x%08X - 0x%08X)\n", u32_addr, u32_addr + NVMCTRL_ROW_SIZE - 1);
+	DRIVE_LOG_DBG("Writing to row (0x%08X - 0x%08X)\n", u32_row_addr, u32_row_addr + NVMCTRL_ROW_SIZE - 1);
+
+	NVMCTRL_erase_row(u32_row_addr);
 
 	for (uint8_t i = 0; i < (NVMCTRL_ROW_SIZE / NVMCTRL_PAGE_SIZE); i++)
 	{
-		NVMCTRL_write_page(u32_addr, pc_buffer + (NVMCTRL_PAGE_SIZE * i));
-		u32_addr += NVMCTRL_PAGE_SIZE;
+		NVMCTRL_write_page(u32_row_addr, pc_buffer + (NVMCTRL_PAGE_SIZE * i));
+		u32_row_addr += NVMCTRL_PAGE_SIZE;
 	}
 
 	*p_msg->payload.drive_payload_write_nvm.p_result_status = ARCADIA_STATUS_OK;

@@ -14,6 +14,7 @@
 #include "io.h"
 #include "dac.h"
 #include "dma.h"
+#include "shell_utils.h"
 
 #ifdef JLINK_MUX
 #include "target_port.h"
@@ -28,13 +29,8 @@
 
 #define SHELL_CRLF					"\r\n"
 #define SHELL_MAX_TOKENS			(16)
-#define SHELL_MAX_ARGS				(8)
+#define SHELL_MAX_ARGS				(16)
 #define SHELL_COMMAND_TABLE_END		{NULL, NULL, NULL, NULL}
-
-/**
- *	ANSI esc sequence stuff
- */
-#define SHELL_CLEAR_SCREEN			"\x1b[2J\x1b[H"
 
 /**
  *	Shell function pointer typedef

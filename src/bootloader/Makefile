@@ -30,7 +30,8 @@ INC :=	-I. \
 		-I../../lib/CMSIS_5/CMSIS/Core/Include \
 		-I../../lib/samc21/include \
 		-I/usr/local/arm-gnu-toolchain-14.3.Rel1-x86_64-arm-none-eabi/include \
-		-I./tinyprintf
+		-I./tinyprintf \
+		-I../tasks/shell
 
 # **************************************************************************** #
 #	Compiler Flags
@@ -65,6 +66,7 @@ SRCS := main.c \
 		../../io.c \
 		../../sercom.c \
 		../../uart.c \
+		../../nvmctrl.c \
 		tinyprintf/tinyprintf.c \
 		bootloader.c \
 		printf.c

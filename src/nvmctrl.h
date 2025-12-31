@@ -2,13 +2,22 @@
 #define NVMCTRL_H
 
 #include "common.h"
-#include "shell.h"
+// #include "shell.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
 
+/**
+ *	app_nvm section attribute
+ */
+#define SECTION_APP_NVM				__attribute__((section(".app_nvm")))
+
+/**
+ *	Relative offset of NVM memory
+ */
 #define NVMCTRL_MEMORY				((volatile uint16_t * )(0x00U))
+
 
 typedef enum _NVMCTRL_app_nvm_row_id
 {
@@ -24,10 +33,11 @@ typedef enum _NVMCTRL_app_nvm_row_id
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-void		NVMCTRL_init					(void);
-void 		NVMCTRL_write_page				(uint32_t u32_addr, uint8_t * pu8_buffer);
-void 		NVMCTRL_erase_row				(uint32_t u32_addr);
-uint32_t	NVMCTRL_get_addr_from_row_id	(const NVMCTRL_app_nvm_row_id_t k_row_id);
+void					NVMCTRL_init					(void);
+void 					NVMCTRL_write_page				(uint32_t u32_addr, uint8_t * pu8_buffer);
+void 					NVMCTRL_erase_row				(uint32_t u32_addr);
+uint32_t				NVMCTRL_get_addr_from_row_id	(const NVMCTRL_app_nvm_row_id_t k_row_id);
+volatile uint8_t **		NVMCTRL_get_rows				(void);
 
 /****************************************************************************************************
  *	S H E L L   F U N C T I O N S

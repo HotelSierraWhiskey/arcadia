@@ -5,12 +5,7 @@
 #include "uart.h"
 #include "bootloader.h"
 #include "printf.h"
-
-/****************************************************************************************************
- *	D E F I N E S   &   T Y P E D E F S
- ****************************************************************************************************/
-
-#define BOOT_LOG_DBG(fmt, ...)   		tfp_printf("\r%-12s" fmt, "[BOOT]", ##__VA_ARGS__)
+#include "shell_utils.h"
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -33,7 +28,10 @@ int main(void)
 	// osc, system clocks, uart, etc.
 	BOOTLOADER_init();
 	
+	BOOT_CLEAR_TERMINAL();
 	BOOT_LOG_DBG("System init\n");
+
+	BOOTLOADER_found_app_images();
 
 	// jump to app
 	BOOTLOADER_start_app(u32_app_reset_handler, u32_app_stack_pointer, (uint32_t)pu8_interrupt_table);

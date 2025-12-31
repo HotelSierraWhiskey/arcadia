@@ -1,5 +1,6 @@
 #include "bootloader.h"
 #include "printf.h"
+#include "nvmctrl.h"
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -70,6 +71,9 @@ void BOOTLOADER_init(void)
 
 	// Enable printing
 	PRINTF_init();
+
+	// Init NVMCTRL module
+	NVMCTRL_init();
 }
 
 void BOOTLOADER_NAKED BOOTLOADER_start_app(uint32_t u32_pc, uint32_t u32_sp, uint32_t u32_vtor)
@@ -85,4 +89,28 @@ void BOOTLOADER_NAKED BOOTLOADER_start_app(uint32_t u32_pc, uint32_t u32_sp, uin
 		"cpsie i				\n"	// enable interrupts
 		"bx  r0					\n"	// branch to pc
 	);
+}
+
+bool BOOTLOADER_found_app_images(void)
+{
+	uint8_t ** ppu8_rows = NVMCTRL_get_rows();
+
+	for (uint8_t u8_row = 0; u8_row < NVMCTRL_APP_NVM_ROW_NUM_ROWS; u8_row++)
+	{
+		// tfp_printf("ppu8_rows[%u] = %p", u8_row, ppu8_rows[u8_row]);
+
+		// for (uint16_t i = 0; i < NVMCTRL_PAGE_SIZE; i++)
+		// {
+		// 	tfp_printf("%02X ", ppu8_rows[u8_row][i]);
+
+		// 	if ((i % 0x20) == 0x20 - 1)
+		// 	{
+		// 		tfp_printf("\n");
+		// 	}
+		// }
+
+		// tfp_printf("\n");
+	}
+
+	return false;
 }
