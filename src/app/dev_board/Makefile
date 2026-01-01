@@ -67,7 +67,6 @@ APP_VPATH = 	$(APP_TASKS) \
 				$(SRC)/sd.c \
 				$(SRC)/fsif.c \
 				$(SRC)/mempool.c \
-				$(SRC)/button.c \
 				$(SRC)/dac.c \
 				$(SRC)/exti.c \
 				$(SRC)/dma.c \
