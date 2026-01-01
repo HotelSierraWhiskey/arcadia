@@ -57,11 +57,6 @@ void DAC_write(uint16_t u16_data)
     }
 }
 
-const uint16_t * DAC_get_data_register(void)
-{
-	return (const uint16_t *)DAC_REGS->DAC_DATA;
-}
-
 /****************************************************************************************************
  *	Shell utility
  *
