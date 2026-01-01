@@ -1,7 +1,0 @@
-Device ATSAMC21E18A
-SelectInterface SWD
-Speed 4000
-LoadFile build/app_audio_switch.elf
-ResetX 10
-Go
-Exit

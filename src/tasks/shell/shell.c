@@ -10,7 +10,6 @@
 #include "chrono.h"
 #include "spi.h"
 #include "sd.h"
-#include "app_fsm.h"
 #include "io.h"
 #include "dac.h"
 #include "dma.h"
