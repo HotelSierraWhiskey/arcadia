@@ -29,6 +29,14 @@ typedef struct _DRIVE_PAYLOAD_erase_nvm
 	ARCADIA_status_t *		p_result_status;
 } DRIVE_PAYLOAD_erase_nvm_t;
 
+typedef struct _DRIVE_PAYLOAD_write_boot_row
+{
+	const char *			kpc_image_name;
+	bool					b_firmware_update;
+	uint32_t				u32_addr;
+	ARCADIA_status_t *		p_result_status;
+} DRIVE_PAYLOAD_write_boot_row_t;
+
 typedef struct _DRIVE_PAYLOAD_open_file
 {
 	file_handle_t * 		p_file_handle;

@@ -140,6 +140,39 @@ ARCADIA_status_t DRIVE_API_erase_nvm(const NVMCTRL_app_nvm_row_id_t k_row_id)
 	return status;
 }
 
+ARCADIA_status_t DRIVE_API_write_boot_row (const char * kpc_image_name, bool b_firmware_update)
+{
+	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
+
+	DRIVE_PAYLOAD_write_boot_row_t payload =
+	{
+		.kpc_image_name = kpc_image_name,
+		.b_firmware_update = b_firmware_update,
+		.u32_addr = NVMCTRL_get_addr_from_row_id(NVMCTRL_APP_NVM_ROW_ID_0),
+		.p_result_status = &status
+	};
+
+	ARCADIA_msg_t msg =
+	{
+		.id = ARCADIA_MSG_ID_DRIVE_WRITE_BOOT_ROW,
+		.from = ARCADIA_get_current_task_id(),
+		.payload.drive_payload_write_boot_row = payload
+	};
+
+	msg.semaphore = ARCADIA_semaphore_alloc(&msg.semaphore_buffer);
+
+	ARCADIA_send(ARCADIA_TASK_ID_DRIVE, &msg);
+	
+	if (!ARCADIA_semaphore_take(msg.semaphore))
+	{
+		status = ARCADIA_STATUS_API_TIMEOUT;
+	}
+
+	ARCADIA_semaphore_free(msg.semaphore);
+
+	return status;
+}
+
 ARCADIA_status_t DRIVE_API_open_file(file_handle_t * p_file_handle, const char *kpc_fname, const char * kpc_open_mode)
 {
 	ARCADIA_status_t status = ARCADIA_STATUS_FAILED;
@@ -583,6 +616,41 @@ uint8_t DRIVE_API_shell_write_nvm(uint8_t argc, char ** argv)
 /****************************************************************************************************
  *	Shell utility
  *
+ * 	Writes data to the boot row
+ * 
+ *	@param[in] argc
+ *	@param[in] argv
+ *
+ *	@return `SHELL_COMMAND_SUCCESS`
+ ****************************************************************************************************/
+uint8_t DRIVE_API_shell_write_boot_row(uint8_t argc, char ** argv)
+{
+	uint32_t			u32_update;
+	bool				b_res = false;
+
+	if (argc == 2)
+	{
+		if (UTILS_string_to_u32(argv[1], &u32_update))
+		{
+			if (u32_update == 0 || u32_update == 1)
+			{
+				DRIVE_API_write_boot_row(argv[0], (bool)u32_update);
+				b_res = true;
+			}
+		}
+	}
+
+	if (!b_res)
+	{
+		SHELL_printf("Usage: drive nvm br <image_name> <0|1>\n");
+	}
+
+	return SHELL_COMMAND_SUCCESS;
+}
+
+/****************************************************************************************************
+ *	Shell utility
+ *
  * 	Runs the interface wrapper for FatFs f_mkfs
  * 
  *	@param[in] argc
@@ -815,7 +883,7 @@ uint8_t DRIVE_API_shell_touch(uint8_t argc, char ** argv)
 
 	if (argc == 1)
 	{
-    	f_result = f_open(&file, argv[0], FA_READ | FA_OPEN_ALWAYS);
+		f_result = f_open(&file, argv[0], FA_READ | FA_OPEN_ALWAYS);
 
 		if (FR_OK == f_result)
 		{

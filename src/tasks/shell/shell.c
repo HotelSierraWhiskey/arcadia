@@ -407,6 +407,15 @@ static const SHELL_command_t kp_drive_fs_command_table[] =
 static const SHELL_command_t kp_drive_nvm_command_table[] =
 {
 	{
+		.kpc_name 			= "br",
+		.function 			= DRIVE_API_shell_write_boot_row,
+		.kp_command_table 	= NULL,
+		.kpc_docstring		= 	(
+									"\tWrites data to the boot row\n"
+									"\tUsage: drive nvm br <image_name> <0|1>\n"
+								)
+	},
+	{
 		.kpc_name 			= "erase",
 		.function 			= DRIVE_API_shell_erase_nvm,
 		.kp_command_table 	= NULL,
