@@ -11,14 +11,15 @@
 
 #define BOOT_CLEAR_TERMINAL()			tfp_printf(SHELL_CLEAR_SCREEN)
 
-#define BOOTLOADER_NAKED				__attribute__((naked))
+#define NAKED							__attribute__((naked))
+#define NORETURN						__attribute__((noreturn))
 
 /****************************************************************************************************
  *	F U N C T I O N S
  ****************************************************************************************************/
 
 void						BOOTLOADER_init					(void);
-void BOOTLOADER_NAKED		BOOTLOADER_start_app			(uint32_t u32_pc, uint32_t u32_sp, uint32_t u32_vtor);
+void NAKED NORETURN			BOOTLOADER_start_app			(uint32_t u32_pc, uint32_t u32_sp, uint32_t u32_vtor);
 bool 						BOOTLOADER_update_flag_set		(void);
 void						BOOTLOADER_update_firmware		(void);
 

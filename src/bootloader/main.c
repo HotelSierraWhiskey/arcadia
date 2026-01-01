@@ -11,12 +11,12 @@
  *	F U N C T I O N S
  ****************************************************************************************************/
 
-int main(void)
+int NORETURN main(void)
 {
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Warray-bounds"
 
-	uint32_t *	pu8_interrupt_table  = &_approm_start;
+	uint32_t *	pu8_interrupt_table = &_approm_start;
 	uint32_t 	u32_app_stack_pointer = pu8_interrupt_table[0];
 	uint32_t 	u32_app_reset_handler = pu8_interrupt_table[1];
 
@@ -42,8 +42,5 @@ int main(void)
 	BOOTLOADER_start_app(u32_app_reset_handler, u32_app_stack_pointer, (uint32_t)pu8_interrupt_table);
 
 	// not reached
-	while(1)
-	{
-		continue;
-	}
+	while(1);
 }

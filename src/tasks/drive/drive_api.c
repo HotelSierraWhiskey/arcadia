@@ -952,7 +952,6 @@ uint8_t DRIVE_API_shell_read(uint8_t argc, char ** argv)
 {
 	uint32_t 			file_handle;
 	MEMPOOL_buffer_t 	file_buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_512);
-	uint32_t			u32_file_size;
 	uint32_t			u32_bytes_to_read;
 	uint32_t			u32_offset;
 	bool				b_res = false;

@@ -83,7 +83,6 @@ void NVMCTRL_init(void)
 void NVMCTRL_write_page(uint32_t u32_addr, uint8_t * pu8_buffer)
 {
 	uint16_t u16_data;
-	uint32_t u32_orig_addr = u32_addr;
 
 	NVMCTRL_exec(NVMCTRL_COMMAND_PAGE_BUFFER_CLEAR);
 
@@ -104,7 +103,6 @@ void NVMCTRL_write_page(uint32_t u32_addr, uint8_t * pu8_buffer)
 	NVMCTRL_REGS->NVMCTRL_ADDR = u32_addr;
 
 	NVMCTRL_exec(NVMCTRL_COMMAND_WRITE_PAGE);
-	// NVMCTRL_LOG_DBG("Page write (0x%08X)\r\n", u32_orig_addr);
 }
 
 /****************************************************************************************************
@@ -132,6 +130,11 @@ uint32_t NVMCTRL_get_addr_from_row_id(const NVMCTRL_app_nvm_row_id_t k_row_id)
 	return (uint32_t)ppu8_app_nvm_rows[k_row_id];
 }
 
+/****************************************************************************************************
+ *	Retrieves the application NVM rows
+ * 
+ *	@return `ppu8_app_nvm_rows`
+ ****************************************************************************************************/
 volatile uint8_t ** NVMCTRL_get_rows(void)
 {
 	return ppu8_app_nvm_rows;

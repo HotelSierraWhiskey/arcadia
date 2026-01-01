@@ -111,18 +111,18 @@ void BOOTLOADER_init(void)
 	NVMCTRL_init();
 }
 
-void BOOTLOADER_NAKED BOOTLOADER_start_app(uint32_t u32_pc, uint32_t u32_sp, uint32_t u32_vtor)
+void NAKED NORETURN BOOTLOADER_start_app(uint32_t u32_pc, uint32_t u32_sp, uint32_t u32_vtor)
 {
-	(void)u32_pc;
-	(void)u32_sp;
-	(void)u32_vtor;
+	(void)u32_pc;		// r0
+	(void)u32_sp;		// r1
+	(void)u32_vtor;		// r2
 	
 	__asm__ volatile(
-		"ldr r3, =0xE000ED08	\n" // address of SCB-VTOR register
-		"str r2, [r3]			\n"	// load SCB->VTOR into scratch register R3
-		"msr msp, r1			\n"	// MSP = sp
-		"cpsie i				\n"	// enable interrupts
-		"bx  r0					\n"	// branch to pc
+		"ldr r3, =0xE000ED08	\n"	// load address of SCB-VTOR register into r3
+		"str r2, [r3]			\n"	// writes u32_vtor from r2 to SCB-VTOR (SCB->VTOR = u32_vtor)
+		"msr msp, r1			\n"	// set MSP to u32_sp via r1
+		"cpsie i				\n"	// global enable interrupts
+		"bx  r0					\n"	// branch to pc (application reset handler)
 	);
 }
 
@@ -146,16 +146,6 @@ bool BOOTLOADER_update_flag_set(void)
 	info.boot_row.data.pc_image_name[BOOTLOADER_IMAGE_NAME_MAX - 1] = '\0';
 
 	BOOT_LOG_DBG("Found image name in boot row: %s\n", info.boot_row.data.pc_image_name);
-
-	// for (uint16_t i = 0; i < NVMCTRL_ROW_SIZE; i++)
-	// {
-	// 	tfp_printf("%02X ", info.boot_row.data.pc_image_name[i]);
-
-	// 	if ((i % 0x20) == 0x1F)
-	// 	{
-	// 		tfp_printf("\n");
-	// 	}
-	// }
 
 	return info.boot_row.data.flags.update ? true : false;
 }
