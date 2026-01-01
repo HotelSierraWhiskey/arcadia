@@ -40,6 +40,7 @@ static void 		DRIVE_handle_message					(void);
 static void 		DRIVE_handle_msg_read_nvm				(ARCADIA_msg_t * p_msg);
 static void 		DRIVE_handle_msg_write_nvm				(ARCADIA_msg_t * p_msg);
 static void 		DRIVE_handle_msg_erase_nvm				(ARCADIA_msg_t * p_msg);
+static void			DRIVE_handle_msg_write_boot_row			(ARCADIA_msg_t * p_msg);
 
 static void 		DRIVE_handle_msg_open_file				(ARCADIA_msg_t * p_msg);
 static void 		DRIVE_handle_msg_close_file				(ARCADIA_msg_t * p_msg);
@@ -139,6 +140,10 @@ static void DRIVE_handle_message(void)
 
 			case ARCADIA_MSG_ID_DRIVE_ERASE_NVM:
 				DRIVE_handle_msg_erase_nvm(&msg);
+				break;
+
+			case ARCADIA_MSG_ID_DRIVE_WRITE_BOOT_ROW:
+				DRIVE_handle_msg_write_boot_row(&msg);
 				break;
 
 			case ARCADIA_MSG_ID_DRIVE_OPEN_FILE:
@@ -257,6 +262,47 @@ static void DRIVE_handle_msg_erase_nvm(ARCADIA_msg_t * p_msg)
 
 	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
 				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_erase_nvm.p_result_status);
+}
+
+static void DRIVE_handle_msg_write_boot_row(ARCADIA_msg_t * p_msg)
+{
+	uint32_t 			u32_addr = p_msg->payload.drive_payload_write_boot_row.u32_addr;
+	const char * 		kpc_firmware_image = p_msg->payload.drive_payload_write_boot_row.kpc_image_name;
+	bool				b_update = p_msg->payload.drive_payload_write_boot_row.b_firmware_update;
+	MEMPOOL_buffer_t	page_buffer = MEMPOOL_alloc(MEMPOOL_BUFFER_SIZE_ID_1K);
+	uint8_t *			pu8_ptr;
+	const uint8_t		ku8_image_name_max_len = 128;
+
+	if (page_buffer)
+	{
+		memset(page_buffer, 0, MEMPOOL_BUFFER_SIZE_1024);
+		strncpy(page_buffer, kpc_firmware_image, ku8_image_name_max_len);
+
+		NVMCTRL_erase_row(u32_addr);
+
+		NVMCTRL_write_page(u32_addr, page_buffer);
+
+		memset(page_buffer, 0, NVMCTRL_PAGE_SIZE);
+
+		pu8_ptr = (uint8_t *)page_buffer;
+
+		pu8_ptr[0] = b_update ? 1 : 0;
+
+		NVMCTRL_write_page(u32_addr + 64, page_buffer);
+
+		DRIVE_LOG_DBG("Firmware image name: \"%s\", update flag: %u\n", kpc_firmware_image, b_update);
+
+		*p_msg->payload.drive_payload_write_boot_row.p_result_status = ARCADIA_STATUS_OK;
+	}
+	else
+	{
+		*p_msg->payload.drive_payload_write_boot_row.p_result_status = ARCADIA_STATUS_FAILED;
+	}
+
+	ARCADIA_semaphore_give(p_msg->semaphore);
+
+	DRIVE_LOG_DBG("Handled msg %s with status %u\n",
+				ARCADIA_get_msg_type(p_msg->id), *p_msg->payload.drive_payload_write_boot_row.p_result_status);
 }
 
 /****************************************************************************************************

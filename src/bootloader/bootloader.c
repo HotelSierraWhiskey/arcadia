@@ -2,7 +2,13 @@
 #include "printf.h"
 #include "nvmctrl.h"
 
-#define BOOTLOADER_IMAGE_NAME_MAX	(128U)
+/****************************************************************************************************
+ *	D E F I N E S   &   T Y P E D E F S
+ ****************************************************************************************************/
+
+#define BOOTLOADER_IMAGE_NAME_MAX		(128U)
+
+#define BOOTLOADER_PROGRESS_BAR_WIDTH	(25U)
 
 typedef union _BOOTLOADER_boot_row
 {
@@ -16,6 +22,20 @@ typedef union _BOOTLOADER_boot_row
 	} data;
 	uint8_t pu8_raw[NVMCTRL_ROW_SIZE];
 } BOOTLOADER_boot_row_t;
+
+typedef struct _BOOTLOADER_info
+{
+	BOOTLOADER_boot_row_t	boot_row;
+} BOOTLOADER_info_t;
+
+static BOOTLOADER_info_t info;
+
+/****************************************************************************************************
+ *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S
+ ****************************************************************************************************/
+
+static void 	BOOTLOADER_progress_bar_update		(const uint32_t ku32_done, const uint32_t ku32_total);
+static void 	BOOTLOADER_progress_bar_finish		(void);
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -111,35 +131,86 @@ bool BOOTLOADER_update_flag_set(void)
 	uint8_t **					ppu8_rows = NVMCTRL_get_rows();
 	volatile uint8_t *			pu8_row_flash = ppu8_rows[NVMCTRL_APP_NVM_ROW_ID_0];
 	const uint32_t				ku32_row_addr = (uint32_t)(uintptr_t)pu8_row_flash;
-	BOOTLOADER_boot_row_t *		p_boot_row;
-	uint8_t						pu8_buf[NVMCTRL_ROW_SIZE];
 
 	// Save the boot row data to RAM
-	memcpy(pu8_buf, (const void *)pu8_row_flash, sizeof(pu8_buf));
+	memcpy(&info.boot_row, (const void *)pu8_row_flash, NVMCTRL_ROW_SIZE);
 
 	// Nuke the boot row no matter what
 	NVMCTRL_erase_row(ku32_row_addr);
 
-	if (pu8_buf[0] == 0xFF)
+	if (info.boot_row.data.pc_image_name[0] == 0xFF)
 	{
 		return false;
 	}
 
-	p_boot_row = (BOOTLOADER_boot_row_t *)pu8_buf;
+	info.boot_row.data.pc_image_name[BOOTLOADER_IMAGE_NAME_MAX - 1] = '\0';
 
-	p_boot_row->data.pc_image_name[BOOTLOADER_IMAGE_NAME_MAX - 1] = '\0';
+	BOOT_LOG_DBG("Found image name in boot row: %s\n", info.boot_row.data.pc_image_name);
 
-	BOOT_LOG_DBG("Found image name in boot row: %s\n", p_boot_row->data.pc_image_name);
+	// for (uint16_t i = 0; i < NVMCTRL_ROW_SIZE; i++)
+	// {
+	// 	tfp_printf("%02X ", info.boot_row.data.pc_image_name[i]);
 
-	for (uint16_t i = 0; i < sizeof(pu8_buf); i++)
+	// 	if ((i % 0x20) == 0x1F)
+	// 	{
+	// 		tfp_printf("\n");
+	// 	}
+	// }
+
+	return info.boot_row.data.flags.update ? true : false;
+}
+
+void BOOTLOADER_update_firmware(void)
+{
+	const uint32_t	ku32_total_steps = 1000000U;
+	uint32_t		u32_step;
+
+	for (u32_step = 0U; u32_step <= ku32_total_steps; u32_step++)
 	{
-		tfp_printf("%02X ", pu8_buf[i]);
-
-		if ((i % 0x20) == 0x1F)
-		{
-			tfp_printf("\n");
-		}
+		BOOTLOADER_progress_bar_update(u32_step, ku32_total_steps);
 	}
 
-	return false;
+	BOOTLOADER_progress_bar_finish();
+}
+
+static void BOOTLOADER_progress_bar_update(const uint32_t ku32_done, const uint32_t ku32_total)
+{
+	static uint32_t		u32_last_filled = 0xFFFFFFFFU;
+	char				pc_bar[BOOTLOADER_PROGRESS_BAR_WIDTH + 2U + 1U]; // '[' + width + ']' + '\0'
+	uint32_t			u32_total_safe;
+	uint32_t			u32_done_clamped;
+	uint32_t			u32_pct;
+	uint32_t			u32_filled;
+
+	u32_total_safe = (0U == ku32_total) ? 1U : ku32_total;
+	u32_done_clamped = (ku32_done > u32_total_safe) ? u32_total_safe : ku32_done;
+
+	u32_pct = (u32_done_clamped * 100U) / u32_total_safe;
+	u32_filled = (u32_done_clamped * BOOTLOADER_PROGRESS_BAR_WIDTH) / u32_total_safe;
+
+	// only redraw when we have to
+	if (u32_filled == u32_last_filled)
+	{
+		return;
+	}
+
+	u32_last_filled = u32_filled;
+
+	pc_bar[0] = '[';
+
+	for (uint32_t i = 0U; i < BOOTLOADER_PROGRESS_BAR_WIDTH; i++)
+	{
+		pc_bar[1U + i] = (i < u32_filled) ? '#' : ' ';
+	}
+
+	pc_bar[1U + BOOTLOADER_PROGRESS_BAR_WIDTH] = ']';
+	pc_bar[1U + BOOTLOADER_PROGRESS_BAR_WIDTH + 1U] = '\0';
+
+	BOOT_LOG_DBG("%s %3lu%%", pc_bar, (unsigned long)u32_pct);
+}
+
+static void BOOTLOADER_progress_bar_finish(void)
+{
+	BOOTLOADER_progress_bar_update(1U, 1U);
+	tfp_printf("\r\n");
 }

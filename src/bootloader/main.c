@@ -31,7 +31,12 @@ int main(void)
 	BOOT_CLEAR_TERMINAL();
 	BOOT_LOG_DBG("System init\n");
 
-	BOOTLOADER_update_flag_set();
+	if (BOOTLOADER_update_flag_set())
+	{
+		BOOT_LOG_DBG("Starting firmware update...\n");
+		BOOTLOADER_update_firmware();
+		BOOT_LOG_DBG("Done.");
+	}
 
 	// jump to app
 	BOOTLOADER_start_app(u32_app_reset_handler, u32_app_stack_pointer, (uint32_t)pu8_interrupt_table);
