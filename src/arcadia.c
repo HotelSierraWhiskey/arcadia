@@ -245,12 +245,12 @@ void vApplicationIdleHook(void)
 	BUTTON_register_callback(BUTTON_ID_PORT_5, TARGET_PORT_select_5);
 	BUTTON_register_callback(BUTTON_ID_PORT_6, TARGET_PORT_select_6);
 	BUTTON_register_callback(BUTTON_ID_PORT_7, TARGET_PORT_select_7);
-#endif // JLINK_MUX
 
     while(1)
 	{
 		BUTTON_update();
 	}
+#endif // JLINK_MUX
 }
 
 /****************************************************************************************************
