@@ -413,7 +413,7 @@ uint64_t SD_get_capacity(void)
 	// This is okay because the structure member comes first in each spec
 	SD_csd_version_t 	version = SD_info.csd_info.csdv1.csd_ver;
 	uint32_t 			u32_c_size;
-	uint32_t			u64_capacity = 0;
+	uint64_t			u64_capacity = 0;
 
 	switch (version)
 	{
@@ -423,8 +423,8 @@ uint64_t SD_get_capacity(void)
 
 		case SD_CSD_VERSION_HIGH_AND_EXTENDED_CAPACITY:
 			u32_c_size = 	((uint32_t)(SD_info.csd_info.csdv2.c_size_high & 0x3F) << 16) |
-                 			((uint32_t)(SD_info.csd_info.csdv2.c_size_mid) << 8) |
-                 			((uint32_t)(SD_info.csd_info.csdv2.c_size_low));
+				 			((uint32_t)(SD_info.csd_info.csdv2.c_size_mid) << 8) |
+				 			((uint32_t)(SD_info.csd_info.csdv2.c_size_low));
 
 			// Calculate capacity (C_SIZE + 1) * 512KB
 			u64_capacity = (u32_c_size + 1) * SD_BLOCK_SIZE * 1024;
@@ -436,6 +436,19 @@ uint64_t SD_get_capacity(void)
 	}
 
 	return u64_capacity;
+}
+
+/****************************************************************************************************
+ *	Gets the version descriptor string for the SD card.
+ *
+ * 	@note
+ * 	SD card must be initialized first
+ *
+ *	@return The version descriptor for the SD card
+ ****************************************************************************************************/
+const char * SD_get_version(void)
+{
+	return kpc_version_descriptors[SD_info.csd_info.csdv1.csd_ver];
 }
 
 /****************************************************************************************************
@@ -785,8 +798,8 @@ static uint8_t SD_await_r7_response(void)
  ****************************************************************************************************/
 static void SD_display_info(void)
 {
-	SHELL_printf("%-20s: %s\n", "Version", kpc_version_descriptors[SD_info.csd_info.csdv1.csd_ver]);
-	SHELL_printf("%-20s: %llu bytes\n", "Capacity", SD_get_capacity());
+	SHELL_printf("%-20s: %s\n", "Version", SD_get_version());
+	SHELL_printf("%-20s: %lu bytes\n", "Capacity", SD_get_capacity()); // not sure if we're overflowing here due to minimal printf stuff
 }
 
 /****************************************************************************************************
