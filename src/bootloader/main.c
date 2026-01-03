@@ -4,8 +4,11 @@
 #include "io.h"
 #include "uart.h"
 #include "bootloader.h"
+#include "fw_update.h"
 #include "printf.h"
 #include "shell_utils.h"
+
+#include "bootutils.h"
 
 /****************************************************************************************************
  *	F U N C T I O N S
@@ -33,9 +36,12 @@ int NORETURN main(void)
 
 	if (BOOTLOADER_update_flag_set())
 	{
-		BOOT_LOG_DBG("Starting firmware update...\n");
-		BOOTLOADER_update_firmware();
-		BOOT_LOG_DBG("Done.");
+		if (FW_UPDATE_init())
+		{
+			BOOT_LOG_DBG("Starting firmware update...\n");
+			BOOTLOADER_update_firmware();
+			BOOT_LOG_DBG("Done.");
+		}
 	}
 
 	// jump to app
