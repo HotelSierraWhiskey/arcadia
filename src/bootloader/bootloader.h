@@ -2,6 +2,7 @@
 #define BOOTLOADER_H
 
 #include "common.h"
+#include "printf.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
