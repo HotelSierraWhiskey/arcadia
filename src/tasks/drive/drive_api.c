@@ -809,14 +809,39 @@ uint8_t DRIVE_API_shell_mkfs(uint8_t argc, char ** argv)
 
 	if (argc == 0)
 	{
+		SHELL_printf("Formatting volume. Please wait...\n");
+
 		f_result = FSIF_f_mkfs();
 
 		if (FR_OK == f_result)
 		{
 			u32_ticks_elapsed = CHRONO_ticks_since(u32_start_ticks);
-			SHELL_printf("Formatted volume\n");
-			SHELL_printf("Time elapsed: %u.%u seconds\n",
+			SHELL_printf("Done. Time elapsed: %u.%u seconds\n",
 				u32_ticks_elapsed / 1000, u32_ticks_elapsed % 1000);
+
+			f_result = f_mkdir("lib");
+
+			if (FR_OK == f_result)
+			{
+				f_result = f_mkdir("bin");
+			}
+
+			if (FR_OK == f_result)
+			{
+				f_result = f_chdir("bin");
+			}
+
+			if (FR_OK == f_result)
+			{
+				f_result = f_mkdir("app");
+			}
+
+			if (FR_OK == f_result)
+			{
+				f_result = f_mkdir("bootloader");
+			}
+
+			f_chdir("..");
 		}
 		else
 		{

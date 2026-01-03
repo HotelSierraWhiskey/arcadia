@@ -109,6 +109,8 @@ void DRIVE_task(void * p_params)
 		else
 		{
 			DRIVE_LOG_WARN("Failed to mount file system\n");
+			DRIVE_LOG_DBG("SD card type %s is not formatted.", SD_get_version());
+			DRIVE_LOG_DBG("Format and mount with command: drive fs format\n");
 		}
 	}
 	else
