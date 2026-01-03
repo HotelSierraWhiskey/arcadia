@@ -7,6 +7,7 @@
 #include "utils.h"
 #include "drive_payload.h"
 #include "spi.h"
+#include "sd.h"
 #include "fsif.h"
 #include "mempool.h"
 #include "exti.h"
@@ -98,10 +99,21 @@ void DRIVE_task(void * p_params)
 	UNUSED(p_params);
 
 #ifdef BUILD_HAS_FS
-	if (FSIF_fs_init())
+	if (SD_card_init())
 	{
-		DRIVE_LOG_DBG("File system mounted (%s, %s)\n",
-			FSIF_get_volume_label(), FSIF_get_fat_subtype());
+		if (FSIF_fs_init())
+		{
+			DRIVE_LOG_DBG("File system mounted (%s, %s)\n",
+				FSIF_get_volume_label(), FSIF_get_fat_subtype());
+		}
+		else
+		{
+			DRIVE_LOG_WARN("Failed to mount file system\n");
+		}
+	}
+	else
+	{
+		DRIVE_LOG_WARN("failed to initialize SD card\n");
 	}
 #endif // BUILD_HAS_FS
 
