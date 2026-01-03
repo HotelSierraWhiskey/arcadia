@@ -1,9 +1,9 @@
 #include "spi.h"
 #include "sercom.h"
 #include "io.h"
-#include "arcadia.h"
+// #include "arcadia.h"
 #include "utils.h"
-#include "chrono.h"
+// #include "chrono.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -166,7 +166,7 @@ void SPI_init(SPI_channel_id_t channel_id)
  ****************************************************************************************************/
 void SPI_set_baud(SPI_channel_id_t channel_id, SPI_baud_id_t baud_id)
 {
-	ASSERT(baud_id < SPI_BAUD_ID_NUM_IDS);
+	// ASSERT(baud_id < SPI_BAUD_ID_NUM_IDS);
 
 	SPI_channel_t * 	p_channel = &p_spi_channels[channel_id];
 	uint32_t 			u32_baud_val;
@@ -259,6 +259,7 @@ void SPI_ss_pin_low(SPI_channel_id_t channel_id)
  *	S H E L L   F U N C T I O N S
  ****************************************************************************************************/
 
+#ifndef BOOTLOADER
 /****************************************************************************************************
  *	Shell utility
  *
@@ -364,3 +365,4 @@ uint8_t	SPI_shell_info(uint8_t argc, char ** argv)
 
 	return SHELL_COMMAND_SUCCESS;
 }
+#endif // !BOOTLOADER

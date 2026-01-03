@@ -1,16 +1,14 @@
 #include "sd.h"
 #include "spi.h"
-#include "shell.h"
-#include "chrono.h"
+
+#ifndef BOOTLOADER
 #include "utils.h"
 #include "mempool.h"
+#endif // !BOOTLOADER
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
-
-#define SD_LOG_DBG(fmt, ...)   			SHELL_printf("\r%-12s" fmt, "[SD]", ##__VA_ARGS__)
-#define SD_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-12s" fmt, "[SD]", ##__VA_ARGS__)
 
 #define SD_CMD_LEN						(6)
 #define SD_RESPONSE_IDLE 				(0x01)
@@ -21,7 +19,8 @@
 /**
  *	CSD v1.0 Register
  */
-typedef struct _SD_csdv1 {
+typedef struct _SD_csdv1
+{
   // byte 0
   unsigned _reserved_1 				: 6;
   unsigned csd_ver 					: 2;
@@ -79,12 +78,13 @@ typedef struct _SD_csdv1 {
   // byte 15
   unsigned always1 					: 1;
   unsigned crc 						: 7;
-} PACKED SD_csdv1_t;
+} __attribute__((packed, aligned)) SD_csdv1_t;
 
 /**
  *	CSD v2.0 Register
  */
-typedef struct _SD_csdv2 {
+typedef struct _SD_csdv2
+{
 	// byte 0
 	unsigned _reserved_1 			: 6;
 	unsigned csd_ver 				: 2;
@@ -138,7 +138,7 @@ typedef struct _SD_csdv2 {
 	// byte 15
 	unsigned always1 				: 1;
 	unsigned crc 					: 7;
-} PACKED SD_csdv2_t;
+} __attribute__((packed, aligned)) SD_csdv2_t;
 
 /**
  *	CSD v3.0 Register
@@ -146,7 +146,7 @@ typedef struct _SD_csdv2 {
 typedef struct _SD_csdv3 {
   // Implement (p. 263)
 	unsigned _;
-} PACKED SD_csdv3_t;
+} __attribute__((packed, aligned)) SD_csdv3_t;
 
 typedef union _SD_csd
 {
@@ -260,7 +260,7 @@ bool SD_card_init(void)
 
 	do
 	{
-		CHRONO_delay_ms(250);
+		// CHRONO_delay_ms(250); // maybe we want to delay here (boot and app)
 
 		u8_response =  SD_cmd_app_cmd();
 
@@ -270,8 +270,8 @@ bool SD_card_init(void)
 
 	if (SD_RESPONSE_READY == u8_response && SD_RESPONSE_READY == SD_cmd_send_csd((uint8_t *)&SD_info.csd_info))
 	{
-		UNUSED(SD_cmd_read_ocr);
-		UNUSED(SD_cmd_set_blocklen);
+		// UNUSED(SD_cmd_read_ocr);
+		// UNUSED(SD_cmd_set_blocklen);
 
 		SPI_set_baud(SPI_CHANNEL_SD_CARD, SPI_BAUD_ID_4MHZ);
 
@@ -793,6 +793,7 @@ static void SD_display_info(void)
  *	S H E L L   F U N C T I O N S
  ****************************************************************************************************/
 
+#ifndef BOOTLOADER
 /****************************************************************************************************
  *	Shell utility
  *
@@ -1035,3 +1036,4 @@ uint8_t SD_shell_wipe(uint8_t argc, char ** argv)
 
 	return SHELL_COMMAND_SUCCESS;
 }
+#endif // !BOOTLOADER

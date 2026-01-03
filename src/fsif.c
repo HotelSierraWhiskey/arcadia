@@ -1,17 +1,10 @@
 #include "fsif.h"
 #include "diskio.h"
 #include "sd.h"
-#include "utils.h"
-#include "shell.h"
-#include "arcadia.h"
-#include "chrono.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
-
-#define FSIF_LOG_DBG(fmt, ...)   		SHELL_printf("\r%-12s" fmt, "[FSIF]", ##__VA_ARGS__)
-#define FSIF_LOG_WARN(fmt, ...)   		SHELL_PRINT_WARNING("\r%-12s" fmt, "[FSIF]", ##__VA_ARGS__)
 
 #define FSIF_VOLUME_LABEL				"ARCADIA"
 #define FSIF_DEFAULT_DRIVE_PATH			""
@@ -40,8 +33,6 @@ typedef struct _FSIF_info
 {
 	FATFS				fs;
 	char				pc_label[FSIF_FS_LABEL_NAME_LEN_MAX];
-	SemaphoreHandle_t	semaphore;
-	StaticSemaphore_t	semaphore_buffer;
 } FSIF_info_t;
 
 /****************************************************************************************************
@@ -123,7 +114,7 @@ static FSIF_info_t fsif_info;
  ****************************************************************************************************/
 DSTATUS disk_initialize(BYTE pdrv)
 {
-	UNUSED(pdrv);
+	(void)pdrv;
 
 	return 0;
 }
@@ -142,7 +133,7 @@ DSTATUS disk_initialize(BYTE pdrv)
  ****************************************************************************************************/
 DSTATUS disk_status(BYTE pdrv)
 {
-	UNUSED(pdrv);
+	(void)pdrv;
 
 	if (SD_is_initialized())
 	{
@@ -169,7 +160,7 @@ DSTATUS disk_status(BYTE pdrv)
  ****************************************************************************************************/
 DRESULT disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
 {
-	UNUSED(pdrv);
+	(void)pdrv;
 
 	DRESULT d_result = RES_ERROR;
 	uint8_t u8_retries = FSIF_DISK_RW_RETRIES;
@@ -210,7 +201,7 @@ DRESULT disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
  ****************************************************************************************************/
 DRESULT disk_write(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count)
 {
-	UNUSED(pdrv);
+	(void)pdrv;
 
 	DRESULT d_result = RES_ERROR;
 	uint8_t u8_retries = FSIF_DISK_RW_RETRIES;
@@ -250,7 +241,7 @@ DRESULT disk_write(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count)
  ****************************************************************************************************/
 DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 {
-	UNUSED(pdrv);
+	(void)pdrv;
 
 	UINT * 		ptr = (UINT *)buff;
 	DRESULT 	result = RES_ERROR;
@@ -295,73 +286,6 @@ DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 }
 
 /****************************************************************************************************
- *	Internal FatFs Interface Function
- *
- * 	@warning Don't call this directly
- * 
- * 	Creates a FreeRTOS mutex for FatFs to use in thread-safe mode
- *
- * 	@param[in] vol Unused
- * 
- * 	@return 1 if the mutex was created, else 0
- * 
- ****************************************************************************************************/
-int ff_mutex_create(int vol)
-{
-	UNUSED(vol);
-	fsif_info.semaphore = ARCADIA_semaphore_alloc(&fsif_info.semaphore_buffer);
-	return (int)(fsif_info.semaphore != NULL);
-}
-
-/****************************************************************************************************
- *	Internal FatFs Interface Function
- *
- * 	@warning Don't call this directly
- * 
- * 	Deletes the created FreeRTOS mutex
- *
- * 	@param[in] vol Unused
- *
- ****************************************************************************************************/
-void ff_mutex_delete(int vol)
-{
-	UNUSED(vol);
-	ARCADIA_semaphore_free(fsif_info.semaphore);
-}
-
-/****************************************************************************************************
- *	Internal FatFs Interface Function
- *
- * 	@warning Don't call this directly
- * 
- * 	Obtains the created FreeRTOS mutex
- *
- * 	@param[in] vol Unused
- *
- ****************************************************************************************************/
-int ff_mutex_take(int vol)
-{
-	UNUSED(vol);
-	return (int)(ARCADIA_semaphore_take(fsif_info.semaphore) == pdTRUE);
-}
-
-/****************************************************************************************************
- *	Internal FatFs Interface Function
- *
- * 	@warning Don't call this directly
- * 
- * 	Released the created FreeRTOS mutex
- *
- * 	@param[in] vol Unused
- *
- ****************************************************************************************************/
-void ff_mutex_give(int vol)
-{
-	UNUSED(vol);
-	ARCADIA_semaphore_give(fsif_info.semaphore);
-}
-
-/****************************************************************************************************
  *	File system initialization sequence
  *
  * 	Attempts to initialize the SD card before mounting the FS
@@ -376,23 +300,17 @@ bool FSIF_fs_init(void)
 	FRESULT 	f_result;
 	bool		b_result = false;
 
-	if (SD_card_init())
-	{
-		f_result = FSIF_f_mount();
+	f_result = FSIF_f_mount();
 
-		if (FR_OK == f_result)
-		{
-			b_result = true;
-		}
-		else
-		{
-			// @todo do we want to format in some cases here?
-			FSIF_LOG_WARN("Failed to mount file system (status: %u)\r\n", f_result);
-		}
+	(void)f_result; // todo use this
+
+	if (FR_OK == f_result)
+	{
+		b_result = true;
 	}
 	else
 	{
-		FSIF_LOG_WARN("Failed to initialize SD card\r\n");
+		// @todo do we want to format in some cases here?
 	}
 
 	return b_result;
@@ -477,7 +395,6 @@ FATFS * FSIF_f_get_fs(void)
  ****************************************************************************************************/
 const char * FSIF_get_fat_subtype(void)
 {
-	ASSERT(fsif_info.fs.fs_type < FSIF_FS_TYPE_ID_NUM_IDS);
 	return kpc_fat_subtype[fsif_info.fs.fs_type];
 }
 
