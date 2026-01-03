@@ -30,7 +30,6 @@ APP_INC = 	-I../ \
 			-I$(SRC)/tasks/drive \
 			-I$(SRC)/tasks/chrono \
 			-I$(SRC)/tasks/load \
-			-I$(SRC)/fsm \
 			-I$(SRC)/json \
 			-I$(SRC)/json/jsmn \
 			$(FREERTOS_INC) \

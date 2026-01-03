@@ -29,6 +29,7 @@ INC :=	-I. \
 		-I../ \
 		-I../../lib/CMSIS_5/CMSIS/Core/Include \
 		-I../../lib/samc21/include \
+		-I../../lib/ff15a/source \
 		-I/usr/local/arm-gnu-toolchain-14.3.Rel1-x86_64-arm-none-eabi/include \
 		-I./tinyprintf \
 		-I../tasks/shell
@@ -66,9 +67,16 @@ SRCS := main.c \
 		../../io.c \
 		../../sercom.c \
 		../../uart.c \
+		../../spi.c \
+		../../sd.c \
+		../../fsif.c \
 		../../nvmctrl.c \
+		../../lib/ff15a/source/ff.c \
+		../../lib/ff15a/source/ffunicode.c \
 		tinyprintf/tinyprintf.c \
 		bootloader.c \
+		fw_update.c \
+		bootutils.c \
 		printf.c
 
 
