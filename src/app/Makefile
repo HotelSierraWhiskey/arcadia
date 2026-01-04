@@ -26,6 +26,7 @@ APP_INC = 	-I../ \
 			-I$(PROJECT_ROOT)/lib/CMSIS_5/CMSIS/Core/Include \
 			-I$(PROJECT_ROOT)/lib/samc21/include \
 			-I/usr/local/arm-gnu-toolchain-14.3.Rel1-x86_64-arm-none-eabi/include \
+			-I$(SRC)/drivers \
 			-I$(SRC)/tasks/shell \
 			-I$(SRC)/tasks/drive \
 			-I$(SRC)/tasks/chrono \
@@ -50,25 +51,25 @@ APP_VPATH = 	$(APP_TASKS) \
 				$(SRC)/main.c  \
 				$(SRC)/nvic.c  \
 				$(SRC)/sys.c  \
-				$(SRC)/io.c \
-				$(SRC)/sercom.c \
-				$(SRC)/uart.c \
+				$(SRC)/drivers/io.c \
+				$(SRC)/drivers/sercom.c \
+				$(SRC)/drivers/uart.c \
 				$(SRC)/shell.c \
 				$(SRC)/utils.c \
-				$(SRC)/nvmctrl.c \
+				$(SRC)/drivers/nvmctrl.c \
 				$(SRC)/arcadia.c \
-				$(SRC)/timer.c \
+				$(SRC)/drivers/timer.c \
 				$(SRC)/chrono.c \
 				$(SRC)/chrono_api.c \
 				$(SRC)/load.c \
 				$(SRC)/load_api.c \
-				$(SRC)/spi.c \
-				$(SRC)/sd.c \
-				$(SRC)/fsif.c \
+				$(SRC)/drivers/spi.c \
+				$(SRC)/drivers/sd.c \
+				$(SRC)/drivers/fsif.c \
 				$(SRC)/mempool.c \
-				$(SRC)/dac.c \
-				$(SRC)/exti.c \
-				$(SRC)/dma.c \
+				$(SRC)/drivers/dac.c \
+				$(SRC)/drivers/exti.c \
+				$(SRC)/drivers/dma.c \
 				$(SRC)/json/json.c \
 
 # Matching .o files from APP_VPATH, and .o files from FreeRTOS and FatFs

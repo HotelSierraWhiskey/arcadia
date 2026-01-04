@@ -32,6 +32,7 @@ INC :=	-I. \
 		-I../../lib/ff15a/source \
 		-I/usr/local/arm-gnu-toolchain-14.3.Rel1-x86_64-arm-none-eabi/include \
 		-I./tinyprintf \
+		-I../drivers \
 		-I../tasks/shell
 
 # **************************************************************************** #
@@ -64,13 +65,13 @@ LDFLAGS := $(ARCH) \
 SRCS := main.c \
 		../../nvic.c \
 		../../sys.c \
-		../../io.c \
-		../../sercom.c \
-		../../uart.c \
-		../../spi.c \
-		../../sd.c \
-		../../fsif.c \
-		../../nvmctrl.c \
+		../../drivers/io.c \
+		../../drivers/sercom.c \
+		../../drivers/uart.c \
+		../../drivers/spi.c \
+		../../drivers/sd.c \
+		../../drivers/fsif.c \
+		../../drivers/nvmctrl.c \
 		../../lib/ff15a/source/ff.c \
 		../../lib/ff15a/source/ffunicode.c \
 		tinyprintf/tinyprintf.c \
