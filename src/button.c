@@ -24,59 +24,7 @@ typedef struct _BUTTON_map_entry
  *	P R I V A T E   V A R I A B L E S
  ****************************************************************************************************/
 
-static BUTTON_entry_t BUTTON_map[BUTTON_ID_NUM_BUTTONS] =
-{
-#ifdef JLINK_MUX
-	[BUTTON_ID_PORT_0] =
-	{
-		.u64_history 	= BUTTON_RELEASED,
-		.pin 			= IO_PIN_ID_PA08,
-		.callback		= NULL
-	},
-	[BUTTON_ID_PORT_1] =
-	{
-		.u64_history 	= BUTTON_RELEASED,
-		.pin 			= IO_PIN_ID_PA09,
-		.callback		= NULL
-	},
-	[BUTTON_ID_PORT_2] =
-	{
-		.u64_history 	= BUTTON_RELEASED,
-		.pin 			= IO_PIN_ID_PA10,
-		.callback		= NULL
-	},
-	[BUTTON_ID_PORT_3] =
-	{
-		.u64_history 	= BUTTON_RELEASED,
-		.pin 			= IO_PIN_ID_PA11,
-		.callback		= NULL
-	},
-	[BUTTON_ID_PORT_4] =
-	{
-		.u64_history 	= BUTTON_RELEASED,
-		.pin 			= IO_PIN_ID_PB10,
-		.callback		= NULL
-	},
-	[BUTTON_ID_PORT_5] =
-	{
-		.u64_history 	= BUTTON_RELEASED,
-		.pin 			= IO_PIN_ID_PB11,
-		.callback		= NULL
-	},
-	[BUTTON_ID_PORT_6] =
-	{
-		.u64_history 	= BUTTON_RELEASED,
-		.pin 			= IO_PIN_ID_PB12,
-		.callback		= NULL
-	},
-	[BUTTON_ID_PORT_7] =
-	{
-		.u64_history 	= BUTTON_RELEASED,
-		.pin 			= IO_PIN_ID_PB13,
-		.callback		= NULL
-	},
-#endif // JLINK_MUX
-};
+static BUTTON_entry_t BUTTON_map[BUTTON_ID_NUM_BUTTONS];
 
 /****************************************************************************************************
  *	P R I V A T E   F U N C T I O N   P R O T O T Y P E S

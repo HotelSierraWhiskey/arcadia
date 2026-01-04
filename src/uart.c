@@ -66,21 +66,6 @@ static const uint32_t kpu8_baud_rates[UART_BAUD_RATE_ID_NUM_BAUD_RATES] =
  */
 static UART_channel_t p_uart_channels[UART_CHANNEL_NUM_CHANNELS] =
 {
-#if defined(AUDIO_SWITCH) || defined(JLINK_MUX)
-	[UART_CHANNEL_SHELL] =
-	{
-		.kpc_name				= "Debug Shell",
-		.owner					= ARCADIA_TASK_ID_SHELL,
-		.rx_pin 				= IO_PIN_ID_PA25,
-		.tx_pin 				= IO_PIN_ID_PA24,
-		.u32_rx_pad 			= SERCOM_USART_INT_CTRLA_RXPO_PAD3,
-		.u32_tx_pad 			= SERARCADIA_task_id_tCOM_USART_INT_CTRLA_TXPO_PAD1,
-		.baud_rate_id			= UART_BAUD_RATE_ID_115200,
-		.sercom_channel_id 		= SERCOM_CHANNEL_ID_3,
-		.peripheral_function 	= IO_PERIPHERAL_FUNCTION_C
-	},
-#endif // AUDIO_SWITCH || JLINK_MUX
-
 #ifdef DEV_BOARD
 	[UART_CHANNEL_SHELL] =
 	{
@@ -546,9 +531,7 @@ void irqSERCOM2(void)
  ****************************************************************************************************/
 void irqSERCOM3(void)
 {
-#if defined(AUDIO_SWITCH) || defined(JLINK_MUX)
-	UART_on_isr(UART_CHANNEL_SHELL);
-#endif // AUDIO_SWITCH || JLINK_MUX
+	// Unused
 }
 
 /****************************************************************************************************

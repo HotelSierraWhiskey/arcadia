@@ -8,10 +8,6 @@
 #include "load.h"
 #include "button.h"
 
-#ifdef JLINK_MUX
-#include "target_port.h"
-#endif // JLINK_MUX
-
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
  ****************************************************************************************************/
@@ -235,22 +231,7 @@ void NORETURN ARCADIA_start(void)
  ****************************************************************************************************/
 void vApplicationIdleHook(void)
 {
-#ifdef JLINK_MUX
-	TARGET_PORT_deselect_all();
-	BUTTON_register_callback(BUTTON_ID_PORT_0, TARGET_PORT_select_0);
-	BUTTON_register_callback(BUTTON_ID_PORT_1, TARGET_PORT_select_1);
-	BUTTON_register_callback(BUTTON_ID_PORT_2, TARGET_PORT_select_2);
-	BUTTON_register_callback(BUTTON_ID_PORT_3, TARGET_PORT_select_3);
-	BUTTON_register_callback(BUTTON_ID_PORT_4, TARGET_PORT_select_4);
-	BUTTON_register_callback(BUTTON_ID_PORT_5, TARGET_PORT_select_5);
-	BUTTON_register_callback(BUTTON_ID_PORT_6, TARGET_PORT_select_6);
-	BUTTON_register_callback(BUTTON_ID_PORT_7, TARGET_PORT_select_7);
-
-    while(1)
-	{
-		BUTTON_update();
-	}
-#endif // JLINK_MUX
+	
 }
 
 /****************************************************************************************************

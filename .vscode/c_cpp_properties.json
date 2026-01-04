@@ -1,100 +1,37 @@
 {
-	"configurations": [
-		{
-			"name": "Dev Board",
-			"includePath": [
-				"/opt/arm-gnu-toolchain-14.3.rel1-x86_64-arm-none-eabi/arm-none-eabi/include/reent.h",
-				"${workspaceFolder}",
-				"${workspaceFolder}/lib/CMSIS_5",
-				"${workspaceFolder}/lib/CMSIS_5/CMSIS/Core/Include",
-				"${workspaceFolder}/lib/samc21/include",
-				"${workspaceFolder}/lib/FreeRTOS-LTS",
-				"${workspaceFolder}/lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Plus-TCP/test/FreeRTOS-Kernel/include",
-				"${workspaceFolder}/lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/",
-				"${workspaceFolder}/lib/ff15a/source",
-				"${workspaceFolder}/test/Unity/src",
-				"${workspaceFolder}/test/Unity/extras/fixture/src",
-				"${workspaceFolder}/test/Unity/extras/memory/src",
-				"${workspaceFolder}/src",
-				"${workspaceFolder}/src/tasks/chrono",
-				"${workspaceFolder}/src/tasks/drive",
-				"${workspaceFolder}/src/tasks/load",
-				"${workspaceFolder}/src/tasks/shell",
-				"${workspaceFolder}/src/tasks",
-				"${workspaceFolder}/src/fsm",
-				"${workspaceFolder}/src/json",
-				"${workspaceFolder}/src/json/jsmn",
-				"${workspaceFolder}/src/TethysRT",
-				"${workspaceFolder}/src/bootloader/tinyprintf"
-			],
-			"defines": ["DEV_BOARD", "BUILD_HAS_FS"],
-			"compilerPath": "/opt/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc",
-			"cStandard": "gnu23",
-			"cppStandard": "c++17",
-			"intelliSenseMode": "gcc-arm"
-		},
-		{
-			"name": "Audio Switch",
-			"includePath": [
-				"/opt/arm-gnu-toolchain-14.3.rel1-x86_64-arm-none-eabi/arm-none-eabi/include/reent.h",
-				"${workspaceFolder}",
-				"${workspaceFolder}/lib/CMSIS_5",
-				"${workspaceFolder}/lib/CMSIS_5/CMSIS/Core/Include",
-				"${workspaceFolder}/lib/samc21/include",
-				"${workspaceFolder}/lib/FreeRTOS-LTS",
-				"${workspaceFolder}/lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Plus-TCP/test/FreeRTOS-Kernel/include",
-				"${workspaceFolder}/lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/",
-				"${workspaceFolder}/lib/ff15a/source",
-				"${workspaceFolder}/test/Unity/src",
-				"${workspaceFolder}/test/Unity/extras/fixture/src",
-				"${workspaceFolder}/test/Unity/extras/memory/src",
-				"${workspaceFolder}/src",
-				"${workspaceFolder}/src/tasks/chrono",
-				"${workspaceFolder}/src/tasks/drive",
-				"${workspaceFolder}/src/tasks/media",
-				"${workspaceFolder}/src/tasks/shell",
-				"${workspaceFolder}/src/tasks",
-				"${workspaceFolder}/src/fsm",
-				"${workspaceFolder}/src/json",
-				"${workspaceFolder}/src/json/jsmn"
-			],
-			"defines": ["AUDIO_SWITCH"],
-			"compilerPath": "/opt/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc",
-			"cStandard": "gnu23",
-			"cppStandard": "c++17",
-			"intelliSenseMode": "gcc-arm"
-		},
-		{
-			"name": "JLink Mux",
-			"includePath": [
-				"/opt/arm-gnu-toolchain-14.3.rel1-x86_64-arm-none-eabi/arm-none-eabi/include/reent.h",
-				"${workspaceFolder}",
-				"${workspaceFolder}/lib/CMSIS_5",
-				"${workspaceFolder}/lib/CMSIS_5/CMSIS/Core/Include",
-				"${workspaceFolder}/lib/samc21n/include",
-				"${workspaceFolder}/lib/FreeRTOS-LTS",
-				"${workspaceFolder}/lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Plus-TCP/test/FreeRTOS-Kernel/include",
-				"${workspaceFolder}/lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/",
-				"${workspaceFolder}/lib/ff15a/source",
-				"${workspaceFolder}/test/Unity/src",
-				"${workspaceFolder}/test/Unity/extras/fixture/src",
-				"${workspaceFolder}/test/Unity/extras/memory/src",
-				"${workspaceFolder}/src",
-				"${workspaceFolder}/src/tasks/chrono",
-				"${workspaceFolder}/src/tasks/drive",
-				"${workspaceFolder}/src/tasks/media",
-				"${workspaceFolder}/src/tasks/shell",
-				"${workspaceFolder}/src/tasks",
-				"${workspaceFolder}/src/fsm",
-				"${workspaceFolder}/src/json",
-				"${workspaceFolder}/src/json/jsmn"
-			],
-			"defines": ["JLINK_MUX", "MCU_SAMC21N18A"],
-			"compilerPath": "/opt/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc",
-			"cStandard": "gnu23",
-			"cppStandard": "c++17",
-			"intelliSenseMode": "gcc-arm"
-		}
-	],
-	"version": 4
+    "configurations": [
+        {
+            "name": "Dev Board",
+            "includePath": [
+                "/opt/arm-gnu-toolchain-14.3.rel1-x86_64-arm-none-eabi/arm-none-eabi/include/reent.h",
+                "${workspaceFolder}",
+                "${workspaceFolder}/lib/CMSIS_5",
+                "${workspaceFolder}/lib/CMSIS_5/CMSIS/Core/Include",
+                "${workspaceFolder}/lib/samc21/include",
+                "${workspaceFolder}/lib/FreeRTOS-LTS",
+                "${workspaceFolder}/lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Plus-TCP/test/FreeRTOS-Kernel/include",
+                "${workspaceFolder}/lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/",
+                "${workspaceFolder}/lib/ff15a/source",
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/src/tasks/chrono",
+                "${workspaceFolder}/src/tasks/drive",
+                "${workspaceFolder}/src/tasks/load",
+                "${workspaceFolder}/src/tasks/shell",
+                "${workspaceFolder}/src/tasks",
+                "${workspaceFolder}/src/json",
+                "${workspaceFolder}/src/json/jsmn",
+                "${workspaceFolder}/src/TethysRT",
+                "${workspaceFolder}/src/bootloader/tinyprintf"
+            ],
+            "defines": [
+                "DEV_BOARD",
+                "BUILD_HAS_FS"
+            ],
+            "compilerPath": "/opt/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc",
+            "cStandard": "gnu23",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-arm"
+        }
+    ],
+    "version": 4
 }
