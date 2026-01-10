@@ -204,7 +204,7 @@
  * system-wide implementations of the necessary stubs. Note that (at the time of
  * writing) the current newlib design implements a system-wide malloc() that must
  * be provided with locks. */
-#define configUSE_NEWLIB_REENTRANT                 1
+#define configUSE_NEWLIB_REENTRANT                 0
 
 /******************************************************************************/
 /* Software timer related definitions. ****************************************/
