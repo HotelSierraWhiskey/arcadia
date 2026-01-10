@@ -5,7 +5,6 @@
 #include "shell.h"
 #include "drive.h"
 #include "chrono.h"
-#include "load.h"
 #include "button.h"
 
 /****************************************************************************************************
@@ -81,11 +80,6 @@ StackType_t drive_stack[ARCADIA_DRIVE_STACK_SIZE];
 StackType_t chrono_stack[ARCADIA_CHRONO_STACK_SIZE];
 
 /**
- *	MEDIA stack
- */
-StackType_t load_stack[ARCADIA_LOAD_STACK_SIZE];
-
-/**
  *	Main RTOS task table
  */
 static ARCADIA_rtos_task_t rtos_tasks[ARCADIA_TASK_ID_NUM_IDS] =
@@ -122,17 +116,6 @@ static ARCADIA_rtos_task_t rtos_tasks[ARCADIA_TASK_ID_NUM_IDS] =
 		},
 		.task 		= CHRONO_task,
 		.init		= CHRONO_init
-	},
-		{
-		.task_id 	= ARCADIA_TASK_ID_LOAD,
-		.kpc_name 	= "LOAD",
-		.stack 		= 
-		{
-			.p_stack 	= load_stack,
-			.u32_words 	= ARCADIA_LOAD_STACK_SIZE
-		},
-		.task 		= LOAD_task,
-		.init		= LOAD_init
 	},
 };
 
@@ -215,7 +198,6 @@ void NORETURN ARCADIA_start(void)
 	ARCADIA_create_task(ARCADIA_TASK_ID_SHELL);
 	ARCADIA_create_task(ARCADIA_TASK_ID_DRIVE);
 	ARCADIA_create_task(ARCADIA_TASK_ID_CHRONO);
-	ARCADIA_create_task(ARCADIA_TASK_ID_LOAD);
 
 	vTaskStartScheduler();
 

@@ -61,7 +61,6 @@ APP_INC = 			-I./ \
 					-I./tasks/shell \
 					-I./tasks/drive \
 					-I./tasks/chrono \
-					-I./tasks/load \
 					$(FREERTOS_INC) \
 					$(FATFS_INC) \
 					$(TETHYS_INC) \
@@ -114,8 +113,6 @@ APP_CFILES = 		arcadia.c \
 					tasks/drive/drive_api.c \
 					tasks/chrono/chrono.c \
 					tasks/chrono/chrono_api.c \
-					tasks/load/load.c \
-					tasks/load/load_api.c \
 					$(FREERTOS_CFILES) \
 					$(FATFS_CFILES) \
 					$(TETHYS_CFILES) \

@@ -5,7 +5,6 @@
 #include "arcadia_task.h"
 #include "drive_payload.h"
 #include "chrono_payload.h"
-#include "load_payload.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -43,8 +42,6 @@ typedef enum _ARCADIA_msg_id
 	ARCADIA_MSG_ID_CHRONO_CANCEL_SCHEDULED_MSG,
 	ARCADIA_MSG_ID_CHRONO_DEBOUNCE_EXTI,
 
-	// LOAD task messages
-	ARCADIA_MSG_ID_LOAD_LOAD_MODULE,
 	//////////
 	ARCADIA_MSG_ID_NUM_IDS
 } ARCADIA_msg_id_t;
@@ -70,9 +67,6 @@ typedef union _ARCADIA_payload
 	CHRONO_PAYLOAD_schedule_msg_for_task_t	chrono_payload_schedule_msg_for_task;
 	CHRONO_PAYLOAD_cancel_scheduled_msg_t	chrono_payload_cancel_scheduled_msg;
 	CHRONO_PAYLOAD_debounce_exti_t			chrono_payload_debounce_exti;
-
-	// LOAD task payloads
-	LOAD_PAYLOAD_load_module_t				load_payload_load_module;
 } ARCADIA_payload_t;
 
 typedef struct _ARCADIA_msg
