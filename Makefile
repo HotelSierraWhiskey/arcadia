@@ -31,6 +31,7 @@ export CC CCLD SIZE OBJCOPY JLINK COMMON_FLAGS COMMON_DEFINES
 # **************************************************************************** #
 
 SRC =				src
+TOOLS =				tools
 BUILD_DIR =			$(SRC)/build
 APP_HEX =			$(SRC)/app/build/app.hex
 BOOTLOADER_HEX =	$(SRC)/bootloader/build/bootloader.hex
@@ -65,7 +66,7 @@ combined: $(COMBINED_HEX)
 
 .PHONY:
 upload: $(COMBINED_HEX)
-	$(JLINK) -CommanderScript upload.jlink
+	$(JLINK) -CommanderScript $(TOOLS)/upload.jlink
 
 # **************************************************************************** #
 #	Utils
