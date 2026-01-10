@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <inttypes.h>
 #include <math.h>
+#include "tinyprintf.h"
 
 #ifndef UNIT_TEST
 #ifndef BOOTLOADER

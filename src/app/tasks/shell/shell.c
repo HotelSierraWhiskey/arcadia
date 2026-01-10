@@ -14,6 +14,7 @@
 #include "dac.h"
 #include "dma.h"
 #include "shell_utils.h"
+#include "printf.h"
 
 /****************************************************************************************************
  *	D E F I N E S   &   T Y P E D E F S
@@ -740,7 +741,8 @@ static const SHELL_command_t kp_dac_command_table[] =
  ****************************************************************************************************/
 void SHELL_init(void)
 {
-	UART_init(UART_CHANNEL_SHELL);
+	PRINTF_init();
+
 	SHELL_flush_buffer();
 
 	SHELL_info.printf_mutex = xSemaphoreCreateMutexStatic(&SHELL_info.printf_mutex_buffer);
@@ -870,10 +872,10 @@ static void SHELL_handle_esc_sequence(void)
  ****************************************************************************************************/
 static void SHELL_handle_command(void)
 {
-	uint8_t argc = 0;
-	char *argv[SHELL_MAX_ARGS];
-	SHELL_command_t *p_table = (SHELL_command_t *)kp_command_table;
-	SHELL_function_t shell_function = NULL;
+	uint8_t				argc = 0;
+	char *				argv[SHELL_MAX_ARGS];
+	SHELL_command_t *	p_table = (SHELL_command_t *)kp_command_table;
+	SHELL_function_t	shell_function = NULL;
 
 	// Tokenize the input command buffer
 	char *token = strtok(SHELL_info.pc_buffer, " ");

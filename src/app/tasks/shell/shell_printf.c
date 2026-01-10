@@ -12,24 +12,17 @@ SHELL_info_t SHELL_info;
  ****************************************************************************************************/
 void SHELL_printf(const char *format, ...)
 {
-    va_list args;
+	va_list args;
 
-    va_start(args, format);
+	va_start(args, format);
 
-    PRINTF_SEMAPHORE_TAKE();
+	PRINTF_SEMAPHORE_TAKE();
 
-    (void)vsnprintf(printf_buffer, sizeof(printf_buffer), format, args);
+	(void)vsnprintf(printf_buffer, sizeof(printf_buffer), format, args);
 
-    va_end(args);
+	va_end(args);
 
-    for (char *p = printf_buffer; *p != '\0'; ++p)
-    {
-        if (*p == '\n')  // Check for newline
-        {
-            UART_tx_char(UART_CHANNEL_SHELL, '\r');
-        }
-        UART_tx_char(UART_CHANNEL_SHELL, *p);
-    }
+	printf("%s", printf_buffer);
 
-    PRINTF_SEMAPHORE_GIVE();
+	PRINTF_SEMAPHORE_GIVE();
 }
