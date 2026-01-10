@@ -66,7 +66,6 @@ static const uint32_t kpu8_baud_rates[UART_BAUD_RATE_ID_NUM_BAUD_RATES] =
  */
 static UART_channel_t p_uart_channels[UART_CHANNEL_NUM_CHANNELS] =
 {
-#ifdef DEV_BOARD
 	[UART_CHANNEL_SHELL] =
 	{
 		.kpc_name				= "Debug Shell",
@@ -79,7 +78,6 @@ static UART_channel_t p_uart_channels[UART_CHANNEL_NUM_CHANNELS] =
 		.sercom_channel_id 		= SERCOM_CHANNEL_ID_0,
 		.peripheral_function 	= IO_PERIPHERAL_FUNCTION_D
 	},
-#endif // DEV_BOARD
 };
 
 /****************************************************************************************************
@@ -502,9 +500,7 @@ static void UART_on_isr(UART_channel_id_t channel_id)
  ****************************************************************************************************/
 void irqSERCOM0(void)
 {
-#ifdef DEV_BOARD
 	UART_on_isr(UART_CHANNEL_SHELL);
-#endif // DEV_BOARD
 }
 
 /****************************************************************************************************

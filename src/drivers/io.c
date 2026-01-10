@@ -46,7 +46,6 @@ typedef struct _IO_pin
 /**
  *	Main application pin map
  */
-#ifdef DEV_BOARD
 static IO_pin_t p_pin_map[IO_PIN_ID_NUM_PINS] =
 {
 	// Port A
@@ -419,7 +418,6 @@ static IO_pin_t p_pin_map[IO_PIN_ID_NUM_PINS] =
 		.type		= IO_PIN_TYPE_UNUSED
 	}
 };
-#endif // DEV_BOARD
 
 /****************************************************************************************************
  *	F U N C T I O N S

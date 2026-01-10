@@ -61,7 +61,6 @@ static void		EIC_set_sense		(uint8_t u8_line, uint8_t u8_sense, bool u8_filten);
  */
 static EXTI_source_entry_t EXTI_source_configs[EXTI_SOURCE_ID_NUM_IDS] =
 {
-#ifdef DEV_BOARD
 	[EXTI_SOURCE_ID_DEBUG_BUTTON] =
 	{
 		.config =
@@ -72,7 +71,6 @@ static EXTI_source_entry_t EXTI_source_configs[EXTI_SOURCE_ID_NUM_IDS] =
 			.kpc_name			= "DEBUG_BUTTON"
 		}
 	}
-#endif // DEV_BOARD
 };
 
 /****************************************************************************************************

@@ -1,111 +1,114 @@
 # **************************************************************************** #
-#	Compiler Settings & Build Tools
+#	Pathing & Directories
 # **************************************************************************** #
-CC      := arm-none-eabi-gcc
-OBJCOPY := arm-none-eabi-objcopy
-SIZE    := arm-none-eabi-size
+SRC	=					..
+LIB =					$(SRC)/../lib
+COMMON =				$(SRC)/common
+DRIVERS =				$(SRC)/drivers
+
+BOOTLOADER_BASENAME = 	bootloader
+BOOTLOADER_BUILD_DIR = 	build
+BOOTLOADER_ELF =		$(BOOTLOADER_BUILD_DIR)/$(BOOTLOADER_BASENAME).elf
+BOOTLOADER_HEX =		$(BOOTLOADER_BUILD_DIR)/$(BOOTLOADER_BASENAME).hex
 
 # **************************************************************************** #
-#	Project
+#	Bootloader-specific Flags
 # **************************************************************************** #
-TARGET  := bootloader
-BUILD   := build
-
-# **************************************************************************** #
-#	MCU/ Arch
-# **************************************************************************** #
-CPU     := cortex-m0plus
-ARCH    := -mcpu=$(CPU) -mthumb
-
-# **************************************************************************** #
-#	Bootloader Flags
-# **************************************************************************** #
-BOOTLOADER_FLAGS := -DBOOTLOADER -DDEV_BOARD
-
-# **************************************************************************** #
-#	Includes
-# **************************************************************************** #
-INC :=	-I. \
-		-I../ \
-		-I../../lib/CMSIS_5/CMSIS/Core/Include \
-		-I../../lib/samc21/include \
-		-I../../lib/ff15a/source \
-		-I/usr/local/arm-gnu-toolchain-14.3.Rel1-x86_64-arm-none-eabi/include \
-		-I./tinyprintf \
-		-I../drivers \
-		-I../tasks/shell
+BOOTLOADERSPEC_FLAGS =	-DBOOTLOADER
 
 # **************************************************************************** #
 #	Compiler Flags
 # **************************************************************************** #
-CFLAGS  := $(ARCH) \
-			-std=gnu2x \
-			-ffunction-sections \
-			-fdata-sections \
-			-nostartfiles \
-			--specs=nosys.specs \
-			-Wno-switch \
-			-Wno-main \
-			-Wl,--print-memory-usage \
-			-lm \
-			$(BOOTLOADER_FLAGS) \
-			$(INC)
+BOOTLOADER_CFLAGS = 	$(COMMON_FLAGS) \
+						-mthumb \
+						-ffunction-sections \
+						-fdata-sections \
+						-nostartfiles \
+						--specs=nosys.specs \
+						-T linkerscript.ld \
+						-Wno-switch \
+						-Wno-main \
+						-Wl,--print-memory-usage \
+						-Wl,--gc-sections \
+						$(BOOTLOADERSPEC_FLAGS)
 
 # **************************************************************************** #
-#	Linker Flags
+#	Bootloader Includes
 # **************************************************************************** #
-LDFLAGS := $(ARCH) \
-		   -T linkerscript.ld \
-		   -Wl,--gc-sections \
-		   -Wl,-Map=$(BUILD)/$(TARGET).map
+BOOTLOADER_INC =		-I. \
+						-I/usr/local/arm-gnu-toolchain-14.3.Rel1-x86_64-arm-none-eabi/include \
+						-I$(SRC)/ \
+						-I$(LIB)/CMSIS_5/CMSIS/Core/Include \
+						-I$(LIB)/samc21/include \
+						-I$(LIB)/ff15a/source \
+						-I$(COMMON) \
+						-I$(COMMON)/tinyprintf \
+						-I$(DRIVERS) \
+						-I$(SRC)/app \
+						-I$(SRC)/app/tasks/shell
 
 # **************************************************************************** #
-#	Sources
+#	Bootloader C Files
 # **************************************************************************** #
-SRCS := main.c \
-		../../nvic.c \
-		../../sys.c \
-		../../drivers/io.c \
-		../../drivers/sercom.c \
-		../../drivers/uart.c \
-		../../drivers/spi.c \
-		../../drivers/sd.c \
-		../../drivers/fsif.c \
-		../../drivers/nvmctrl.c \
-		../../lib/ff15a/source/ff.c \
-		../../lib/ff15a/source/ffunicode.c \
-		tinyprintf/tinyprintf.c \
-		bootloader.c \
-		fw_update.c \
-		bootutils.c \
-		printf.c
+BOOTLOADER_CFILES =		main.c \
+						$(COMMON)/nvic.c \
+						$(SRC)/app/sys.c \
+						$(DRIVERS)/io.c \
+						$(DRIVERS)/sercom.c \
+						$(DRIVERS)/uart.c \
+						$(DRIVERS)/spi.c \
+						$(DRIVERS)/sd.c \
+						$(DRIVERS)/fsif.c \
+						$(DRIVERS)/nvmctrl.c \
+						$(LIB)/ff15a/source/ff.c \
+						$(LIB)/ff15a/source/ffunicode.c \
+						$(COMMON)/tinyprintf/tinyprintf.c \
+						$(COMMON)/printf.c \
+						bootloader.c \
+						fw_update.c \
+						bootutils.c
 
+# **************************************************************************** #
+#	App Objects
+# **************************************************************************** #
 
-OBJS := $(addprefix $(BUILD)/, $(SRCS:.c=.o))
+# Replace .c with .o, strip directories, prepend "build/"
+BOOTLOADER_OBJS =		$(addprefix $(BOOTLOADER_BUILD_DIR)/, $(notdir $(BOOTLOADER_CFILES:.c=.o)))
+
+# create strings of assignments (e.g. build/arcadia.o=arcadia.c)
+BOOTLOADER_OBJ_SRC = 	$(foreach f,$(BOOTLOADER_CFILES),$(BOOTLOADER_BUILD_DIR)/$(notdir $(f:.c=.o))=$(f))
+
+# evaluate those strings to create actual make variables
+# now we can do $($@) in our rules
+$(foreach m,$(BOOTLOADER_OBJ_SRC),$(eval $(m)))
 
 # **************************************************************************** #
 #	Rules
 # **************************************************************************** #
-all: $(BUILD)/$(TARGET).elf $(BUILD)/$(TARGET).hex $(BUILD)/$(TARGET).bin
 
-$(BUILD)/%.o: %.c
-	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+$(BOOTLOADER_BUILD_DIR):
+	@mkdir -p $@
 
-$(BUILD)/%.o: %.c | $(BUILD)
-	$(CC) $(CFLAGS) -c $< -o $@
+$(BOOTLOADER_OBJS): | $(BOOTLOADER_BUILD_DIR)
+	@echo "CC $($@) -> $@"
+	@$(CC) $(BOOTLOADER_CFLAGS) $(BOOTLOADER_INC) -c $($@) -o $@
 
-$(BUILD)/$(TARGET).elf: $(OBJS)
-	$(CC) $(OBJS) $(LDFLAGS) -o $@
-	$(SIZE) $@
+$(BOOTLOADER_ELF): $(BOOTLOADER_OBJS)
+	@echo LD $@
+	@$(CC) $(BOOTLOADER_CFLAGS) \
+		-o $@ $^
 
-$(BUILD)/$(TARGET).hex: $(BUILD)/$(TARGET).elf
-	$(OBJCOPY) -O ihex $< $@
+$(BOOTLOADER_HEX): $(BOOTLOADER_ELF)
+	@echo OBJCOPY $@
+	@$(OBJCOPY) -O ihex $< $@
 
-$(BUILD)/$(TARGET).bin: $(BUILD)/$(TARGET).elf
-	$(OBJCOPY) -O binary $< $@
+# **************************************************************************** #
+#	Top-level Targets
+# **************************************************************************** #
 
+.PHONY: bootloader
+bootloader: $(BOOTLOADER_HEX)
+
+.PHONY: clean
 clean:
-	rm -rf $(BUILD)
-
-.PHONY: all clean
+	rm -rf build

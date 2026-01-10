@@ -187,7 +187,6 @@ static uint8_t 		SD_cmd_send_csd						(uint8_t * pu8_csd);			// CMD9
 static uint8_t 		SD_transfer							(uint8_t u8_byte);
 static uint8_t 		SD_await_r1_response				(void);
 static uint8_t 		SD_await_r7_response				(void);
-static void 		SD_display_info						(void);
 
 /****************************************************************************************************
  *	P R I V A T E   V A R I A B L E S
@@ -793,16 +792,6 @@ static uint8_t SD_await_r7_response(void)
 }
 
 /****************************************************************************************************
- *	Helper function for displaying module-level information
- *
- ****************************************************************************************************/
-static void SD_display_info(void)
-{
-	SHELL_printf("%-20s: %s\n", "Version", SD_get_version());
-	SHELL_printf("%-20s: %lu bytes\n", "Capacity", SD_get_capacity()); // not sure if we're overflowing here due to minimal printf stuff
-}
-
-/****************************************************************************************************
  *	S H E L L   F U N C T I O N S
  ****************************************************************************************************/
 
@@ -965,7 +954,8 @@ uint8_t SD_shell_info(uint8_t argc, char ** argv)
 	if (argc == 0)
 	{
 		SHELL_SEPARATOR();
-		SD_display_info();
+		SHELL_printf("%-20s: %s\n", "Version", SD_get_version());
+		SHELL_printf("%-20s: %lu bytes\n", "Capacity", SD_get_capacity()); // not sure if we're overflowing here due to minimal printf stuff
 		SHELL_SEPARATOR();
 	}
 	else

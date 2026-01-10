@@ -1,7 +1,7 @@
 Device ATSAMC21E18A
 SelectInterface SWD
 Speed 4000
-LoadFile build/combined.hex
+LoadFile src/build/combined.hex
 ResetX 10
 Go
 Exit

@@ -128,7 +128,7 @@ void NAKED NORETURN BOOTLOADER_start_app(uint32_t u32_pc, uint32_t u32_sp, uint3
 
 bool BOOTLOADER_update_flag_set(void)
 {
-	uint8_t **					ppu8_rows = NVMCTRL_get_rows();
+	volatile uint8_t **			ppu8_rows = NVMCTRL_get_rows();
 	volatile uint8_t *			pu8_row_flash = ppu8_rows[NVMCTRL_APP_NVM_ROW_ID_0];
 	const uint32_t				ku32_row_addr = (uint32_t)(uintptr_t)pu8_row_flash;
 

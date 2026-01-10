@@ -3,7 +3,6 @@
         {
             "name": "Dev Board",
             "includePath": [
-                "/opt/arm-gnu-toolchain-14.3.rel1-x86_64-arm-none-eabi/arm-none-eabi/include/reent.h",
                 "${workspaceFolder}",
                 "${workspaceFolder}/lib/CMSIS_5",
                 "${workspaceFolder}/lib/CMSIS_5/CMSIS/Core/Include",
@@ -13,18 +12,17 @@
                 "${workspaceFolder}/lib/FreeRTOS-LTS/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM0/",
                 "${workspaceFolder}/lib/ff15a/source",
                 "${workspaceFolder}/src",
-                "${workspaceFolder}/src/tasks/chrono",
-                "${workspaceFolder}/src/tasks/drive",
-                "${workspaceFolder}/src/tasks/load",
-                "${workspaceFolder}/src/tasks/shell",
-                "${workspaceFolder}/src/tasks",
-                "${workspaceFolder}/src/json",
-                "${workspaceFolder}/src/json/jsmn",
-                "${workspaceFolder}/src/TethysRT",
-                "${workspaceFolder}/src/bootloader/tinyprintf"
+                "${workspaceFolder}/src/app/tasks/chrono",
+                "${workspaceFolder}/src/app/tasks/drive",
+                "${workspaceFolder}/src/app/tasks/load",
+                "${workspaceFolder}/src/app/tasks/shell",
+                "${workspaceFolder}/src/app/tasks",
+                "${workspaceFolder}/src/common/json",
+                "${workspaceFolder}/src/common/json/jsmn",
+                "${workspaceFolder}/src/app/TethysRT",
+                "${workspaceFolder}/src/common/tinyprintf"
             ],
             "defines": [
-                "DEV_BOARD",
                 "BUILD_HAS_FS"
             ],
             "compilerPath": "/opt/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc",
