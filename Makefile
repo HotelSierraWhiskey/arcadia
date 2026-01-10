@@ -22,7 +22,9 @@ COMMON_FLAGS =	\
 				-fstack-usage \
 				--specs=nano.specs
 
-export CC CCLD SIZE JLINK COMMON_FLAGS OBJCOPY
+COMMON_DEFINES = -DTINYPRINTF_OVERRIDE_LIBC
+
+export CC CCLD SIZE OBJCOPY JLINK COMMON_FLAGS COMMON_DEFINES
 
 # **************************************************************************** #
 #	Paths

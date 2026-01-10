@@ -14,7 +14,7 @@ BOOTLOADER_HEX =		$(BOOTLOADER_BUILD_DIR)/$(BOOTLOADER_BASENAME).hex
 # **************************************************************************** #
 #	Bootloader-specific Flags
 # **************************************************************************** #
-BOOTLOADERSPEC_FLAGS =	-DBOOTLOADER
+BOOTLOADERSPEC_DEFINES = -DBOOTLOADER
 
 # **************************************************************************** #
 #	Compiler Flags
@@ -30,7 +30,8 @@ BOOTLOADER_CFLAGS = 	$(COMMON_FLAGS) \
 						-Wno-main \
 						-Wl,--print-memory-usage \
 						-Wl,--gc-sections \
-						$(BOOTLOADERSPEC_FLAGS)
+						$(BOOTLOADERSPEC_DEFINES) \
+						$(COMMON_DEFINES)
 
 # **************************************************************************** #
 #	Bootloader Includes

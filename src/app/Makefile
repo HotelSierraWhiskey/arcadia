@@ -14,7 +14,7 @@ APP_HEX =			$(APP_BUILD_DIR)/$(APP_BASENAME).hex
 # **************************************************************************** #
 #	App-specific Flags
 # **************************************************************************** #
-APPSPEC_FLAGS = 	-DBUILD_HAS_FS
+APPSPEC_DEFINES = 	-DBUILD_HAS_FS
 
 # **************************************************************************** #
 #	Compiler Flags
@@ -29,7 +29,8 @@ APP_CFLAGS = 		$(COMMON_FLAGS) \
 					-Wno-switch \
 					-Wno-main \
 					-Wl,--print-memory-usage \
-					$(APPSPEC_FLAGS)
+					$(COMMON_DEFINES) \
+					$(APPSPEC_DEFINES)
 
 # **************************************************************************** #
 #	App Includes
@@ -49,6 +50,7 @@ LIB_INC = 			-I$(LIB) \
 					-I$(LIB)/samc21/include
 
 COMMON_INC =		-I$(COMMON) \
+					-I$(COMMON)/tinyprintf \
 					-I$(COMMON)/json \
 					-I$(COMMON)/json/jsmn
 
@@ -84,6 +86,8 @@ FATFS_CFILES = 		$(LIB)/ff15a/source/ff.c \
 TETHYS_CFILES = 	./TethysRT/tethysrt.c
 
 COMMON_CFILES =		$(COMMON)/json/json.c \
+					$(COMMON)/tinyprintf/tinyprintf.c \
+					$(COMMON)/printf.c \
 					$(COMMON)/nvic.c \
 					$(COMMON)/button.c \
 					$(COMMON)/utils.c
@@ -145,10 +149,7 @@ $(APP_OBJS): | $(APP_BUILD_DIR)
 
 $(APP_ELF): $(APP_OBJS)
 	@echo LD $@
-	@$(CC) $(APP_CFLAGS) \
-		-Wl,-u,_printf_float \
-		-Wl,-u,_scanf_float \
-		-o $@ $^ -lm
+	@$(CC) $(APP_CFLAGS) -o $@ $^ -lm
 
 $(APP_HEX): $(APP_ELF)
 	@echo OBJCOPY $@
