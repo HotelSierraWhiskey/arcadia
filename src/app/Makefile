@@ -88,7 +88,6 @@ COMMON_CFILES =		$(COMMON)/json/json.c \
 					$(COMMON)/tinyprintf/tinyprintf.c \
 					$(COMMON)/printf.c \
 					$(COMMON)/nvic.c \
-					$(COMMON)/button.c \
 					$(COMMON)/utils.c
 
 DRIVER_CFILES =		$(DRIVERS)/dac.c \

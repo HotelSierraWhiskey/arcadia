@@ -5,19 +5,19 @@
 
 ## TODO
 
-- Clean up bootloader Makefile
-	- everything for the bootloader should build in src/bootloader/build
+### Core Stuff
 
-- Add support for other SD card types
-
-- Place all driver files in src/drivers
-
-- Make printf make sense between bootloader/ app
+- Move LOAD task logic into DRIVE (and remove LOAD files)
 
 - Implement firmware update
 
+- Add support for other SD card types
+
 - Add memory_map.ld and import this into linkerscripts
 
-- Move LOAD task logic into DRIVE and delete LOAD task
+### Features
+
+- Add modules directory
+
 
 <p align="center">© 2025 Henry Wynberg. All Rights Reserved.</p>
