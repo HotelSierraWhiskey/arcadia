@@ -17,6 +17,9 @@
 #define ARCADIA_semaphore_take(semaphore) 	xSemaphoreTake(semaphore, pdMS_TO_TICKS(ARCADIA_SEMAPHORE_WAIT_MS))
 #define ARCADIA_semaphore_give(semaphore)	xSemaphoreGive(semaphore)
 
+/**
+ *	Task-specific message IDs
+ */
 typedef enum _ARCADIA_msg_id
 {
 	// Universal messages
@@ -46,6 +49,9 @@ typedef enum _ARCADIA_msg_id
 	ARCADIA_MSG_ID_NUM_IDS
 } ARCADIA_msg_id_t;
 
+/**
+ *	Union of message-specific payloads
+ */
 typedef union _ARCADIA_payload
 {
 	// DRIVE task payloads
@@ -69,6 +75,9 @@ typedef union _ARCADIA_payload
 	CHRONO_PAYLOAD_debounce_exti_t			chrono_payload_debounce_exti;
 } ARCADIA_payload_t;
 
+/**
+ *	A generic message, used to pass data between tasks
+ */
 typedef struct _ARCADIA_msg
 {
 	ARCADIA_msg_id_t		id;

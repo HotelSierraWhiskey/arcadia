@@ -461,6 +461,7 @@ void IO_init(void)
 			}
 			default:
 				c_port = 'X';
+				break;
 		}
 
 		pc_string = p_pin_map[i].pc_string;
